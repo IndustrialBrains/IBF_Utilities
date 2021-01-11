@@ -1,4 +1,3 @@
-<<<<<<< Updated upstream
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.3">
   <POU Name="FB_PersistentDataManager" Id="{5c72dac1-9833-4672-b715-b19477d15b62}" SpecialFunc="None">
@@ -67,69 +66,4 @@ END_IF
       <LineId Id="11" Count="0" />
     </LineIds>
   </POU>
-=======
-﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.2">
-  <POU Name="FB_PersistentDataManager" Id="{5c72dac1-9833-4672-b715-b19477d15b62}" SpecialFunc="None">
-    <Declaration><![CDATA[FUNCTION_BLOCK FB_PersistentDataManager
-VAR_INPUT
-END_VAR
-VAR_OUTPUT
-END_VAR
-VAR
-	FbWritePersistentData : FB_WritePersistentData ;
-	cmdWrite : BOOL := FALSE ;
-	TOfWriteInterval	: TOf ;
-	CmdWriteFromTime	: BOOL ; 
-	TestjeWritten		: BOOL ;
-END_VAR
-]]></Declaration>
-    <Implementation>
-      <ST><![CDATA[// ===== persistent write interval =====
- TOfWriteInterval(	IN := cmdWrite OR NOT TOfWriteInterval.Q,
-	 				PT	:= T#5M  );
-
-IF NOT TOfWriteInterval.Q THEN 
-	cmdWrite := TRUE ;
-END_IF
-
-// ===== write persistent data =====
-	FbWritePersistentData ( PORT 	:= 851,
-							START 	:= CmdWrite,
-							TMOUT 	:= T#1S,	
-							mode 	:= E_PersistentMode.SPDM_VAR_BOOST );	
-
-IF cmdWrite AND FbWritePersistentData.BUSY THEN 
-	cmdWrite := FALSE ;
-END_IF]]></ST>
-    </Implementation>
-    <Method Name="Write" Id="{19a5b35c-c9d0-4c73-b29c-5c39d2c6be4f}">
-      <Declaration><![CDATA[METHOD PUBLIC Write : BOOL
-VAR_INPUT
-END_VAR
-]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[IF NOT FbWritePersistentData.BUSY THEN 
-	cmdWrite := TRUE ;
-END_IF]]></ST>
-      </Implementation>
-    </Method>
-    <LineIds Name="FB_PersistentDataManager">
-      <LineId Id="43" Count="0" />
-      <LineId Id="46" Count="2" />
-      <LineId Id="44" Count="0" />
-      <LineId Id="49" Count="1" />
-      <LineId Id="45" Count="0" />
-      <LineId Id="10" Count="4" />
-      <LineId Id="33" Count="0" />
-      <LineId Id="9" Count="0" />
-      <LineId Id="34" Count="1" />
-    </LineIds>
-    <LineIds Name="FB_PersistentDataManager.Write">
-      <LineId Id="6" Count="0" />
-      <LineId Id="5" Count="0" />
-      <LineId Id="7" Count="0" />
-    </LineIds>
-  </POU>
->>>>>>> Stashed changes
 </TcPlcObject>
