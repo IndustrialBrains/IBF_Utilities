@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.3">
+  <POU Name="Grey_To_Bin" Id="{b081e35e-5fed-49a3-83e6-052175f57bfb}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION Grey_To_Bin : INT // convert 4 bit grey code into 8 bit binary code
+VAR_INPUT
+	GreyBit0 : BOOL := FALSE ;
+	GreyBit1 : BOOL := FALSE ;
+	GreyBit2 : BOOL := FALSE ;
+	GreyBit3 : BOOL := FALSE ;
+END_VAR
+VAR
+	TempInt : INT ; // temporary 
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[// convert grey code into binary
+TempInt.3 	:= GreyBit3 ;
+TempInt.2	:= GreyBit3 	XOR GreyBit2 ;
+TempInt.1	:= TempInt.2	XOR GreyBit1 ;
+TempInt.0	:= TempInt.1	XOR GreyBit0 ;
+
+Grey_To_Bin := TempInt ;]]></ST>
+    </Implementation>
+    <LineIds Name="Grey_To_Bin">
+      <LineId Id="7" Count="0" />
+      <LineId Id="16" Count="3" />
+      <LineId Id="21" Count="0" />
+      <LineId Id="20" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

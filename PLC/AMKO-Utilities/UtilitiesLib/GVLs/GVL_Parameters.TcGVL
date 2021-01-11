@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.5">
+  <GVL Name="GVL_Parameters" Id="{1e32efed-448a-4ea5-a3f2-5d75543106fc}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL
+	fbParameterHandler		: Fb_ParLogging ; // Default parameter handler for visualisation and file handling
+	sPARLIST_FILE			: T_MaxString 		:= 'C:\TwinCAT\3.1\Boot\ParameterList.csv';(* CSV destination file path and name *)
+	sPARLOG_FILE			: T_MaxString 		:= 'C:\TwinCAT\3.1\Boot\ParameterLog.csv';(* CSV destination file path and name *)
+END_VAR
+VAR_GLOBAL CONSTANT
+	MAX_PARAMETERS 			: UDINT := 1000	;
+	PAR_COLUMNS 			: UDINT := 8	;
+	MAX_CSV_FIELD_LENGTH	: UDINT := 100	;
+	sNetId					: T_AmsNetID		:= '' ;
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

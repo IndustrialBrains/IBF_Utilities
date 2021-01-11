@@ -1,0 +1,28 @@
+<<<<<<< Updated upstream:AMKO-Utilities/AMKO-Utilities/UtilitiesLib/FaultsAndMessages/Param_Messages.TcGVL
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.4">
+  <GVL Name="Param_Messages" Id="{2016c387-f096-4466-aaa3-690b7ef65799}" ParameterList="True">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL CONSTANT
+	nMAX_MESSAGES_SHOWN 	: UDINT := 10 	;
+	nMAX_MESSAGE_HISTORY	: UDINT := 1000 ;
+	nMAX_CSV_FIELD_LENGTH	: UDINT := 100	;
+	tMESSAGE_TIMEOUT		: TIME 	:= T#5S ;
+	sLOGFILE_PATH			: STRING:= '\Hard Disk\TwinCAT\3.1\Boot\FaultLogs\'	;
+	sLOGFILE_NAME			: STRING:= 'Faultlog' 		; // Message log destination file
+	nMESSAGE_COLUMNS		: UDINT := 8 ;
+END_VAR]]></Declaration>
+  </GVL>
+=======
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.16">
+  <GVL Name="Param_Messages" Id="{2016c387-f096-4466-aaa3-690b7ef65799}" ParameterList="True">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL CONSTANT
+	nMAX_MESSAGES_SHOWN : UDINT := 10 	;
+	nMAX_MESSAGE_HISTORY: UDINT := 1000 ;
+	tMESSAGE_TIMEOUT	: TIME 	:= T#3S ;
+END_VAR]]></Declaration>
+  </GVL>
+>>>>>>> Stashed changes:AMKO-Utilities/AMKO-Utilities/UtilitiesLib/Messages/Param_Messages.TcGVL
+</TcPlcObject>

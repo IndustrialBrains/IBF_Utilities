@@ -1,0 +1,177 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.4">
+  <EnumerationTextList Name="E_ComponentTypes" Id="{279e7338-601a-42f5-8e17-8ce44587bb9a}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'strict'}
+{attribute 'to_string'}
+TYPE E_ComponentTypes :
+(
+	// No entry
+		NA			:= 0,
+	// Actuators 
+		Cylinder 	:= 10,
+		Axis		:= 11,
+		Heaters		:= 12,
+	// Buttons 
+		EstopButton	:= 20,
+		EstopBumper	:= 21,	
+		Pushbutton 	:= 22,
+		Switch		:= 23,
+	// I/O
+		SafeIO		:= 30,
+		Rio_Box		:= 31,
+		Rio_Slot	:= 32,
+		Encoder		:= 33,
+		DiSensor	:= 34,
+	// Drive
+		ServoDrive 	:= 40,
+	// Operation
+		HMI			:= 50,
+		RemoteOS	:= 51,
+		RemoteDB	:= 52,
+	// Assemblies
+		Assembly 	:= 60,
+		SubAssembly	:= 61,
+	// functions
+		MainProgram		:= 100,
+		StepProgram		:= 101,
+		FunctionBlock	:= 102 
+)UDINT;
+END_TYPE
+]]></Declaration>
+    <XmlArchive>
+      <Data>
+        <o xml:space="preserve" t="TextListEnumerationTextListObject">
+          <l n="TextList" t="ArrayList" cet="TextListRow">
+            <o>
+              <v n="TextID">"NA"</v>
+              <v n="TextDefault">"0"</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"Cylinder"</v>
+              <v n="TextDefault">"10"</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"Axis"</v>
+              <v n="TextDefault">"11"</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"Heaters"</v>
+              <v n="TextDefault">"12"</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"EstopButton"</v>
+              <v n="TextDefault">"20"</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"EstopBumper"</v>
+              <v n="TextDefault">"21"</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"Pushbutton"</v>
+              <v n="TextDefault">"22"</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"Switch"</v>
+              <v n="TextDefault">"23"</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"SafeIO"</v>
+              <v n="TextDefault">"30"</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"Rio_Box"</v>
+              <v n="TextDefault">"31"</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"Rio_Slot"</v>
+              <v n="TextDefault">"32"</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"Encoder"</v>
+              <v n="TextDefault">"33"</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"DiSensor"</v>
+              <v n="TextDefault">"34"</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"ServoDrive"</v>
+              <v n="TextDefault">"40"</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"HMI"</v>
+              <v n="TextDefault">"50"</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"RemoteOS"</v>
+              <v n="TextDefault">"51"</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"RemoteDB"</v>
+              <v n="TextDefault">"52"</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"Assembly"</v>
+              <v n="TextDefault">"60"</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"SubAssembly"</v>
+              <v n="TextDefault">"61"</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"MainProgram"</v>
+              <v n="TextDefault">"100"</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"StepProgram"</v>
+              <v n="TextDefault">"101"</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"FunctionBlock"</v>
+              <v n="TextDefault">"102"</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">""</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+          </l>
+          <l n="Languages" t="ArrayList" />
+          <v n="GuidInit">{6d0028e1-97b3-4087-b576-e65577d231bf}</v>
+          <v n="GuidReInit">{bb2041c3-0704-4038-8377-08d9e5a3c44b}</v>
+          <v n="GuidExitX">{972bdbaa-9c62-4d7b-8ab3-1be9421a29fe}</v>
+        </o>
+      </Data>
+      <TypeList>
+        <Type n="ArrayList">System.Collections.ArrayList</Type>
+        <Type n="Guid">System.Guid</Type>
+        <Type n="String">System.String</Type>
+        <Type n="TextListEnumerationTextListObject">{4b60233c-f940-4beb-b331-82133b520151}</Type>
+        <Type n="TextListRow">{53da1be7-ad25-47c3-b0e8-e26286dad2e0}</Type>
+      </TypeList>
+    </XmlArchive>
+  </EnumerationTextList>
+</TcPlcObject>

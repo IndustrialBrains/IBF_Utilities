@@ -1,0 +1,430 @@
+<<<<<<< Updated upstream
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.3">
+  <POU Name="FB_PositionTrigger" Id="{fd987587-b4d1-405a-9d23-bb003d45ecc7}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK PUBLIC FB_PositionTrigger // trigger function, sets trigger Q signal high when trigger position is between previous cycle's and current axis position.
+VAR_INPUT
+	fAxisPos			: LREAL	; // Axis position on which the to trigger
+	nAxisModuloRev		: DINT 	:= 0	; // axis modulo revolutions 
+	fAxisVelocity		: LREAL := 0 	; 	// velocity of axis 
+	bDirPositive		: BOOL 	:= TRUE ; // Axis direction is forward 
+	fEncoderTurnover	: LREAL	:= 360 	; // Encoder turnover value (standard 360 deg)
+	bEnablenNegative 	: BOOL 	:= FALSE; // Enables negative input values
+END_VAR
+VAR_OUTPUT
+	Q					: BOOL 	; // trigger signal
+	bInternalTrigger	: BOOL 	; // Internal trigger signal 
+	bTriggerArmed 		: BOOL 	; // Trigger is armed 
+	bEncoderTurnedOver	: BOOL 	; // is high when encoder goes thru it's turnover point 
+	fAccuracy 			: LREAL ; // Accuracy of trigger 
+END_VAR
+VAR
+	// function commands
+	fTriggerPosition 		: LREAL ; // trigger position 
+	fTriggerPosCompensated	: LREAL ; // TRigger Position after compensation
+	nRotBeforeTrigger		: DINT 	:= 0 ; 	// Full axis rotations before position trigger is armed
+	nRotBeforeTriggerCompensated	: DINT := 0 ; // full E_ComponentTypes.Axis rotation before trigger IsFinite armed 
+	// Trigger variables 
+	fReactionTime			: LREAL	:= 0 ; 	// [ms] Time before reaction to trigger (time compensation)
+	// internal values	
+	nTriggerRotation		: DINT	:= 0 ; 	// Number of rotations done since trigger is armed 
+	fOldAxisPos				: LREAL ; 		// Old axis position for comparison
+	nOldAxisRev				: DINT 	; 		// Old modulo revolutions 
+	fCompensationDistance	: LREAL := 0 ; 	// [units] trigger compensation distance  
+	// Edge functions 
+	fbReTriggerArmed		: R_TRIG ; // rising edge trigger on trigger armed (used to rest trigger values) 
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[// Rising edge function execute
+fbReTriggerArmed(CLK := bTriggerArmed); 
+
+// ==== Skip function if trigger is not armed =====
+	IF NOT bTriggerArmed THEN  
+		bInternalTrigger	:= FALSE 	;
+		RETURN ;	
+	ELSIF fbReTriggerArmed.Q THEN 
+		fOldAxisPos 		:= fAxisPos ;
+		nOldAxisRev			:= nAxisModuloRev ;
+		nTriggerRotation	:= 0 		; 
+		Q 					:= FALSE	;
+	END_IF
+
+// ==== check if encoder is at turnover =====
+	ExecTurnoverCheck(); 
+// ==== compare positions to trigger ======
+	CalcTriggerCompensation();
+	ExecArmTrigger(); 
+]]></ST>
+    </Implementation>
+    <Folder Name="Private" Id="{4208ffc7-0704-4b5d-8914-d67f25180c1c}" />
+    <Method Name="CalcTriggerCompensation" Id="{96ec8b32-d310-4326-901c-edd47b255ebf}" FolderPath="Private\">
+      <Declaration><![CDATA[METHOD PRIVATE CalcTriggerCompensation : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// ===== Calculate the distance travelled within the delay time =====
+	fCompensationDistance	:= fReactionTime  * (fAxisVelocity / 1000);  
+	
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="CmdArmTrigger" Id="{05a97c0b-39d0-42ba-8875-9046cdb77eac}">
+      <Declaration><![CDATA[METHOD PUBLIC CmdArmTrigger : BOOL // arm trigger
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// Arm trigger command 
+bTriggerArmed S= TRUE ;
+
+// set feedback
+CmdArmTrigger := NOT Q ;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="CmdSetTriggerPos" Id="{456097cb-6b4e-4349-a84a-cae4874abe8e}">
+      <Declaration><![CDATA[METHOD PUBLIC CmdSetTriggerPos : BOOL
+VAR_INPUT
+	fCmdPosition 	: LREAL ; // Trigger position 
+	nCmdRotations	: DINT	:= 0 ; // Rotations before trigger is set  
+	nCmdReactionTime: LREAL := 0 ; // [ms]reaction time to trigger signal 
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// set trigger position
+fTriggerPosition 	:= fCmdPosition ;
+nRotBeforeTrigger	:= nCmdRotations;
+fReactionTime 		:= nCmdReactionTime ;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ExecArmTrigger" Id="{53cf7f82-8ace-4dd1-a2b0-26e0d90c74fe}" FolderPath="Private\">
+      <Declaration><![CDATA[METHOD INTERNAL ExecArmTrigger : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// ===== Retract compensationdistance from trigger distance =====
+
+// check if trigger pos is not negative 
+IF NOT bEnablenNegative AND fTriggerPosCompensated < 0 THEN
+	fTriggerPosCompensated 			:= fEncoderTurnover + fTriggerPosition ;
+	nRotBeforeTriggerCompensated	:= nRotBeforeTrigger -	1;  
+ELSE
+	fTriggerPosCompensated 			:= fTriggerPosition - fCompensationDistance ;
+	nRotBeforeTriggerCompensated	:= nRotBeforeTrigger ;  
+END_IF 
+
+// ==== compare positions to trigger ======
+	bInternalTrigger := FALSE ;
+
+	IF bEncoderTurnedOver THEN
+		IF bDirPositive THEN
+			bInternalTrigger S= Between(fOldAxisPos , fTriggerPosCompensated, fEncoderTurnover) ;
+			bInternalTrigger S= Between(0	, fTriggerPosCompensated, fAxisPos) ;
+		ELSE 
+			bInternalTrigger S= Between(0			, fTriggerPosCompensated, fOldAxisPos) ;
+			bInternalTrigger S= Between(fAxisPos	, fTriggerPosCompensated, fEncoderTurnover) ;
+		END_IF 
+		bEncoderTurnedOver := FALSE ;
+	ELSE 
+		bInternalTrigger S= Between(fAxisPos	, fTriggerPosCompensated, fOldAxisPos) ;
+		bInternalTrigger S= Between(fOldAxisPos	, fTriggerPosCompensated, fAxisPos) ;
+		fAccuracy	:= ABS( fOldAxisPos - fAxisPos);
+	END_IF
+
+	fOldAxisPos := fAxisPos ;
+
+// ==== Check multiturn command =======
+	IF bInternalTrigger THEN 
+		IF nTriggerRotation >= nRotBeforeTriggerCompensated THEN 
+			Q S= bInternalTrigger;			
+		ELSE 
+			nTriggerRotation := nTriggerRotation + 1 ;
+		END_IF 
+	END_IF
+
+// ==== Reset arm trigger command =====
+	bTriggerArmed R= Q ; ]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ExecTurnoverCheck" Id="{10051210-68d4-4637-9383-f379a08b872f}" FolderPath="Private\">
+      <Declaration><![CDATA[METHOD PRIVATE ExecTurnoverCheck : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[	bEncoderTurnedOver := nOldAxisRev <> nAxisModuloRev ;
+	nOldAxisRev := nAxisModuloRev ;]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="FB_PositionTrigger">
+      <LineId Id="733" Count="0" />
+      <LineId Id="731" Count="1" />
+      <LineId Id="681" Count="1" />
+      <LineId Id="773" Count="0" />
+      <LineId Id="688" Count="0" />
+      <LineId Id="730" Count="0" />
+      <LineId Id="735" Count="2" />
+      <LineId Id="739" Count="0" />
+      <LineId Id="689" Count="6" />
+      <LineId Id="29" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PositionTrigger.CalcTriggerCompensation">
+      <LineId Id="5" Count="2" />
+      <LineId Id="10" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PositionTrigger.CmdArmTrigger">
+      <LineId Id="5" Count="1" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="8" Count="0" />
+      <LineId Id="7" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PositionTrigger.CmdSetTriggerPos">
+      <LineId Id="8" Count="0" />
+      <LineId Id="7" Count="0" />
+      <LineId Id="18" Count="0" />
+      <LineId Id="24" Count="0" />
+      <LineId Id="23" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PositionTrigger.ExecArmTrigger">
+      <LineId Id="38" Count="0" />
+      <LineId Id="50" Count="0" />
+      <LineId Id="44" Count="2" />
+      <LineId Id="49" Count="0" />
+      <LineId Id="61" Count="0" />
+      <LineId Id="63" Count="1" />
+      <LineId Id="48" Count="0" />
+      <LineId Id="43" Count="0" />
+      <LineId Id="6" Count="10" />
+      <LineId Id="57" Count="0" />
+      <LineId Id="17" Count="4" />
+      <LineId Id="55" Count="0" />
+      <LineId Id="23" Count="1" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="25" Count="0" />
+      <LineId Id="28" Count="4" />
+      <LineId Id="27" Count="0" />
+      <LineId Id="34" Count="0" />
+      <LineId Id="33" Count="0" />
+      <LineId Id="35" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PositionTrigger.ExecTurnoverCheck">
+      <LineId Id="5" Count="0" />
+      <LineId Id="9" Count="0" />
+    </LineIds>
+  </POU>
+=======
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.3">
+  <POU Name="FB_PositionTrigger" Id="{fd987587-b4d1-405a-9d23-bb003d45ecc7}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK PUBLIC FB_PositionTrigger // trigger function, sets trigger Q signal high when trigger position is between previous cycle's and current axis position.
+VAR_INPUT
+	fAxisPos			: LREAL	; // Axis position on which the to trigger
+	fAxisVelocity		: LREAL := 0 ; 	// velocity of axis 
+	bDirPositive		: BOOL 	:= TRUE ; // Axis direction is forward 
+	fEncoderTurnover	: LREAL	:= 360 	; // Encoder turnover value (standard 360 deg)
+	bEnablenNegative 	: BOOL 	:= FALSE; // Enables negative input values
+END_VAR
+VAR_OUTPUT
+	Q					: BOOL 	; // trigger signal
+	bInternalTrigger	: BOOL 	; // Internal trigger signal 
+	bTriggerArmed 		: BOOL 	; // Trigger is armed 
+	bEncoderTurnedOver	: BOOL 	; // is high when encoder goes thru it's turnover point 
+	fAccuracy 			: LREAL ; // Accuracy of trigger 
+END_VAR
+VAR
+	// function commands
+	fTriggerPosition 		: LREAL ; // trigger position 
+	nRotBeforeTrigger		: DINT 	:= 0 ; 	// Full axis rotations before position trigger is armed
+	// Trigger variables 
+	fReactionTime			: LREAL	:= 0 ; 	// [ms] Time before reaction to trigger (time compensation)
+	// internal values	
+	nTriggerRotation		: DINT	:= 0 ; 	// Number of rotations done since trigger is armed 
+	fOldAxisPos				: LREAL ; 		// Old axis position for comparison
+	fCompensationDistance	: LREAL := 0 ; 	// [units] trigger compensation distance   
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[// ==== Skip function if trigger is not armed =====
+	IF NOT bTriggerArmed THEN  
+		fOldAxisPos 		:= fAxisPos ;
+		nTriggerRotation	:= 0 		; 
+		bInternalTrigger	:= FALSE 	; 
+		Q 					:= FALSE	;
+		RETURN ;	
+	END_IF
+ 
+// ==== check if encoder is at turnover =====
+	ExecTurnoverCheck(); 
+
+// ==== compare positions to trigger ======
+	CalcTriggerCompensation();
+	ExecArmTrigger(); 
+
+// ==== auto disarm trigger =====
+	bTriggerArmed R= Q ;]]></ST>
+    </Implementation>
+    <Folder Name="Private" Id="{4208ffc7-0704-4b5d-8914-d67f25180c1c}" />
+    <Method Name="CalcTriggerCompensation" Id="{96ec8b32-d310-4326-901c-edd47b255ebf}" FolderPath="Private\">
+      <Declaration><![CDATA[METHOD PRIVATE CalcTriggerCompensation : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// ===== Calculate the distance travelled within the delay time =====
+	fCompensationDistance	:= fReactionTime  * (fAxisVelocity / 1000);  
+	
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="CmdArmTrigger" Id="{05a97c0b-39d0-42ba-8875-9046cdb77eac}">
+      <Declaration><![CDATA[METHOD PUBLIC CmdArmTrigger : BOOL // arm trigger
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// Arm trigger command 
+bTriggerArmed := NOT Q ;
+
+// set feedback
+CmdArmTrigger := Q ;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="CmdSetTriggerPos" Id="{456097cb-6b4e-4349-a84a-cae4874abe8e}">
+      <Declaration><![CDATA[METHOD PUBLIC CmdSetTriggerPos : BOOL
+VAR_INPUT
+	fCmdPosition 	: LREAL ; // Trigger position 
+	nCmdRotations	: DINT	:= 0 ; // Rotations before trigger is set  
+	nCmdReactionTime: LREAL := 0 ; // [ms]reaction time to trigger signal 
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// check if trigger pos is not negative 
+IF NOT bEnablenNegative AND fCmdPosition < 0 THEN
+	fCmdPosition 	:= fEncoderTurnover + fCmdPosition ;
+	nCmdRotations	:= nCmdRotations -	1;  
+END_IF 
+
+// set trigger position
+fTriggerPosition 	:= fCmdPosition ;
+nRotBeforeTrigger	:= nCmdRotations;
+fReactionTime 		:= nCmdReactionTime ;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ExecArmTrigger" Id="{53cf7f82-8ace-4dd1-a2b0-26e0d90c74fe}" FolderPath="Private\">
+      <Declaration><![CDATA[METHOD INTERNAL ExecArmTrigger : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// ===== Retract compensationdistance from trigger distance =====
+	fTriggerPosition := fTriggerPosition - fCompensationDistance ;
+// ==== compare positions to trigger ======
+	bInternalTrigger := FALSE ;
+
+	IF bEncoderTurnedOver THEN
+		IF bDirPositive THEN
+			bInternalTrigger S= Between(fOldAxisPos , fTriggerPosition, fEncoderTurnover) ;
+			bInternalTrigger S= Between(fAxisPos	, fTriggerPosition, 0) ;
+		ELSE 
+			bInternalTrigger S= Between(0			, fTriggerPosition, fOldAxisPos) ;
+			bInternalTrigger S= Between(fAxisPos	, fTriggerPosition, fEncoderTurnover) ;
+		END_IF 
+	ELSE 
+		bInternalTrigger S= Between(fAxisPos	, fTriggerPosition, fOldAxisPos) ;
+		bInternalTrigger S= Between(fOldAxisPos	, fTriggerPosition, fAxisPos) ;
+		fAccuracy	:= ABS( fOldAxisPos - fAxisPos);
+	END_IF
+	
+	fOldAxisPos := fAxisPos ;
+
+// ==== Check multiturn command =======
+	IF bInternalTrigger THEN 
+		IF nTriggerRotation >= nRotBeforeTrigger THEN 
+			Q := bInternalTrigger;			
+		ELSE 
+			nTriggerRotation := nTriggerRotation + 1 ;
+		END_IF 
+	END_IF
+
+// ==== Reset arm trigger command =====
+	bTriggerArmed R= Q ; ]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ExecTurnoverCheck" Id="{10051210-68d4-4637-9383-f379a08b872f}" FolderPath="Private\">
+      <Declaration><![CDATA[METHOD PRIVATE ExecTurnoverCheck : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// ==== check if encoder is at turnover =====
+	IF bDirPositive THEN 
+		bEncoderTurnedOver := fOldAxisPos > fAxisPos ;
+	ELSE 
+		bEncoderTurnedOver := fOldAxisPos < fAxisPos ;
+	END_IF
+]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="FB_PositionTrigger">
+      <LineId Id="499" Count="2" />
+      <LineId Id="605" Count="0" />
+      <LineId Id="603" Count="0" />
+      <LineId Id="502" Count="0" />
+      <LineId Id="505" Count="1" />
+      <LineId Id="511" Count="0" />
+      <LineId Id="557" Count="0" />
+      <LineId Id="518" Count="0" />
+      <LineId Id="597" Count="0" />
+      <LineId Id="566" Count="0" />
+      <LineId Id="599" Count="0" />
+      <LineId Id="585" Count="0" />
+      <LineId Id="584" Count="0" />
+      <LineId Id="537" Count="0" />
+      <LineId Id="29" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PositionTrigger.CalcTriggerCompensation">
+      <LineId Id="5" Count="2" />
+      <LineId Id="10" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PositionTrigger.CmdArmTrigger">
+      <LineId Id="5" Count="1" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="8" Count="0" />
+      <LineId Id="7" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PositionTrigger.CmdSetTriggerPos">
+      <LineId Id="5" Count="0" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="11" Count="0" />
+      <LineId Id="20" Count="0" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="8" Count="0" />
+      <LineId Id="7" Count="0" />
+      <LineId Id="18" Count="0" />
+      <LineId Id="24" Count="0" />
+      <LineId Id="23" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PositionTrigger.ExecArmTrigger">
+      <LineId Id="38" Count="0" />
+      <LineId Id="37" Count="0" />
+      <LineId Id="6" Count="18" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="25" Count="0" />
+      <LineId Id="28" Count="4" />
+      <LineId Id="27" Count="0" />
+      <LineId Id="34" Count="0" />
+      <LineId Id="33" Count="0" />
+      <LineId Id="35" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_PositionTrigger.ExecTurnoverCheck">
+      <LineId Id="6" Count="5" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+  </POU>
+>>>>>>> Stashed changes
+</TcPlcObject>

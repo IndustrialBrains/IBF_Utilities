@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.3">
+  <GVL Name="Sys_Variables" Id="{1c9e37ba-12ad-44ad-8d0c-c2b5a10f9ae8}">
+    <Declaration><![CDATA[(* System variables *)
+{attribute 'qualified_only'}
+VAR_GLOBAL
+// SystemFuntion
+	fbSystemVariables : Fb_SystemVariables ;
+	AlwaysOn		:BOOL 			;// System variable, Always on bit
+	AlwaysOff		:BOOL 			;// System variable, Always off bit
+	BlinkFast		:BOOL 			;// System variable, Blink fast bit 1sec 
+	BlinkSlow		:BOOL 			;// System variable, Blink slow bit 2 sec
+	Pulse1Sec		:BOOL 			;// System variable, Pulse 1 cycle every second
+	SystemTime		:DT				; // System variable, Windows system time
+	TimeZoneId		:E_TimeZoneID 	; // System variable, time zone Id 
+	HeartBeat		:BOOL 			;// System Variable, Main system heartbeat 0.5 sec on 0.5 sec off
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

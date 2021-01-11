@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.4">
+  <POU Name="F_FBNameFromPath" Id="{5ade0010-a24a-4a30-b048-09fb95415f37}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION F_FBNameFromPath : STRING // distills .fb name from function path
+VAR_INPUT
+	sPath	: STRING ;
+END_VAR
+VAR
+	sTemp		: STRING ;
+	nstartFbName: INT ; 
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[sTemp := sPath ;
+
+REPEAT 
+	// Look for first occurance of .fb in string
+	nStartFbName := FIND( sTemp,'.fb');
+	// Delete text before .fb and .fb itself
+	IF nstartFbName <>0 THEN 
+		sTemp := DELETE( STR := sTemp, LEN := nstartFbName + 3, 0); 
+	END_IF
+UNTIL
+	nstartFbName = 0 
+END_REPEAT
+
+F_FBNameFromPath := sTemp ;]]></ST>
+    </Implementation>
+    <LineIds Name="F_FBNameFromPath">
+      <LineId Id="89" Count="12" />
+      <LineId Id="35" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

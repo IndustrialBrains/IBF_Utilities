@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.3">
+  <POU Name="F_AccDecDistanceFromVelo" Id="{0f2c97ac-1162-4662-90b2-4c9665676ae7}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION F_AccDecDistanceFromVelo : LREAL
+VAR_INPUT
+	nVelocity	: LREAL ; // velocity [m/s]
+	nAccDecc	: LREAL ; // acceleration or deceleration value [m/s^2]
+END_VAR
+VAR
+	nTime : LREAL ;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[nTime := nVelocity	/	nAccDecc ;
+
+F_AccDecDistanceFromVelo := nVelocity * (nTime/2);]]></ST>
+    </Implementation>
+    <LineIds Name="F_AccDecDistanceFromVelo">
+      <LineId Id="7" Count="0" />
+      <LineId Id="13" Count="0" />
+      <LineId Id="12" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

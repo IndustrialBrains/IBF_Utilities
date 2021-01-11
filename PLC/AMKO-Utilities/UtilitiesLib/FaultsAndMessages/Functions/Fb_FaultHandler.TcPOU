@@ -1,0 +1,307 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.5">
+  <POU Name="Fb_FaultHandler" Id="{08f65884-c647-4a29-b7ba-51d088979c07}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK Fb_FaultHandler
+VAR_INPUT
+	bReset 				: BOOL 	:= FALSE	; // reference to fault reset bit
+END_VAR
+VAR_OUTPUT
+	arActiveFaults 	: ARRAY [0..Param_Messages.nMAX_MESSAGES_SHOWN] OF UDT_Fault  ; // reference to active fault array
+	nActiveFaults	: UDINT 			; // reference to active fault counter
+	bActOM 			: BOOL := FALSE ;
+	bActMC 			: BOOL := FALSE ;
+	bActCF 			: BOOL := FALSE ;
+	bActFF 			: BOOL := FALSE ;
+END_VAR
+VAR
+	// functional variables
+	i 					: UDINT ;
+	// fault data
+	stFaultUdt 			: UDT_Fault ;
+	bTimedOut 			: BOOL ; // Message has timed out
+	// Message logging
+	dToday				: DATE ; 
+	nWriteStep			: UDINT := 0 ;
+	bWriteError			: BOOL 	; // write to file error occured
+	nWriteErroId		: UDINT ; // write error id
+	// Write variables
+	sActFileName		: STRING ;
+	hFile				: UINT	:= 0;(* File handle of the source file *)
+	sMessageString		: ARRAY [0..Param_Messages.nMESSAGE_COLUMNS] OF STRING (GVL_Parameters.MAX_CSV_FIELD_LENGTH); (* temporary parameter buffer to string*)
+	sCSVLine			: T_MaxString := '';(* Single CSV text line (row, record), we are using string as record buffer (your are able to see created fields) *)
+	sCSVField			: T_MaxString := '';(* Single CSV field value (column, record field) *)
+
+	// Log to file functions
+	fbFileOpen		: FB_FileOpen	;(* Opens file *)
+	fbFileClose		: FB_FileClose	;(* Closes file *)
+	fbFileGets		: FB_FileGets	;(* Reads one record (line) *)
+	fbFilePuts		: FB_FilePuts	;(* Writes one record (line) *)
+	fbReader		: FB_CSVMemBufferReader;(* Helper function block used to parse CSV data bytes (single record line) *)
+	fbWriter		: FB_CSVMemBufferWriter;(* Helper function block used to create CSV data bytes (single record line) *)
+END_VAR
+VAR PERSISTENT
+	dLastFileDate : DATE ;
+END_VAR
+VAR CONSTANT
+	stEmptyMessageUdt : UDT_Fault := (	Active 			:= FALSE,
+										FaultType 		:= E_FaultTypes.NA,
+										MessageNumber	:= 0,
+										LocationNumber	:= 0,
+										Discription 	:= '',
+										LocationName	:= '',
+										ComponentType	:= E_ComponentTypes.NA,
+										StartTime		:= DT#2020-1-1-00:00:00,
+										EndTime			:= DT#2020-1-1-00:00:00,
+										FullFaultId		:= '0'	)  ;
+END_VAR
+
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[// Check for active faults in list
+ExecSetFaultBit(); 
+// Check for reset is active 
+ExecResetFaults();
+
+]]></ST>
+    </Implementation>
+    <Folder Name="Private" Id="{2e728eb6-79bc-4de8-8875-9d08a8df9edd}" />
+    <Method Name="CheckEntryValid" Id="{4ead88ed-0ad4-4581-8230-d979907ffe1b}" FolderPath="Private\">
+      <Declaration><![CDATA[METHOD PRIVATE CheckEntryValid : BOOL
+VAR
+	// functional variables
+	i 	: UDINT ;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// ======= check if new entry is valid and not already active ======
+CheckEntryValid S= TRUE ;
+FOR i := 0 TO nActiveFaults DO
+	IF arActiveFaults[i].MessageNumber = stFaultUdt.MessageNumber THEN 
+		CheckEntryValid 			:= FALSE ; 
+		arActiveFaults[i].Active 	:= TRUE ; 
+	END_IF
+END_FOR  
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="CmdAddFault" Id="{cd103280-aca4-4b4a-a070-10b84eec5ffb}">
+      <Declaration><![CDATA[METHOD PUBLIC CmdAddFault : BOOL
+VAR_IN_OUT
+	stFault : UDT_Fault ; // actuive fault structure input
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[
+// coppy fault to internal fault udt
+IF stFault.FaultType <> E_FaultTypes.NA THEN 
+	THIS^.stFaultUdt	:= stFault ;
+	stFault 			:= stEmptyMessageUdt ;
+	// Process fault data
+	IF CheckEntryValid() THEN
+		ExecWriteMessage();
+	END_IF
+	stFaultUdt.Active	:= FALSE ;
+END_IF
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ExecCleanUpArray" Id="{f3ade57a-1ab7-4952-98ed-276828beb548}" FolderPath="Private\">
+      <Declaration><![CDATA[METHOD PRIVATE ExecCleanUpArray : BOOL
+VAR
+	// functional variables
+	i 					: UDINT ;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// Clean up array by removing blanc spaces 
+FOR i := 0 TO Param_Messages.nMAX_MESSAGES_SHOWN - 1 DO 
+	IF arActiveFaults[i].FaultType = 0 THEN 
+		arActiveFaults[i] 	:= arActiveFaults[i+1];
+		arActiveFaults[i+1] := stEmptyMessageUdt;
+	END_IF
+END_FOR
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ExecResetFaults" Id="{69b2b7d1-18ff-442a-8c8e-bfbea5c9f66f}" FolderPath="Private\">
+      <Declaration><![CDATA[METHOD PRIVATE ExecResetFaults : BOOL
+VAR
+	nResetPoint : UDINT := 0 ; // point of reset for active fault array (skips fault if .active bit is true)
+	// functional variables
+	i 					: UDINT ;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT bReset THEN 
+	RETURN;
+END_IF
+
+FOR i := 0 TO Param_Messages.nMAX_MESSAGES_SHOWN DO
+	IF arActiveFaults[i].Active THEN
+		CONTINUE;
+	ELSE
+		arActiveFaults[i] := stEmptyMessageUdt; 
+	END_IF
+END_FOR
+
+ExecCleanUpArray();
+
+bActOM 			:= FALSE;
+bActMC 			:= FALSE;
+bActCF 			:= FALSE;
+bActFF 			:= FALSE;
+
+ExecResetFaults := TRUE ;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ExecSetFaultBit" Id="{1d4b6758-0786-425a-a6f8-dc8178d0967d}" FolderPath="Private\">
+      <Declaration><![CDATA[METHOD PRIVATE ExecSetFaultBit : BOOL
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[bActOM 	:= FALSE;
+bActMC	:= FALSE;
+bActCF 	:= FALSE;
+bActFF 	:= FALSE;
+
+FOR i := 0 TO nActiveFaults DO
+	// read message type 
+	CASE arActiveFaults[i].FaultType OF
+		E_FaultTypes.OM : 
+			IF arActiveFaults[i].Active THEN 
+				bActOM 		S= TRUE ;
+			ELSE 
+				bTimedOut 	S= TRUE ;
+			END_IF 
+		E_FaultTypes.MC :
+			IF arActiveFaults[i].Active THEN 
+				bActMC 		S= TRUE ;
+			ELSE 
+				bTimedOut 	S= TRUE ;
+			END_IF 
+		E_FaultTypes.CF:
+			bActCF 		S= TRUE ;
+		E_FaultTypes.FF:
+			bActFF 		S= TRUE ;
+		ELSE
+			bTimedOut := FALSE ;
+	END_CASE
+
+	IF bTimedOut THEN 
+		arActiveFaults[i] := stEmptyMessageUdt;				
+		bTimedOut := FALSE ;
+	END_IF
+	// Reset active bit when timed out, if fault is still active it will be set to true again.
+	arActiveFaults[i].Active R= (arActiveFaults[i].StartTime + Param_Messages.tMESSAGE_TIMEOUT) < Sys_Variables.SystemTime;
+END_FOR
+
+// clean up the fault array
+ExecCleanUpArray();]]></ST>
+      </Implementation>
+    </Method>
+    <Action Name="ExecWriteMessage" Id="{3af8b3ee-c7f9-4b45-bd33-128a18baf300}" FolderPath="Private\">
+      <Implementation>
+        <ST><![CDATA[// Set message start time 
+stFaultUdt.StartTime := Sys_Variables.SystemTime ;
+// Fill Full Fault Id
+stFaultUdt.FullFaultId := TO_STRING(stFaultUdt.FaultType);
+stFaultUdt.FullFaultId := CONCAT(stFaultUdt.FullFaultId,'.');
+stFaultUdt.FullFaultId := CONCAT(stFaultUdt.FullFaultId,UDINT_TO_STRING(stFaultUdt.MessageNumber));
+stFaultUdt.FullFaultId := CONCAT(stFaultUdt.FullFaultId,'.');
+stFaultUdt.FullFaultId := CONCAT(stFaultUdt.FullFaultId,UDINT_TO_STRING(stFaultUdt.LocationNumber));
+stFaultUdt.FullFaultId := CONCAT(stFaultUdt.FullFaultId,'.');
+stFaultUdt.FullFaultId := CONCAT(stFaultUdt.FullFaultId,UDINT_TO_STRING(stFaultUdt.ComponentType));
+// send message to higher level 
+arActiveFaults[nActiveFaults] := stFaultUdt		;
+// Set pointer to next fault
+IF nActiveFaults < Param_Messages.nMAX_MESSAGES_SHOWN THEN 
+	nActiveFaults := nActiveFaults + 1 	;
+ELSE
+	nActiveFaults := 0 ;
+END_IF
+]]></ST>
+      </Implementation>
+    </Action>
+    <LineIds Name="Fb_FaultHandler">
+      <LineId Id="2408" Count="1" />
+      <LineId Id="2331" Count="0" />
+      <LineId Id="2333" Count="0" />
+      <LineId Id="2192" Count="0" />
+      <LineId Id="43" Count="0" />
+    </LineIds>
+    <LineIds Name="Fb_FaultHandler.CheckEntryValid">
+      <LineId Id="12" Count="1" />
+      <LineId Id="7" Count="0" />
+      <LineId Id="17" Count="1" />
+      <LineId Id="26" Count="0" />
+      <LineId Id="19" Count="0" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="Fb_FaultHandler.CmdAddFault">
+      <LineId Id="14" Count="0" />
+      <LineId Id="7" Count="0" />
+      <LineId Id="15" Count="0" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="26" Count="0" />
+      <LineId Id="18" Count="3" />
+      <LineId Id="34" Count="0" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="16" Count="0" />
+      <LineId Id="8" Count="0" />
+    </LineIds>
+    <LineIds Name="Fb_FaultHandler.ExecCleanUpArray">
+      <LineId Id="6" Count="0" />
+      <LineId Id="20" Count="0" />
+      <LineId Id="8" Count="3" />
+      <LineId Id="15" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="Fb_FaultHandler.ExecResetFaults">
+      <LineId Id="41" Count="2" />
+      <LineId Id="55" Count="0" />
+      <LineId Id="54" Count="0" />
+      <LineId Id="58" Count="1" />
+      <LineId Id="61" Count="0" />
+      <LineId Id="63" Count="0" />
+      <LineId Id="60" Count="0" />
+      <LineId Id="57" Count="0" />
+      <LineId Id="64" Count="1" />
+      <LineId Id="53" Count="0" />
+      <LineId Id="30" Count="0" />
+      <LineId Id="33" Count="2" />
+      <LineId Id="23" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="Fb_FaultHandler.ExecSetFaultBit">
+      <LineId Id="19" Count="3" />
+      <LineId Id="69" Count="0" />
+      <LineId Id="24" Count="0" />
+      <LineId Id="26" Count="2" />
+      <LineId Id="112" Count="4" />
+      <LineId Id="35" Count="0" />
+      <LineId Id="107" Count="4" />
+      <LineId Id="42" Count="3" />
+      <LineId Id="53" Count="1" />
+      <LineId Id="46" Count="0" />
+      <LineId Id="95" Count="0" />
+      <LineId Id="140" Count="3" />
+      <LineId Id="90" Count="0" />
+      <LineId Id="80" Count="0" />
+      <LineId Id="47" Count="0" />
+      <LineId Id="148" Count="0" />
+      <LineId Id="144" Count="0" />
+      <LineId Id="147" Count="0" />
+    </LineIds>
+    <LineIds Name="Fb_FaultHandler.ExecWriteMessage">
+      <LineId Id="2" Count="1" />
+      <LineId Id="12" Count="2" />
+      <LineId Id="16" Count="0" />
+      <LineId Id="19" Count="1" />
+      <LineId Id="23" Count="0" />
+      <LineId Id="21" Count="0" />
+      <LineId Id="4" Count="1" />
+      <LineId Id="11" Count="0" />
+      <LineId Id="6" Count="4" />
+      <LineId Id="1" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

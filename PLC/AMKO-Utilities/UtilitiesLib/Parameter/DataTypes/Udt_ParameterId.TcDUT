@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.4">
+  <DUT Name="Udt_ParameterId" Id="{781fb137-8d15-4f3c-a209-7913466b6019}">
+    <Declaration><![CDATA[TYPE Udt_ParameterId :
+STRUCT
+	nNumber		: UDINT 	:= 0 	; // parameter number
+	sName		: STRING 	:= 'NA' ; // parameter name
+	sType		: STRING 	:= 'Ppar'	; // parameter type 
+	pParameter	: POINTER TO Udt_Parameter ; // pointer to parameter
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

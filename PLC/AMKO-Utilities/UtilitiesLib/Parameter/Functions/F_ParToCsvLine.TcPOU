@@ -1,0 +1,56 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.5">
+  <POU Name="F_ParToCsvLine" Id="{823f7904-d7b6-4ae4-8508-8997ce4f51bf}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION F_ParToCsvLine : STRING // convert parameter into csv string (default UDt_Parameter setup)
+VAR_INPUT
+	stParameter : Udt_Parameter ; 
+	nColumn		: UDINT ;
+END_VAR
+VAR
+	sTempString : STRING ;
+	sTempCsvField : STRING ;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[CASE nColumn OF 
+	0: // number
+		sTempString := UDINT_TO_STRING(stParameter.nNumber);
+	1: // name
+		sTempString := stParameter.sName;
+	2: // Type
+		sTempString := stParameter.sType;
+	3: // discription
+		sTempString := stParameter.sDiscription;
+	4: // factory
+		sTempString := LREAL_TO_STRING(stParameter.fFactory);
+	5: // maximum
+		sTempString := LREAL_TO_STRING(stParameter.fMaximum);
+	6: // minimum
+		sTempString := LREAL_TO_STRING(stParameter.fMinimum);
+	7: // Unit 
+		sTempString := stParameter.sUnit;
+	8: // value
+		sTempString := LREAL_TO_STRING(stParameter.fValue);
+	ELSE
+		;
+END_CASE
+	sTempCsvField := STRING_TO_CSVFIELD(sTempString, FALSE);
+IF nColumn < 8 THEN 
+	sTempCsvField := CONCAT(StempCsvField,';');
+ELSE
+	sTempCsvField := CONCAT(StempCsvField,'$L');
+END_IF
+
+F_ParToCsvLine := sTempCsvField;]]></ST>
+    </Implementation>
+    <LineIds Name="F_ParToCsvLine">
+      <LineId Id="76" Count="22" />
+      <LineId Id="116" Count="0" />
+      <LineId Id="119" Count="1" />
+      <LineId Id="122" Count="0" />
+      <LineId Id="118" Count="0" />
+      <LineId Id="123" Count="0" />
+      <LineId Id="30" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

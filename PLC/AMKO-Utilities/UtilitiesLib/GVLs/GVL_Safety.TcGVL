@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.3">
+  <GVL Name="GVL_Safety" Id="{f6f929ac-c9df-4774-a2c7-0317ded57ae5}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL
+	// ===== system Safety inputs =====
+		SafeCom_SystemSafe		AT %I* : BOOL ; // System safety communication safety system is running
+		SafeCom_EstopOk			AT %I* : BOOL ; // System safety communication emergency stop active
+		SafeCom_BumpersOk		AT %I* : BOOL ; // System safety communication safety zone tripped
+		SafeCom_ComError		AT %I* : BOOL ; // System safety communication Common error active in safety program
+		
+		SafeCom_EstopReset		AT %Q* : BOOL ; // System Safety Communication Safety Reset 
+		SafeCom_RunSafety		AT %Q* : BOOL ; // System Safety Communication Run safety program
+		SafeCom_AcnSafeError	AT %Q* : BOOL ; // System Safety Communication acknowlidge safety error		 
+		SafeCom_ResetActive		AT %Q* : BOOL ; // System safety communication reset active
+		Safecom_BumperReset		AT %Q* : BOOL ; // System safety communication reset safety bumpers 
+		SafeCom_EnableOff		AT %Q* : BOOL ; // System Safety communication motor enable signals are off
+		
+		SafeOp_AirPressureOk	AT %I* : BOOL ; // system safety condition monitorring air pressure ok
+		SafeOp_PowerSupplyOk	AT %I* : BOOL ; // System power supply is ok
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.4">
+  <DUT Name="UDT_Parameter_1" Id="{6fa1c65f-e433-4147-8f45-41e6f828165f}">
+    <Declaration><![CDATA[TYPE UDT_Parameter_1 EXTENDS Udt_ParameterRetain:
+STRUCT
+	Name		: STRING	; // Parameter data, Parameter name
+	Number		: INT		; // Parameter data, Parameter number
+	Par_TYPE	: STRING	; // Parameter data, Type of parameter [Mpar, Cpar, Opar, Ppar]
+	Discription	: STRING	; // Parameter data, Parmater discription
+	Factory		: LREAL		; // Parameter data, Factory standard value
+	Maximum		: LREAL		; // Parameter data, Maximum parameter value
+	Minimum		: LREAL		; // Parameter data, Minimum parameter value
+	Unit		: STRING	; // Parameter data, Unit of measurement
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

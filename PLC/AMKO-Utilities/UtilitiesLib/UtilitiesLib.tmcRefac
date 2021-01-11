@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Refactors>
+  <Renames>
+    <RenamedSymbol>
+      <Type guid="5fca42a6-0210-4da3-921b-30c71fd4a2e1">CmdParLoadFromFile</Type>
+      <From>bfeReadDone</From>
+      <To>bfeReadBusy</To>
+    </RenamedSymbol>
+    <RenamedSymbol>
+      <Type guid="50f467a8-facb-42cb-96fd-d0c9df172a76">GVL_Message</Type>
+      <From>bDisplayFaults</From>
+      <To>bHideFaults</To>
+    </RenamedSymbol>
+  </Renames>
+</Refactors>

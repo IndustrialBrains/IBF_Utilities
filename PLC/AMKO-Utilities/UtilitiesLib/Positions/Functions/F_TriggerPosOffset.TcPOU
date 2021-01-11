@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.3">
+  <POU Name="F_TriggerPosOffset" Id="{b2f198b1-9b50-4852-9d0f-5e1a8aa42ff7}" SpecialFunc="None">
+    <Declaration><![CDATA[(* function to calculate trigger points for time based moves *)
+FUNCTION F_TriggerPosOffset : LREAL
+VAR_INPUT
+	Velocity		: LREAL	; // [Units/sec] command velocity 
+	nMoveTimeMs		: LREAL	; // [ms] Time it takes for move to complete
+END_VAR
+VAR
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[// ===== Convert time to usable calculation value =====
+	F_TriggerPosOffset := nMovetimeMs * ABS(Velocity / 1000);]]></ST>
+    </Implementation>
+    <LineIds Name="F_TriggerPosOffset">
+      <LineId Id="14" Count="0" />
+      <LineId Id="24" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

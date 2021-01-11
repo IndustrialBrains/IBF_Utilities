@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4022.16">
+  <POU Name="DegS_To_Rpm" Id="{d71cbd2d-5449-4c7d-a7ae-f9c0796d8707}" SpecialFunc="None">
+    <Declaration><![CDATA[(* convert degrees per second to rotations per minute *)
+FUNCTION DegS_To_Rpm : LREAL
+VAR_INPUT
+	DegS : LREAL ; // Input degrees per second as long real
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[// ===== convert degrees per second to Rpm =====
+	DegS_To_Rpm := (DegS/360)*60 ;
+	]]></ST>
+    </Implementation>
+    <LineIds Name="DegS_To_Rpm">
+      <LineId Id="9" Count="0" />
+      <LineId Id="16" Count="1" />
+    </LineIds>
+  </POU>
+</TcPlcObject>
