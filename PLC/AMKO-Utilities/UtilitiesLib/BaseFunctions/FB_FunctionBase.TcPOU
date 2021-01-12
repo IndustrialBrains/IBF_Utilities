@@ -1,0 +1,71 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.5">
+  <POU Name="FB_FunctionBase" Id="{ef86906a-1986-411c-841b-bedecc286c14}" SpecialFunc="None">
+    <Declaration><![CDATA[{attribute 'reflection'}
+FUNCTION_BLOCK FB_FunctionBase EXTENDS FB_Base
+VAR_INPUT
+	bSafetyOk	: BOOL 		:= TRUE 				; // Module can operate safely [default true]
+	bReset 		: BOOL 		:= FALSE				; // reset command bit reference Default := TRUE (when using system library := GVL_Main.stModules[nModuleId].bResetting)
+END_VAR
+VAR_OUTPUT
+	sActiveState	: STRING 		:= 'Idle'	; // active state of device 
+	bManual			: BOOL 			:= FALSE 	; // device is in manual mode
+	bIsSafe			: BOOL 			:= FALSE	; // Device is locked and safe
+	bBlockedCommand	: BOOL 			:= FALSE 	; // a device command is blocked because of collision detect 
+END_VAR
+VAR
+	bCmdManual 		: BOOL			:= FALSE	; // manual commands enabled control functions (thus disable automatic)
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[
+// Communicate active state
+IF NOT bSafetyOk THEN 
+	sActiveState := 'Safety not ok';
+ELSIF bErrorActive THEN 
+	sActiveState := TO_STRING(stFault.Discription);
+ELSIF NOT bInitOk THEN 
+	sActiveState := 'Not initialized';
+ELSIF bManual THEN 
+	sActiveState := 'Operational';
+END_IF 
+
+// check for manual command mode
+bManual := bCmdManual ;
+
+// Set fault if commands are blocked
+IF bBlockedCommand THEN 
+	stFault.Active 			:= TRUE ;
+	stFault.ComponentType 	:= E_ComponentTypes.Assembly ;
+	stFault.Discription		:= CONCAT( STR1 := sName, STR2 := 'function is blocked');
+	stFault.FaultType		:= E_FaultTypes.MC;
+END_IF	
+
+// check if fault is actie and send to fault handler
+refFbFault.CmdAddFault(stFault);
+]]></ST>
+    </Implementation>
+    <Method Name="CmdManual" Id="{a80209b9-b449-43b8-997f-3d83541a6746}">
+      <Declaration><![CDATA[METHOD PUBLIC CmdManual : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[bCmdManual := true ;]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="FB_FunctionBase">
+      <LineId Id="380" Count="10" />
+      <LineId Id="441" Count="0" />
+      <LineId Id="444" Count="0" />
+      <LineId Id="443" Count="0" />
+      <LineId Id="396" Count="6" />
+      <LineId Id="404" Count="0" />
+      <LineId Id="391" Count="1" />
+      <LineId Id="394" Count="0" />
+      <LineId Id="18" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_FunctionBase.CmdManual">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

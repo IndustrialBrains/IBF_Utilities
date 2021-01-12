@@ -11,5 +11,40 @@
       <From>bDisplayFaults</From>
       <To>bHideFaults</To>
     </RenamedSymbol>
+    <RenamedType>
+      <Type guid="4e883c49-73bb-4954-a568-cf4eb5609e00">F_GETFUNCTIONLEVEL</Type>
+      <From>F_GetFunctionLevel</From>
+      <To>F_GetLevelFromPath</To>
+    </RenamedType>
+    <RenamedSymbol>
+      <Type guid="ef86906a-1986-411c-841b-bedecc286c14">FB_FunctionBase</Type>
+      <From>nFunctionId</From>
+      <To>nId</To>
+    </RenamedSymbol>
+    <RenamedSymbol>
+      <Type guid="ef86906a-1986-411c-841b-bedecc286c14">FB_FunctionBase</Type>
+      <From>sDevName</From>
+      <To>sName</To>
+    </RenamedSymbol>
+    <RenamedSymbol>
+      <Type guid="ef86906a-1986-411c-841b-bedecc286c14">FB_FunctionBase</Type>
+      <From>nDevNumber</From>
+      <To>nLocationNumber</To>
+    </RenamedSymbol>
+    <RenamedSymbol>
+      <Type guid="ef86906a-1986-411c-841b-bedecc286c14">FB_FunctionBase</Type>
+      <From>nDevId</From>
+      <To>nLocationId</To>
+    </RenamedSymbol>
+    <RenamedSymbol>
+      <Type guid="ef86906a-1986-411c-841b-bedecc286c14">FB_FunctionBase</Type>
+      <From>sDevActiveState</From>
+      <To>sActiveState</To>
+    </RenamedSymbol>
+    <RenamedSymbol>
+      <Type guid="ef86906a-1986-411c-841b-bedecc286c14">FB_FunctionBase</Type>
+      <From>bDevIsSafe</From>
+      <To>bIsSafe</To>
+    </RenamedSymbol>
   </Renames>
 </Refactors>

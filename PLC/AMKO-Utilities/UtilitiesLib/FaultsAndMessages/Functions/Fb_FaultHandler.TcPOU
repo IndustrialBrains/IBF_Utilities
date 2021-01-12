@@ -92,13 +92,13 @@ END_VAR
       <Implementation>
         <ST><![CDATA[
 // coppy fault to internal fault udt
-IF stFault.FaultType <> E_FaultTypes.NA THEN 
+IF stFault.FaultType <> E_FaultTypes.NA AND stFault.Active THEN 
 	THIS^.stFaultUdt	:= stFault ;
-	stFault 			:= stEmptyMessageUdt ;
 	// Process fault data
 	IF CheckEntryValid() THEN
 		ExecWriteMessage();
 	END_IF
+	stFault 			:= stEmptyMessageUdt ;
 	stFaultUdt.Active	:= FALSE ;
 END_IF
 
@@ -241,8 +241,8 @@ END_IF
       <LineId Id="7" Count="0" />
       <LineId Id="15" Count="0" />
       <LineId Id="5" Count="0" />
-      <LineId Id="26" Count="0" />
       <LineId Id="18" Count="3" />
+      <LineId Id="40" Count="0" />
       <LineId Id="34" Count="0" />
       <LineId Id="9" Count="0" />
       <LineId Id="16" Count="0" />

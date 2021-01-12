@@ -1,0 +1,74 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.5">
+  <POU Name="FB_Base" Id="{addcf94a-59e2-4b15-ab00-a0d8c219c4bc}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK PUBLIC FB_Base
+{attribute 'reflection'}
+VAR_INPUT
+	bEnable		: BOOL 		:= TRUE 				; // Module enable signal reference Default := TRUE (when using system library := GVL_Main.stModules[nModuleId].bEnabled)
+END_VAR
+VAR_IN_OUT
+	refFbFault	: Fb_FaultHandler	; // reference to fault handler ( when using utilities library := GVL_Main.stModules[nModuleId].fbFaultHandler)
+END_VAR
+VAR_OUTPUT
+	bInitOk			: BOOL 			:= FALSE 	; // function is initialized
+	bBussy 			: BOOL 			:= FALSE 	; // device is busy
+	bReady			: BOOL 			:= FALSE 	; // device is ready for new command 
+	bErrorActive	: BOOL			:= FALSE	; // device Error active 
+END_VAR
+VAR
+	sName			: STRING 		:= ''		; // Name of device distilled from the path 
+	nLocationId		: UDINT 		:= 0		; // device id number made up of module and device number				
+	
+	stFault			: UDT_Fault		; // Fault data from device
+
+
+	// Function path 
+	{attribute 'instance-path'} 
+    {attribute 'noinit'}
+	sPath			: STRING	; // Path name of function (used for manual reference)
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Method Name="ExecIdentifyDevice" Id="{daf07950-0fff-424d-bd6a-e1bd58375fcf}">
+      <Declaration><![CDATA[METHOD PROTECTED ExecIdentifyDevice : BOOL
+VAR_INPUT
+	// Message location data
+	nId			: UDINT ; // Identification number of object
+	nParentId	: UDINT ; // Id of higher level If aplicable (0 = no parent)
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// Check device ID
+IF nId <> 0 AND nLocationId = 0 THEN
+	nLocationId := (nParentId * 10000) + nId * 100 ;
+END_IF
+
+// set message location information
+stFault.ComponentType 	:= E_ComponentTypes.SubAssembly;
+stFault.LocationName	:= F_FBNameFromPath(sPath := sPath);
+stFault.LocationNumber	:= nLocationId ; 
+
+// Get device name from function and add device to manual
+IF sName = '' THEN 
+	sName := F_FBNameFromPath(sPath := sPath);
+END_IF
+
+ExecIdentifyDevice := nLocationId <> 0;]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="FB_Base">
+      <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_Base.ExecIdentifyDevice">
+      <LineId Id="6" Count="3" />
+      <LineId Id="34" Count="0" />
+      <LineId Id="11" Count="0" />
+      <LineId Id="44" Count="2" />
+      <LineId Id="38" Count="4" />
+      <LineId Id="50" Count="0" />
+      <LineId Id="49" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>
