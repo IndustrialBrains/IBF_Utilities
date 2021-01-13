@@ -5,7 +5,6 @@
 FUNCTION_BLOCK FB_FunctionBase EXTENDS FB_Base
 VAR_INPUT
 	bSafetyOk	: BOOL 		:= TRUE 				; // Module can operate safely [default true]
-	bReset 		: BOOL 		:= FALSE				; // reset command bit reference Default := TRUE (when using system library := GVL_Main.stModules[nModuleId].bResetting)
 END_VAR
 VAR_OUTPUT
 	sActiveState	: STRING 		:= 'Idle'	; // active state of device 

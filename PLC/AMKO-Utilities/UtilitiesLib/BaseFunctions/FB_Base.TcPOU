@@ -4,7 +4,9 @@
     <Declaration><![CDATA[FUNCTION_BLOCK PUBLIC FB_Base
 {attribute 'reflection'}
 VAR_INPUT
-	bEnable		: BOOL 		:= TRUE 				; // Module enable signal reference Default := TRUE (when using system library := GVL_Main.stModules[nModuleId].bEnabled)
+	bEnable			: BOOL 		:= TRUE 				; // Module enable signal reference Default := TRUE (when using system library := GVL_Main.stModules[nModuleId].bEnabled)
+	bReset 			: BOOL 		:= FALSE				; // reset command bit reference Default := TRUE (when using system library := GVL_Main.stModules[nModuleId].bResetting)
+	refFbParHandler	: REFERENCE TO Fb_ParLogging 	:= GVL_Parameters.fbParameterHandler	; // reference to parameter handler
 END_VAR
 VAR_IN_OUT
 	refFbFault	: Fb_FaultHandler	; // reference to fault handler ( when using utilities library := GVL_Main.stModules[nModuleId].fbFaultHandler)
@@ -20,7 +22,6 @@ VAR
 	nLocationId		: UDINT 		:= 0		; // device id number made up of module and device number				
 	
 	stFault			: UDT_Fault		; // Fault data from device
-
 
 	// Function path 
 	{attribute 'instance-path'} 
