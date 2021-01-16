@@ -1,8 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.5">
   <POU Name="FB_FunctionBase" Id="{ef86906a-1986-411c-841b-bedecc286c14}" SpecialFunc="None">
-    <Declaration><![CDATA[{attribute 'reflection'}
-FUNCTION_BLOCK FB_FunctionBase EXTENDS FB_Base
+    <Declaration><![CDATA[FUNCTION_BLOCK PUBLIC ABSTRACT FB_FunctionBase EXTENDS FB_Base
 VAR_INPUT
 	bSafetyOk	: BOOL 		:= TRUE 				; // Module can operate safely [default true]
 END_VAR
@@ -16,7 +15,8 @@ VAR
 	bCmdManual 		: BOOL			:= FALSE	; // manual commands enabled control functions (thus disable automatic)
 END_VAR]]></Declaration>
     <Implementation>
-      <ST><![CDATA[
+      <ST><![CDATA[SUPER^(refFbFault := refFbFault);
+
 // Communicate active state
 IF NOT bSafetyOk THEN 
 	sActiveState := 'Safety not ok';
@@ -31,6 +31,11 @@ END_IF
 // check for manual command mode
 bManual := bCmdManual ;
 
+// Execute device functions
+IF bInitOk THEN  
+	ExecDevFunctions();
+END_IF
+
 // Set fault if commands are blocked
 IF bBlockedCommand THEN 
 	stFault.Active 			:= TRUE ;
@@ -39,8 +44,6 @@ IF bBlockedCommand THEN
 	stFault.FaultType		:= E_FaultTypes.MC;
 END_IF	
 
-// check if fault is actie and send to fault handler
-refFbFault.CmdAddFault(stFault);
 ]]></ST>
     </Implementation>
     <Method Name="CmdManual" Id="{a80209b9-b449-43b8-997f-3d83541a6746}">
@@ -52,18 +55,36 @@ END_VAR
         <ST><![CDATA[bCmdManual := true ;]]></ST>
       </Implementation>
     </Method>
+    <Method Name="ExecDevFunctions" Id="{351765c3-accd-4b4a-927f-08fd149221ad}">
+      <Declaration><![CDATA[METHOD INTERNAL ExecDevFunctions : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
     <LineIds Name="FB_FunctionBase">
+      <LineId Id="461" Count="0" />
       <LineId Id="380" Count="10" />
       <LineId Id="441" Count="0" />
       <LineId Id="444" Count="0" />
       <LineId Id="443" Count="0" />
-      <LineId Id="396" Count="6" />
+      <LineId Id="459" Count="0" />
+      <LineId Id="458" Count="0" />
+      <LineId Id="462" Count="0" />
+      <LineId Id="460" Count="0" />
+      <LineId Id="396" Count="0" />
+      <LineId Id="463" Count="0" />
+      <LineId Id="397" Count="5" />
       <LineId Id="404" Count="0" />
-      <LineId Id="391" Count="1" />
-      <LineId Id="394" Count="0" />
+      <LineId Id="391" Count="0" />
       <LineId Id="18" Count="0" />
     </LineIds>
     <LineIds Name="FB_FunctionBase.CmdManual">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_FunctionBase.ExecDevFunctions">
       <LineId Id="5" Count="0" />
     </LineIds>
   </POU>

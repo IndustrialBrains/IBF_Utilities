@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.5">
   <POU Name="FB_Base" Id="{addcf94a-59e2-4b15-ab00-a0d8c219c4bc}" SpecialFunc="None">
-    <Declaration><![CDATA[FUNCTION_BLOCK PUBLIC FB_Base
+    <Declaration><![CDATA[FUNCTION_BLOCK PUBLIC ABSTRACT FB_Base
 {attribute 'reflection'}
 VAR_INPUT
 	bEnable			: BOOL 		:= TRUE 				; // Module enable signal reference Default := TRUE (when using system library := GVL_Main.stModules[nModuleId].bEnabled)
@@ -30,7 +30,9 @@ VAR
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[]]></ST>
+      <ST><![CDATA[// check if fault is active and send to fault handler
+refFbFault.CmdAddFault(stFault);
+]]></ST>
     </Implementation>
     <Method Name="ExecIdentifyDevice" Id="{daf07950-0fff-424d-bd6a-e1bd58375fcf}">
       <Declaration><![CDATA[METHOD PROTECTED ExecIdentifyDevice : BOOL
@@ -60,6 +62,7 @@ ExecIdentifyDevice := nLocationId <> 0;]]></ST>
       </Implementation>
     </Method>
     <LineIds Name="FB_Base">
+      <LineId Id="37" Count="1" />
       <LineId Id="9" Count="0" />
     </LineIds>
     <LineIds Name="FB_Base.ExecIdentifyDevice">
