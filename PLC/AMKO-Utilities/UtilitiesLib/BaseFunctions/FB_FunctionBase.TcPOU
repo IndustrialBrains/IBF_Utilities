@@ -56,7 +56,7 @@ END_VAR
       </Implementation>
     </Method>
     <Method Name="ExecDevFunctions" Id="{351765c3-accd-4b4a-927f-08fd149221ad}">
-      <Declaration><![CDATA[METHOD INTERNAL ExecDevFunctions : BOOL
+      <Declaration><![CDATA[METHOD PROTECTED ExecDevFunctions : BOOL
 VAR_INPUT
 END_VAR
 ]]></Declaration>
