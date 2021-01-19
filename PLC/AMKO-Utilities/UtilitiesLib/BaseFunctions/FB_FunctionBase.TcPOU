@@ -66,7 +66,7 @@ END_VAR
       </Implementation>
     </Method>
     <Method Name="ExecMachineSafety" Id="{21d44c79-19d0-4d2a-975d-6d59086163c6}">
-      <Declaration><![CDATA[METHOD PRIVATE ExecMachineSafety : BOOL
+      <Declaration><![CDATA[METHOD PROTECTED ExecMachineSafety : BOOL
 VAR_INPUT
 END_VAR
 ]]></Declaration>
