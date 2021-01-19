@@ -33,6 +33,7 @@ bManual := bCmdManual ;
 
 // Execute device functions
 IF bInitOk THEN  
+	ExecMachineSafety();
 	ExecDevFunctions();
 END_IF
 
@@ -64,6 +65,15 @@ END_VAR
         <ST><![CDATA[]]></ST>
       </Implementation>
     </Method>
+    <Method Name="ExecMachineSafety" Id="{21d44c79-19d0-4d2a-975d-6d59086163c6}">
+      <Declaration><![CDATA[METHOD PRIVATE ExecMachineSafety : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
     <LineIds Name="FB_FunctionBase">
       <LineId Id="461" Count="0" />
       <LineId Id="380" Count="10" />
@@ -73,6 +83,7 @@ END_VAR
       <LineId Id="459" Count="0" />
       <LineId Id="458" Count="0" />
       <LineId Id="462" Count="0" />
+      <LineId Id="476" Count="0" />
       <LineId Id="460" Count="0" />
       <LineId Id="396" Count="0" />
       <LineId Id="463" Count="0" />
@@ -85,6 +96,9 @@ END_VAR
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_FunctionBase.ExecDevFunctions">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_FunctionBase.ExecMachineSafety">
       <LineId Id="5" Count="0" />
     </LineIds>
   </POU>
