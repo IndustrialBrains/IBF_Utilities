@@ -56,6 +56,17 @@ END_VAR
         <ST><![CDATA[bCmdManual := true ;]]></ST>
       </Implementation>
     </Method>
+    <Method Name="CmdSafeStop" Id="{507980d7-bd9e-492d-a4cc-cc2ab03b31c7}">
+      <Declaration><![CDATA[METHOD PUBLIC CmdSafeStop : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// check if device is safe
+bIsSafe 	:= NOT bEnable ;
+CmdSafeStop := bIsSafe ;]]></ST>
+      </Implementation>
+    </Method>
     <Method Name="ExecDevFunctions" Id="{351765c3-accd-4b4a-927f-08fd149221ad}">
       <Declaration><![CDATA[METHOD PROTECTED ExecDevFunctions : BOOL
 VAR_INPUT
@@ -93,6 +104,10 @@ END_VAR
       <LineId Id="18" Count="0" />
     </LineIds>
     <LineIds Name="FB_FunctionBase.CmdManual">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_FunctionBase.CmdSafeStop">
+      <LineId Id="6" Count="1" />
       <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_FunctionBase.ExecDevFunctions">
