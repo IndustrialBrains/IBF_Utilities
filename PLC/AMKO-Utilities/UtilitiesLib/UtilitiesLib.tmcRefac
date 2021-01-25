@@ -46,5 +46,10 @@
       <From>bDevIsSafe</From>
       <To>bIsSafe</To>
     </RenamedSymbol>
+    <RenamedSymbol>
+      <Type guid="9315b401-f77f-4ecd-9e8e-d1a9cff67019">Udt_Parameter</Type>
+      <From>bCmdTeach</From>
+      <To>bTeachable</To>
+    </RenamedSymbol>
   </Renames>
 </Refactors>
