@@ -51,5 +51,10 @@
       <From>bCmdTeach</From>
       <To>bTeachable</To>
     </RenamedSymbol>
+    <RenamedType>
+      <Type guid="c383ca2b-0f6c-427f-82a9-3b5af80fb5b4">NOPAUSE</Type>
+      <From>NoPause</From>
+      <To>SkipPause</To>
+    </RenamedType>
   </Renames>
 </Refactors>

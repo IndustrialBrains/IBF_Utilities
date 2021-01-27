@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.3">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.5">
   <POU Name="FB_PositionTrigger" Id="{fd987587-b4d1-405a-9d23-bb003d45ecc7}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK PUBLIC FB_PositionTrigger // trigger function, sets trigger Q signal high when trigger position is between previous cycle's and current axis position.
 VAR_INPUT
@@ -41,14 +41,14 @@ fbReTriggerArmed(CLK := bTriggerArmed);
 // ==== Skip function if trigger is not armed =====
 	IF NOT bTriggerArmed THEN  
 		bInternalTrigger	:= FALSE 	;
+		Q 					:= FALSE	;
 		RETURN ;	
 	ELSIF fbReTriggerArmed.Q THEN 
 		fOldAxisPos 		:= fAxisPos ;
 		nOldAxisRev			:= nAxisModuloRev ;
 		nTriggerRotation	:= 0 		; 
-		Q 					:= FALSE	;
 	END_IF
-
+	
 // ==== check if encoder is at turnover =====
 	ExecTurnoverCheck(); 
 // ==== compare positions to trigger ======
@@ -79,7 +79,8 @@ END_VAR
 bTriggerArmed S= TRUE ;
 
 // set feedback
-CmdArmTrigger := NOT Q ;]]></ST>
+CmdArmTrigger := NOT Q ;
+]]></ST>
       </Implementation>
     </Method>
     <Method Name="CmdSetTriggerPos" Id="{456097cb-6b4e-4349-a84a-cae4874abe8e}">
@@ -138,14 +139,15 @@ END_IF
 // ==== Check multiturn command =======
 	IF bInternalTrigger THEN 
 		IF nTriggerRotation >= nRotBeforeTriggerCompensated THEN 
-			Q S= bInternalTrigger;			
+			Q S= bInternalTrigger OR fAxisPos > fTriggerPosCompensated;			
 		ELSE 
 			nTriggerRotation := nTriggerRotation + 1 ;
 		END_IF 
 	END_IF
 
 // ==== Reset arm trigger command =====
-	bTriggerArmed R= Q ; ]]></ST>
+	bTriggerArmed 	R= Q ; 
+]]></ST>
       </Implementation>
     </Method>
     <Method Name="ExecTurnoverCheck" Id="{10051210-68d4-4637-9383-f379a08b872f}" FolderPath="Private\">
@@ -163,11 +165,13 @@ END_VAR
       <LineId Id="731" Count="1" />
       <LineId Id="681" Count="1" />
       <LineId Id="773" Count="0" />
+      <LineId Id="815" Count="0" />
       <LineId Id="688" Count="0" />
       <LineId Id="730" Count="0" />
       <LineId Id="735" Count="2" />
-      <LineId Id="739" Count="0" />
-      <LineId Id="689" Count="6" />
+      <LineId Id="689" Count="0" />
+      <LineId Id="813" Count="0" />
+      <LineId Id="691" Count="4" />
       <LineId Id="29" Count="0" />
     </LineIds>
     <LineIds Name="FB_PositionTrigger.CalcTriggerCompensation">
@@ -179,6 +183,7 @@ END_VAR
       <LineId Id="9" Count="0" />
       <LineId Id="8" Count="0" />
       <LineId Id="7" Count="0" />
+      <LineId Id="13" Count="0" />
     </LineIds>
     <LineIds Name="FB_PositionTrigger.CmdSetTriggerPos">
       <LineId Id="8" Count="0" />
@@ -208,6 +213,7 @@ END_VAR
       <LineId Id="34" Count="0" />
       <LineId Id="33" Count="0" />
       <LineId Id="35" Count="0" />
+      <LineId Id="68" Count="0" />
     </LineIds>
     <LineIds Name="FB_PositionTrigger.ExecTurnoverCheck">
       <LineId Id="5" Count="0" />

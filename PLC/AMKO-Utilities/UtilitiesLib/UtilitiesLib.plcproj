@@ -102,6 +102,7 @@
     <Folder Include="General" />
     <Folder Include="Compare" />
     <Folder Include="BaseFunctions" />
+    <Folder Include="StepFunctions" />
     <Folder Include="PathFunctions" />
     <Folder Include="Parameter" />
     <Folder Include="Parameter\DataTypes" />
@@ -244,6 +245,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Positions\Functions\F_TriggerPosOffset.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="StepFunctions\FB_Step.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="System\Functions\DataManagement\FB_PersistentDataManager.TcPOU">
