@@ -47,6 +47,15 @@ END_IF
 
 ]]></ST>
     </Implementation>
+    <Method Name="CmdHold" Id="{b7b43511-9b6a-4b39-b79c-935cd576f467}">
+      <Declaration><![CDATA[METHOD PUBLIC CmdHold : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
     <Method Name="CmdManual" Id="{a80209b9-b449-43b8-997f-3d83541a6746}">
       <Declaration><![CDATA[METHOD PUBLIC CmdManual : BOOL
 VAR_INPUT
@@ -102,6 +111,9 @@ END_VAR
       <LineId Id="404" Count="0" />
       <LineId Id="391" Count="0" />
       <LineId Id="18" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_FunctionBase.CmdHold">
+      <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_FunctionBase.CmdManual">
       <LineId Id="5" Count="0" />

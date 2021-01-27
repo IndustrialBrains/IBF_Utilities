@@ -4,8 +4,9 @@
     <Declaration><![CDATA[FUNCTION_BLOCK PUBLIC ABSTRACT FB_Base
 {attribute 'reflection'}
 VAR_INPUT
-	bEnable			: BOOL 		:= TRUE 				; // Module enable signal reference Default := TRUE (when using system library := GVL_Main.stModules[nModuleId].bEnabled)
+	bEnable			: BOOL 		:= TRUE 	; // Module enable signal reference Default := TRUE (when using system library := GVL_Main.stModules[nModuleId].bEnabled)
 	refFbParHandler	: REFERENCE TO Fb_ParLogging 	:= GVL_Parameters.fbParameterHandler	; // reference to parameter handler
+	bCmdPause 		: BOOL 		:= FALSE	; // Command Pause functions		
 END_VAR
 VAR_IN_OUT
 	refFbFault	: Fb_FaultHandler	; // reference to fault handler ( when using utilities library := GVL_Main.stModules[nModuleId].fbFaultHandler)

@@ -56,5 +56,10 @@
       <From>NoPause</From>
       <To>SkipPause</To>
     </RenamedType>
+    <RenamedSymbol>
+      <Type guid="69b694f5-baa1-4f86-8caa-4a01db9ce8f8">FB_Step</Type>
+      <From>bBlocked</From>
+      <To>bHold</To>
+    </RenamedSymbol>
   </Renames>
 </Refactors>

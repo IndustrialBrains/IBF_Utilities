@@ -8,7 +8,7 @@ END_VAR
 VAR_OUTPUT
 	nActStep	: UDINT := 0 ; // Active step
 	bPaused		: BOOL 	:= FALSE ; // Stepper is paused
-	bBlocked	: BOOL 	:= FALSE ; // Stepper is blocked for
+	bHold		: BOOL 	:= FALSE ; // Stepper is blocked for changes
 	bSkipPause	: BOOL	:= FALSE ; // Pause function is skipped in this step 
 END_VAR
 VAR
@@ -21,13 +21,22 @@ END_VAR
       <ST><![CDATA[SetActiveStep();]]></ST>
     </Implementation>
     <Folder Name="Commands" Id="{79421837-b695-48ee-b4a9-422180fd25e0}" />
+    <Method Name="CmdHold" Id="{8f8fda5c-2e20-4c09-b790-f4e6b77f96ee}" FolderPath="Commands\">
+      <Declaration><![CDATA[METHOD PUBLIC CmdHold : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[bHold := true ;]]></ST>
+      </Implementation>
+    </Method>
     <Method Name="CmdNext" Id="{bc8d4796-dcaf-4c5e-bae9-87ceeef8aa99}" FolderPath="Commands\">
       <Declaration><![CDATA[METHOD PUBLIC CmdNext : BOOL
 VAR_INPUT
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT bBlocked THEN 
+        <ST><![CDATA[IF NOT bHold THEN 
 	nNextStep := nActStep +	1 ;	
 END_IF
 
@@ -40,7 +49,7 @@ VAR_INPUT
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT bBlocked THEN 
+        <ST><![CDATA[IF NOT bHold THEN 
 	nNextStep := nPreviousStep ;	
 END_IF
 
@@ -72,7 +81,7 @@ VAR_INPUT
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT bBlocked THEN 
+        <ST><![CDATA[IF NOT bHold THEN 
 	nNextStep := nStep ;
 END_IF
 
@@ -81,7 +90,7 @@ CmdToStep := nNextStep = nStep ;
       </Implementation>
     </Method>
     <Method Name="Init" Id="{decf4df9-b1c5-4f84-8d5c-781cd3a12a56}" FolderPath="Commands\">
-      <Declaration><![CDATA[METHOD PROTECTED Init : BOOL
+      <Declaration><![CDATA[METHOD PUBLIC Init : BOOL
 VAR_INPUT
 	// Location data for messages  
 	nId			: UDINT ; // Identification number of object
@@ -103,7 +112,11 @@ VAR_INPUT
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF bErrorActive THEN 
+        <ST><![CDATA[
+IF bHold THEN 
+	bHold 		:= FALSE ;
+	RETURN; 
+ELSIF bErrorActive THEN 
 	stFault.Active			:= TRUE ;
 	stFault.ComponentType	:= E_ComponentTypes.StepProgram ;
 	stFault.Discription		:= CONCAT(sName, ' Invalid step state');
@@ -115,13 +128,13 @@ ELSIF NOT bPaused OR bSkipPause THEN
 		nActStep		:= 	nNextStep;
 	END_IF
 END_IF
-
-bSkipPause := FALSE ; 
+	
+bSkipPause 	:= FALSE ; 
 ]]></ST>
       </Implementation>
     </Method>
     <Method Name="SkipPause" Id="{c383ca2b-0f6c-427f-82a9-3b5af80fb5b4}" FolderPath="Commands\">
-      <Declaration><![CDATA[METHOD PROTECTED SkipPause : BOOL
+      <Declaration><![CDATA[METHOD Public SkipPause : BOOL
 VAR_INPUT
 END_VAR
 ]]></Declaration>
@@ -144,6 +157,9 @@ END_VAR
     </Method>
     <LineIds Name="FB_Step">
       <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_Step.CmdHold">
+      <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_Step.CmdNext">
       <LineId Id="6" Count="3" />
@@ -178,6 +194,10 @@ END_VAR
       <LineId Id="15" Count="0" />
     </LineIds>
     <LineIds Name="FB_Step.SetActiveStep">
+      <LineId Id="30" Count="0" />
+      <LineId Id="28" Count="0" />
+      <LineId Id="33" Count="0" />
+      <LineId Id="31" Count="0" />
       <LineId Id="8" Count="1" />
       <LineId Id="11" Count="3" />
       <LineId Id="5" Count="0" />
@@ -186,7 +206,8 @@ END_VAR
       <LineId Id="20" Count="0" />
       <LineId Id="17" Count="0" />
       <LineId Id="7" Count="0" />
-      <LineId Id="22" Count="1" />
+      <LineId Id="29" Count="0" />
+      <LineId Id="23" Count="0" />
       <LineId Id="21" Count="0" />
     </LineIds>
     <LineIds Name="FB_Step.SkipPause">
