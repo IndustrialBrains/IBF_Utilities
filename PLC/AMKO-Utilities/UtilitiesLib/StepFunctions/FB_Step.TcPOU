@@ -27,7 +27,9 @@ VAR_INPUT
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[bHold := true ;]]></ST>
+        <ST><![CDATA[bHold := TRUE ;
+
+CmdHold := bHold;]]></ST>
       </Implementation>
     </Method>
     <Method Name="CmdNext" Id="{bc8d4796-dcaf-4c5e-bae9-87ceeef8aa99}" FolderPath="Commands\">
@@ -160,6 +162,8 @@ END_VAR
     </LineIds>
     <LineIds Name="FB_Step.CmdHold">
       <LineId Id="5" Count="0" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="9" Count="0" />
     </LineIds>
     <LineIds Name="FB_Step.CmdNext">
       <LineId Id="6" Count="3" />
