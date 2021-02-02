@@ -3,7 +3,6 @@
   <POU Name="FB_Step" Id="{69b694f5-baa1-4f86-8caa-4a01db9ce8f8}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK PUBLIC FB_Step EXTENDS FB_Base
 VAR_INPUT
-	bPause		: BOOL := FALSE;
 END_VAR
 VAR_OUTPUT
 	nActStep	: UDINT := 0 ; // Active step
@@ -114,8 +113,7 @@ VAR_INPUT
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[
-IF bHold THEN 
+        <ST><![CDATA[IF bHold THEN 
 	bHold 		:= FALSE ;
 	RETURN; 
 ELSIF bErrorActive THEN 
@@ -124,13 +122,14 @@ ELSIF bErrorActive THEN
 	stFault.Discription		:= CONCAT(sName, ' Invalid step state');
 	stFault.FaultType		:= E_FaultTypes.FF;
 	stFault.MessageNumber	:= E_MessageNumbers.FF_ComunicationFault; 
-ELSIF NOT bPaused OR bSkipPause THEN 
+ELSIF NOT bCmdPause OR bSkipPause THEN 
 	IF nActStep <> nNextStep THEN 
 		nPreviousStep 	:=	nActStep;	
 		nActStep		:= 	nNextStep;
 	END_IF
 END_IF
-	
+
+bPaused 	:= bCmdPause ;	
 bSkipPause 	:= FALSE ; 
 ]]></ST>
       </Implementation>
@@ -198,7 +197,6 @@ END_VAR
       <LineId Id="15" Count="0" />
     </LineIds>
     <LineIds Name="FB_Step.SetActiveStep">
-      <LineId Id="30" Count="0" />
       <LineId Id="28" Count="0" />
       <LineId Id="33" Count="0" />
       <LineId Id="31" Count="0" />
@@ -210,6 +208,7 @@ END_VAR
       <LineId Id="20" Count="0" />
       <LineId Id="17" Count="0" />
       <LineId Id="7" Count="0" />
+      <LineId Id="37" Count="0" />
       <LineId Id="29" Count="0" />
       <LineId Id="23" Count="0" />
       <LineId Id="21" Count="0" />
