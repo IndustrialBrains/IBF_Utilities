@@ -6,6 +6,7 @@ VAR_INPUT
 END_VAR
 VAR_OUTPUT
 	nActStep	: UDINT := 0 ; // Active step
+	bIdle		: BOOL	:= TRUE  ; // Stepper is idle (Step 0)
 	bPaused		: BOOL 	:= FALSE ; // Stepper is paused
 	bHold		: BOOL 	:= FALSE ; // Stepper is blocked for changes
 	bSkipPause	: BOOL	:= FALSE ; // Pause function is skipped in this step 
@@ -131,7 +132,7 @@ END_IF
 
 bPaused 	:= bCmdPause ;	
 bSkipPause 	:= FALSE ; 
-]]></ST>
+bIdle 		:= nActStep = 0 ;]]></ST>
       </Implementation>
     </Method>
     <Method Name="SkipPause" Id="{c383ca2b-0f6c-427f-82a9-3b5af80fb5b4}" FolderPath="Commands\">
