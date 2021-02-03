@@ -66,5 +66,10 @@
       <From>DiSensor</From>
       <To>DiInput</To>
     </RenamedSymbol>
+    <RenamedType>
+      <Type guid="37facf2e-03a6-42dd-a8a6-24c98287d97e">FACCDEC</Type>
+      <From>POU</From>
+      <To>fAccDecCalc</To>
+    </RenamedType>
   </Renames>
 </Refactors>

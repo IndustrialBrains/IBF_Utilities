@@ -102,6 +102,7 @@
     <Folder Include="General" />
     <Folder Include="Compare" />
     <Folder Include="BaseFunctions" />
+    <Folder Include="MovePathCalculations" />
     <Folder Include="StepFunctions" />
     <Folder Include="PathFunctions" />
     <Folder Include="Parameter" />
@@ -195,6 +196,9 @@
     <Compile Include="FaultsAndMessages\Param_Messages.TcGVL">
       <SubType>Code</SubType>
       <LinkAlways>true</LinkAlways>
+    </Compile>
+    <Compile Include="MovePathCalculations\fAccDecCalc.TcPOU">
+      <SubType>Code</SubType>
     </Compile>
     <Compile Include="Parameter\DataTypes\Old\UDT_Parameter_1.TcDUT">
       <SubType>Code</SubType>
