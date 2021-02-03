@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.4">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.5">
   <EnumerationTextList Name="E_ComponentTypes" Id="{279e7338-601a-42f5-8e17-8ce44587bb9a}">
     <Declaration><![CDATA[{attribute 'qualified_only'}
 {attribute 'strict'}
@@ -22,7 +22,10 @@ TYPE E_ComponentTypes :
 		Rio_Box		:= 31,
 		Rio_Slot	:= 32,
 		Encoder		:= 33,
-		DiSensor	:= 34,
+		DiInput		:= 34,
+		AnInput		:= 35,
+		DiOutput	:= 36,
+		AnOutput	:= 37,
 	// Drive
 		ServoDrive 	:= 40,
 	// Operation
@@ -104,8 +107,23 @@ END_TYPE
               <l n="LanguageTexts" t="ArrayList" />
             </o>
             <o>
-              <v n="TextID">"DiSensor"</v>
+              <v n="TextID">"DiInput"</v>
               <v n="TextDefault">"34"</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"AnInput"</v>
+              <v n="TextDefault">"35"</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"DiOutput"</v>
+              <v n="TextDefault">"36"</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"AnOutput"</v>
+              <v n="TextDefault">"37"</v>
               <l n="LanguageTexts" t="ArrayList" />
             </o>
             <o>

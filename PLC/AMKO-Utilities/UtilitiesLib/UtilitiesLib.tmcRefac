@@ -61,5 +61,10 @@
       <From>bBlocked</From>
       <To>bHold</To>
     </RenamedSymbol>
+    <RenamedSymbol>
+      <Type guid="279e7338-601a-42f5-8e17-8ce44587bb9a">E_ComponentTypes</Type>
+      <From>DiSensor</From>
+      <To>DiInput</To>
+    </RenamedSymbol>
   </Renames>
 </Refactors>
