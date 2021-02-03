@@ -101,7 +101,7 @@ END_VAR
 ]]></Declaration>
       <Implementation>
         <ST><![CDATA[// ====== Calculate device id =====
-	ExecIdentifyDevice(nId,nParentId);
+	ExecIdentifyDevice(nId,nParentId,eComponentType := E_ComponentTypes.StepProgram);
 
 // ===== set reset step ======
 	THIS^.nResetStep := nResetStep ;]]></ST>

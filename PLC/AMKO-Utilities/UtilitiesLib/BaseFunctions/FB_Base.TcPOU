@@ -51,8 +51,9 @@ CmdReset := TRUE ;
       <Declaration><![CDATA[METHOD PROTECTED ExecIdentifyDevice : BOOL
 VAR_INPUT
 	// Message location data
-	nId			: UDINT ; // Identification number of object
-	nParentId	: UDINT ; // Id of higher level If aplicable (0 = no parent)
+	nId				: UDINT ; // Identification number of object
+	nParentId		: UDINT ; // Id of higher level If aplicable (0 = no parent)
+	eComponentType	: E_ComponentTypes ; // COmponent or function type for message compilation
 END_VAR
 ]]></Declaration>
       <Implementation>
@@ -62,7 +63,7 @@ IF nId <> 0 AND nLocationId = 0 THEN
 END_IF
 
 // set message location information
-stFault.ComponentType 	:= E_ComponentTypes.SubAssembly;
+stFault.ComponentType 	:= eComponentType;
 stFault.LocationName	:= F_FBNameFromPath(sPath := sPath);
 stFault.LocationNumber	:= nLocationId ; 
 
