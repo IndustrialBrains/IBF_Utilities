@@ -105,7 +105,8 @@ END_VAR
 	ExecIdentifyDevice(nId,nParentId,E_ComponentTypes.StepProgram);
 
 // ===== set reset step ======
-	THIS^.nResetStep := nResetStep ;]]></ST>
+	nActStep 			:= nResetStep ;
+	THIS^.nResetStep	:= nResetStep ;]]></ST>
       </Implementation>
     </Method>
     <Method Name="SetActiveStep" Id="{ff41807d-3ee0-4176-8aab-e544184b5717}">
@@ -195,6 +196,7 @@ END_VAR
       <LineId Id="11" Count="1" />
       <LineId Id="14" Count="0" />
       <LineId Id="5" Count="0" />
+      <LineId Id="23" Count="0" />
       <LineId Id="15" Count="0" />
     </LineIds>
     <LineIds Name="FB_Step.SetActiveStep">
