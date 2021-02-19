@@ -30,9 +30,10 @@ VAR
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[// check if fault is active and send to fault handler
-refFbFault.CmdAddFault(stFault);
-
+      <ST><![CDATA[IF __ISVALIDREF(refFbFault) THEN 
+	// check if fault is active and send to fault handler
+	refFbFault.CmdAddFault(stFault);
+END_IF
 ]]></ST>
     </Implementation>
     <Method Name="CmdReset" Id="{00c0ea77-90e0-4eb8-bc16-0dce47823936}">
@@ -76,6 +77,7 @@ ExecIdentifyDevice := nLocationId <> 0;]]></ST>
       </Implementation>
     </Method>
     <LineIds Name="FB_Base">
+      <LineId Id="96" Count="0" />
       <LineId Id="37" Count="1" />
       <LineId Id="66" Count="0" />
       <LineId Id="68" Count="0" />
