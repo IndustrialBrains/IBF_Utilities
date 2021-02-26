@@ -94,16 +94,39 @@ END_VAR
         <ST><![CDATA[]]></ST>
       </Implementation>
     </Method>
-    <Method Name="FB_init" Id="{4bfb115e-25d7-4370-8094-b8d0973e4b40}">
-      <Declaration><![CDATA[METHOD FB_init : BOOL
-VAR_INPUT
-	bInitRetains : BOOL; // if TRUE, the retain variables are initialized (warm start / cold start)
-	bInCopyCode : BOOL;  // if TRUE, the instance afterwards gets moved into the copy code (online change)
-END_VAR
-]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[ExecDevFunctions();]]></ST>
-      </Implementation>
-    </Method>
+    <LineIds Name="FB_FunctionBase">
+      <LineId Id="461" Count="0" />
+      <LineId Id="380" Count="10" />
+      <LineId Id="441" Count="0" />
+      <LineId Id="444" Count="0" />
+      <LineId Id="443" Count="0" />
+      <LineId Id="459" Count="0" />
+      <LineId Id="458" Count="0" />
+      <LineId Id="462" Count="0" />
+      <LineId Id="476" Count="0" />
+      <LineId Id="460" Count="0" />
+      <LineId Id="396" Count="0" />
+      <LineId Id="463" Count="0" />
+      <LineId Id="397" Count="5" />
+      <LineId Id="404" Count="0" />
+      <LineId Id="391" Count="0" />
+      <LineId Id="18" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_FunctionBase.CmdHold">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_FunctionBase.CmdManual">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_FunctionBase.CmdSafeStop">
+      <LineId Id="6" Count="1" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_FunctionBase.ExecDevFunctions">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_FunctionBase.ExecMachineSafety">
+      <LineId Id="5" Count="0" />
+    </LineIds>
   </POU>
 </TcPlcObject>
