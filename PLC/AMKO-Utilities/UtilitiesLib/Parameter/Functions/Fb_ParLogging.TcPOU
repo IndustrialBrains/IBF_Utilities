@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.5">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.6">
   <POU Name="Fb_ParLogging" Id="{70cb49c5-c474-4a5d-8c59-0231168edf6a}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK PUBLIC Fb_ParLogging EXTENDS FB_ParameterHandler
 VAR_OUTPUT
@@ -14,7 +14,7 @@ VAR_OUTPUT
 END_VAR
 VAR
 	// ====== Compare array =====
-		arFileParameters		: ARRAY [0..GVL_Parameters.MAX_PARAMETERS] OF Udt_Parameter;
+		arFileParameters		: ARRAY [1..GVL_Parameters.MAX_PARAMETERS] OF Udt_Parameter;
 		nNumberOfParFromFile	: UDINT; // Number of parameters read from file
 		nNumberOfChanges		: UDINT; // Number of parameter changes 
 		arChangeLog				: ARRAY [0..(GVL_Parameters.MAX_PARAMETERS * 2)] OF STRING ; // Parameter change log 
@@ -100,13 +100,13 @@ END_IF
 bParNumberDiference := FALSE ;
 nDiferenceRow		:= 0 ;
 IF NOT bParCountDiference THEN 
-	FOR i := 0 TO nNumberOfParameters DO
+	FOR i := 1 TO nNumberOfParameters DO
 		IF arParameters[i].nNumber <> arFileParameters[i].nNumber THEN
 			bParNumberDiference := TRUE ;
 			nDiferenceRow		:= i ;
 			CONTINUE;
 		ELSE
-			IF arParameters[i].pParameter^.fValue <> arFileParameters[i].fValue THEN 
+			IF (arParameters[i].pParameter^.fValue <> arFileParameters[i].fValue) THEN 
 				fTempValue := arParameters[i].pParameter^.fValue;  
 			ELSE
 				fTempValue := 0;
@@ -131,7 +131,7 @@ END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[
 IF bCmdParFileWrite THEN 
-	FOR i := 0 TO nNumberOfParameters DO
+	FOR i := 1 TO nNumberOfParameters DO
 (*			IF 	NOT bFileNotFound AND
 				(arFileParameters[i].fValue <> arParameters[i].pParameter^.fValue OR
 				arFileParameters[i].fFactory <> arParameters[i].pParameter^.fFactory) THEN
@@ -243,27 +243,26 @@ END_VAR]]></Declaration>
 					fbReader.eCmd := eEnumCmd_Next;(* Read next field value *)
 					IF ( nRow <= GVL_Parameters.MAX_PARAMETERS ) AND nRow > 0 THEN
 						IF ( nColumn <= GVL_Parameters.PAR_COLUMNS ) THEN
-							i	:= nRow - 1;
 							sCSVFieldString	:= CSVFIELD_TO_STRING( sCSVField, TRUE);
 							CASE nColumn OF
 									0: // Parameter number [Udint]	
-										arFileParameters[i].nNumber		:= STRING_TO_UDINT(sCSVFieldString); 						
+										arFileParameters[nRow].nNumber		:= STRING_TO_UDINT(sCSVFieldString); 						
 									1: // Parameter Name [string]
-										arFileParameters[i].sName 		:= sCSVFieldString;							
+										arFileParameters[nRow].sName 		:= sCSVFieldString;							
 									2: // Parameter type [String]
-										arFileParameters[i].sType 		:= sCSVFieldString;	
+										arFileParameters[nRow].sType 		:= sCSVFieldString;	
 									3: // Parameter discription [string]
-										arFileParameters[i].sDiscription:= sCSVFieldString;						
+										arFileParameters[nRow].sDiscription:= sCSVFieldString;						
 									4: // Parameter factory value [LREAL]
-										arFileParameters[i].fFactory	:= STRING_TO_LREAL(sCSVFieldString);							
+										arFileParameters[nRow].fFactory	:= STRING_TO_LREAL(sCSVFieldString);							
 									5: // Parameter maximum value [LREAL]
-										arFileParameters[i].fMaximum	:= STRING_TO_LREAL(sCSVFieldString);							
+										arFileParameters[nRow].fMaximum	:= STRING_TO_LREAL(sCSVFieldString);							
 									6: // Parameter minimum value[LREAL]
-										arFileParameters[i].fMinimum	:= STRING_TO_LREAL(sCSVFieldString);							
+										arFileParameters[nRow].fMinimum	:= STRING_TO_LREAL(sCSVFieldString);							
 									7: // Parameter unit {String]
-										arFileParameters[i].sUnit 		:= sCSVFieldString;							
+										arFileParameters[nRow].sUnit 		:= sCSVFieldString;							
 									8: // Parameter value [LREAL]
-										arFileParameters[i].fValue		:= STRING_TO_LREAL(sCSVFieldString);							
+										arFileParameters[nRow].fValue		:= STRING_TO_LREAL(sCSVFieldString);							
 							ELSE
 								;
 							END_CASE
@@ -347,11 +346,13 @@ END_VAR
 				END_IF
 			END_IF
 	
-		3:(* Convert one PLC record to CSV format *)
+		3:(* Convert one PLC parameter field to CSV format *)
+			// Go column by column to avoid return strings that are too long
+			// TODO test (default string constructor is 80 characters, but can be extended to <?>)
 			IF nRow = 0 THEN 
 				sCSVLine := sCsvFileHeader;
 			ELSE
-				sCSVLine := F_ParToCsvLine(stParameter := arFileParameters[nRow - 1], nColumn := nColumn);
+				sCSVLine := F_ParToCsvLine(stParameter := arFileParameters[nRow], nColumn := nColumn);
 			END_IF
 			nWriteStep := 4 ;
 		4:	(* Write single Field *)
@@ -361,13 +362,14 @@ END_VAR
 		5:(* Wait until write not busy *)
 			fbFilePuts( bExecute := FALSE, bError => bError, nErrID => nErrID );
 			IF NOT fbFilePuts.bBusy THEN
-				IF nRow = nNumberOfParameters + 1 THEN
-					nWriteStep := 10;
-				ELSIF NOT fbFilePuts.bError THEN
+				IF NOT fbFilePuts.bError THEN
 					nWriteStep := 3;(* Write next record *)
 					IF nRow = 0 OR nColumn = 8 THEN
 						nColumn := 0 ;
 						nRow := nRow + 1;
+						IF nRow = nNumberOfParameters + 1 THEN
+							nWriteStep := 10;
+						END_IF;
 					ELSE
 						nColumn := nColumn + 1;
 					END_IF
@@ -539,155 +541,5 @@ END_CASE
 ]]></ST>
       </Implementation>
     </Method>
-    <LineIds Name="Fb_ParLogging">
-      <LineId Id="464" Count="0" />
-      <LineId Id="544" Count="3" />
-      <LineId Id="549" Count="0" />
-      <LineId Id="553" Count="0" />
-      <LineId Id="551" Count="0" />
-      <LineId Id="548" Count="0" />
-      <LineId Id="387" Count="0" />
-    </LineIds>
-    <LineIds Name="Fb_ParLogging.CmdParLoadFromFile">
-      <LineId Id="91" Count="0" />
-      <LineId Id="143" Count="0" />
-      <LineId Id="93" Count="2" />
-      <LineId Id="158" Count="0" />
-      <LineId Id="108" Count="2" />
-      <LineId Id="112" Count="6" />
-      <LineId Id="167" Count="0" />
-      <LineId Id="119" Count="14" />
-      <LineId Id="160" Count="0" />
-      <LineId Id="135" Count="0" />
-      <LineId Id="44" Count="0" />
-    </LineIds>
-    <LineIds Name="Fb_ParLogging.CmdParWriteToFile">
-      <LineId Id="100" Count="0" />
-      <LineId Id="61" Count="0" />
-      <LineId Id="49" Count="1" />
-      <LineId Id="83" Count="0" />
-      <LineId Id="51" Count="0" />
-      <LineId Id="71" Count="0" />
-      <LineId Id="73" Count="0" />
-      <LineId Id="69" Count="0" />
-      <LineId Id="72" Count="0" />
-      <LineId Id="84" Count="0" />
-      <LineId Id="55" Count="1" />
-      <LineId Id="118" Count="0" />
-      <LineId Id="107" Count="2" />
-      <LineId Id="111" Count="0" />
-      <LineId Id="57" Count="2" />
-      <LineId Id="91" Count="0" />
-      <LineId Id="62" Count="0" />
-      <LineId Id="75" Count="1" />
-      <LineId Id="63" Count="0" />
-      <LineId Id="5" Count="0" />
-    </LineIds>
-    <LineIds Name="Fb_ParLogging.CmdSavePar">
-      <LineId Id="5" Count="0" />
-      <LineId Id="7" Count="0" />
-      <LineId Id="6" Count="0" />
-    </LineIds>
-    <LineIds Name="Fb_ParLogging.ExecFileRead">
-      <LineId Id="9" Count="2" />
-      <LineId Id="14" Count="7" />
-      <LineId Id="56" Count="0" />
-      <LineId Id="22" Count="5" />
-      <LineId Id="30" Count="13" />
-      <LineId Id="152" Count="0" />
-      <LineId Id="44" Count="2" />
-      <LineId Id="62" Count="3" />
-      <LineId Id="67" Count="6" />
-      <LineId Id="75" Count="4" />
-      <LineId Id="81" Count="13" />
-      <LineId Id="137" Count="0" />
-      <LineId Id="140" Count="0" />
-      <LineId Id="96" Count="1" />
-      <LineId Id="136" Count="0" />
-      <LineId Id="101" Count="3" />
-      <LineId Id="164" Count="1" />
-      <LineId Id="107" Count="9" />
-      <LineId Id="120" Count="0" />
-      <LineId Id="122" Count="5" />
-      <LineId Id="158" Count="0" />
-      <LineId Id="128" Count="7" />
-      <LineId Id="141" Count="10" />
-      <LineId Id="47" Count="4" />
-      <LineId Id="188" Count="0" />
-      <LineId Id="52" Count="1" />
-      <LineId Id="5" Count="0" />
-      <LineId Id="181" Count="0" />
-      <LineId Id="183" Count="2" />
-      <LineId Id="180" Count="0" />
-    </LineIds>
-    <LineIds Name="Fb_ParLogging.ExecFileWrite">
-      <LineId Id="125" Count="2" />
-      <LineId Id="130" Count="6" />
-      <LineId Id="276" Count="1" />
-      <LineId Id="137" Count="5" />
-      <LineId Id="144" Count="5" />
-      <LineId Id="151" Count="10" />
-      <LineId Id="241" Count="0" />
-      <LineId Id="204" Count="0" />
-      <LineId Id="242" Count="3" />
-      <LineId Id="205" Count="3" />
-      <LineId Id="210" Count="2" />
-      <LineId Id="247" Count="1" />
-      <LineId Id="213" Count="1" />
-      <LineId Id="253" Count="0" />
-      <LineId Id="258" Count="0" />
-      <LineId Id="246" Count="0" />
-      <LineId Id="254" Count="0" />
-      <LineId Id="256" Count="0" />
-      <LineId Id="255" Count="0" />
-      <LineId Id="215" Count="3" />
-      <LineId Id="220" Count="15" />
-      <LineId Id="262" Count="0" />
-      <LineId Id="236" Count="0" />
-      <LineId Id="278" Count="0" />
-      <LineId Id="237" Count="3" />
-      <LineId Id="269" Count="0" />
-      <LineId Id="271" Count="1" />
-      <LineId Id="270" Count="0" />
-      <LineId Id="274" Count="1" />
-      <LineId Id="273" Count="0" />
-    </LineIds>
-    <LineIds Name="Fb_ParLogging.ExecWriteToLog">
-      <LineId Id="6" Count="32" />
-      <LineId Id="42" Count="0" />
-      <LineId Id="44" Count="9" />
-      <LineId Id="88" Count="0" />
-      <LineId Id="54" Count="1" />
-      <LineId Id="89" Count="0" />
-      <LineId Id="87" Count="0" />
-      <LineId Id="56" Count="0" />
-      <LineId Id="58" Count="22" />
-      <LineId Id="82" Count="0" />
-      <LineId Id="5" Count="0" />
-    </LineIds>
-    <LineIds Name="Fb_ParLogging.Init">
-      <LineId Id="5" Count="0" />
-      <LineId Id="80" Count="2" />
-      <LineId Id="123" Count="0" />
-      <LineId Id="86" Count="0" />
-      <LineId Id="84" Count="0" />
-      <LineId Id="89" Count="3" />
-      <LineId Id="129" Count="0" />
-      <LineId Id="94" Count="2" />
-      <LineId Id="101" Count="0" />
-      <LineId Id="103" Count="1" />
-      <LineId Id="102" Count="0" />
-      <LineId Id="105" Count="0" />
-      <LineId Id="107" Count="3" />
-      <LineId Id="113" Count="2" />
-      <LineId Id="112" Count="0" />
-      <LineId Id="88" Count="0" />
-      <LineId Id="98" Count="2" />
-      <LineId Id="97" Count="0" />
-      <LineId Id="116" Count="1" />
-      <LineId Id="120" Count="1" />
-      <LineId Id="83" Count="0" />
-      <LineId Id="26" Count="0" />
-    </LineIds>
   </POU>
 </TcPlcObject>
