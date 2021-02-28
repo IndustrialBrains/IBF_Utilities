@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.5">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.6">
   <POU Name="F_ParToCsvLine" Id="{823f7904-d7b6-4ae4-8508-8997ce4f51bf}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION F_ParToCsvLine : STRING // convert parameter into csv string (default UDt_Parameter setup)
 VAR_INPUT
@@ -43,14 +43,5 @@ END_IF
 
 F_ParToCsvLine := sTempCsvField;]]></ST>
     </Implementation>
-    <LineIds Name="F_ParToCsvLine">
-      <LineId Id="76" Count="22" />
-      <LineId Id="116" Count="0" />
-      <LineId Id="119" Count="1" />
-      <LineId Id="122" Count="0" />
-      <LineId Id="118" Count="0" />
-      <LineId Id="123" Count="0" />
-      <LineId Id="30" Count="0" />
-    </LineIds>
   </POU>
 </TcPlcObject>
