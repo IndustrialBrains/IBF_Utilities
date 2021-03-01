@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.6">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.5">
   <POU Name="FB_ParameterHandler" Id="{05138ead-89ff-49ee-b483-c922423e053d}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK PUBLIC FB_ParameterHandler
 VAR_OUTPUT
@@ -7,7 +7,7 @@ VAR_OUTPUT
 END_VAR
 VAR
 	nLookupIndex		: UDINT := 1;
-	nNumberOfParameters : UDINT := 0;
+	nNumberOfParameters : UDINT := 1;
 	// parameter change commands
 	bCmdLoadfactory		: BOOL 	:= FALSE; // Load factory value into prepared value 
 	bCmdLoadFromPrevious: BOOL 	:= FALSE; // Load from saved previous value into prepared value
