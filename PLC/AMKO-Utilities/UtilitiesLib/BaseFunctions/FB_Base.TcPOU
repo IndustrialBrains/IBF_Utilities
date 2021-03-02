@@ -59,7 +59,7 @@ END_VAR
 ]]></Declaration>
       <Implementation>
         <ST><![CDATA[// Check device ID
-IF nId <> 0 AND nLocationId = 0 THEN
+IF nLocationId = 0 THEN
 	nLocationId := (nParentId * 10000) + nId * 100 ;
 END_IF
 
