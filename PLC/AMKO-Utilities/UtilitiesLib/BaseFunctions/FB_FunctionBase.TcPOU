@@ -1,7 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.5">
   <POU Name="FB_FunctionBase" Id="{ef86906a-1986-411c-841b-bedecc286c14}" SpecialFunc="None">
-    <Declaration><![CDATA[FUNCTION_BLOCK PUBLIC ABSTRACT FB_FunctionBase EXTENDS FB_Base
+    <Declaration><![CDATA[{attribute 'reflection'}
+FUNCTION_BLOCK PUBLIC ABSTRACT FB_FunctionBase EXTENDS FB_Base
 VAR_INPUT
 	bSafetyOk	: BOOL 		:= TRUE 				; // Module can operate safely [default true]
 END_VAR
@@ -94,39 +95,5 @@ END_VAR
         <ST><![CDATA[]]></ST>
       </Implementation>
     </Method>
-    <LineIds Name="FB_FunctionBase">
-      <LineId Id="461" Count="0" />
-      <LineId Id="380" Count="10" />
-      <LineId Id="441" Count="0" />
-      <LineId Id="444" Count="0" />
-      <LineId Id="443" Count="0" />
-      <LineId Id="459" Count="0" />
-      <LineId Id="458" Count="0" />
-      <LineId Id="462" Count="0" />
-      <LineId Id="476" Count="0" />
-      <LineId Id="460" Count="0" />
-      <LineId Id="396" Count="0" />
-      <LineId Id="463" Count="0" />
-      <LineId Id="397" Count="5" />
-      <LineId Id="404" Count="0" />
-      <LineId Id="391" Count="0" />
-      <LineId Id="18" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_FunctionBase.CmdHold">
-      <LineId Id="5" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_FunctionBase.CmdManual">
-      <LineId Id="5" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_FunctionBase.CmdSafeStop">
-      <LineId Id="6" Count="1" />
-      <LineId Id="5" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_FunctionBase.ExecDevFunctions">
-      <LineId Id="5" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_FunctionBase.ExecMachineSafety">
-      <LineId Id="5" Count="0" />
-    </LineIds>
   </POU>
 </TcPlcObject>
