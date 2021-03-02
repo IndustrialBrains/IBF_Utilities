@@ -73,29 +73,8 @@ IF sName = '' THEN
 	sName := F_FBNameFromPath(sPath := sPath);
 END_IF
 
-ExecIdentifyDevice := nLocationId <> 0;]]></ST>
+ExecIdentifyDevice := nLocationId <> 0 AND sName <> '';]]></ST>
       </Implementation>
     </Method>
-    <LineIds Name="FB_Base">
-      <LineId Id="96" Count="0" />
-      <LineId Id="37" Count="1" />
-      <LineId Id="66" Count="0" />
-      <LineId Id="68" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_Base.CmdReset">
-      <LineId Id="7" Count="0" />
-      <LineId Id="9" Count="0" />
-      <LineId Id="6" Count="0" />
-      <LineId Id="10" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_Base.ExecIdentifyDevice">
-      <LineId Id="6" Count="3" />
-      <LineId Id="34" Count="0" />
-      <LineId Id="11" Count="0" />
-      <LineId Id="44" Count="2" />
-      <LineId Id="38" Count="4" />
-      <LineId Id="50" Count="0" />
-      <LineId Id="49" Count="0" />
-    </LineIds>
   </POU>
 </TcPlcObject>
