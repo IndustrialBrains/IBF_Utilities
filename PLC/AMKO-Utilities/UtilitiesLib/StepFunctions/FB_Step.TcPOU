@@ -10,6 +10,7 @@ VAR_OUTPUT
 	bPaused		: BOOL 	:= FALSE ; // Stepper is paused
 	bHold		: BOOL 	:= FALSE ; // Stepper is blocked for changes
 	bSkipPause	: BOOL	:= FALSE ; // Pause function is skipped in this step 
+	bResetting	: BOOL  := False ; // Reset is active
 END_VAR
 VAR
 	nPreviousStep 	: UDINT ; // Previous active step
@@ -67,8 +68,7 @@ END_VAR
         <ST><![CDATA[bErrorActive := FALSE ;
 
 IF nActStep <> nResetStep THEN 
-	nPreviousStep 	:= nActStep ;
-	nActStep 		:= nResetStep ;
+	bResetting := TRUE ;	
 ELSE
 	CmdReset := TRUE ; 
 END_IF
@@ -115,15 +115,20 @@ VAR_INPUT
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF bHold THEN 
-	bHold 		:= FALSE ;
+        <ST><![CDATA[IF bResetting THEN 
+	nPreviousStep 	:= nActStep ;
+	nNextStep		:= nResetStep ;
+	nActStep 		:= nResetStep ;
+	bResetting 		:= FALSE; 
+ELSIF bHold THEN 
+	bHold 			:= FALSE ;
 	RETURN; 
 ELSIF bErrorActive THEN 
 	stFault.Active			:= TRUE ;
 	stFault.ComponentType	:= E_ComponentTypes.StepProgram ;
 	stFault.Discription		:= CONCAT(sName, ' Invalid step state');
 	stFault.FaultType		:= E_FaultTypes.FF;
-	stFault.MessageNumber	:= E_MessageNumbers.FF_ComunicationFault; 
+	stFault.MessageNumber	:= E_MessageNumbers.FF_ComunicationFault;
 ELSIF NOT bCmdPause OR bSkipPause THEN 
 	IF nActStep <> nNextStep THEN 
 		nPreviousStep 	:=	nActStep;	
@@ -158,73 +163,5 @@ END_VAR
 ]]></ST>
       </Implementation>
     </Method>
-    <LineIds Name="FB_Step">
-      <LineId Id="9" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_Step.CmdHold">
-      <LineId Id="5" Count="0" />
-      <LineId Id="10" Count="0" />
-      <LineId Id="9" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_Step.CmdNext">
-      <LineId Id="6" Count="3" />
-      <LineId Id="5" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_Step.CmdPrevious">
-      <LineId Id="6" Count="3" />
-      <LineId Id="5" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_Step.CmdReset">
-      <LineId Id="5" Count="0" />
-      <LineId Id="9" Count="0" />
-      <LineId Id="8" Count="0" />
-      <LineId Id="12" Count="0" />
-      <LineId Id="10" Count="0" />
-      <LineId Id="15" Count="1" />
-      <LineId Id="11" Count="0" />
-      <LineId Id="13" Count="0" />
-      <LineId Id="6" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_Step.CmdToStep">
-      <LineId Id="5" Count="0" />
-      <LineId Id="7" Count="1" />
-      <LineId Id="10" Count="0" />
-      <LineId Id="9" Count="0" />
-      <LineId Id="11" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_Step.Init">
-      <LineId Id="11" Count="1" />
-      <LineId Id="14" Count="0" />
-      <LineId Id="5" Count="0" />
-      <LineId Id="23" Count="0" />
-      <LineId Id="15" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_Step.SetActiveStep">
-      <LineId Id="28" Count="0" />
-      <LineId Id="33" Count="0" />
-      <LineId Id="31" Count="0" />
-      <LineId Id="8" Count="1" />
-      <LineId Id="11" Count="3" />
-      <LineId Id="5" Count="0" />
-      <LineId Id="15" Count="0" />
-      <LineId Id="18" Count="0" />
-      <LineId Id="20" Count="0" />
-      <LineId Id="17" Count="0" />
-      <LineId Id="7" Count="0" />
-      <LineId Id="37" Count="0" />
-      <LineId Id="29" Count="0" />
-      <LineId Id="23" Count="0" />
-      <LineId Id="21" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_Step.SkipPause">
-      <LineId Id="5" Count="0" />
-      <LineId Id="10" Count="0" />
-      <LineId Id="9" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_Step.StepError">
-      <LineId Id="5" Count="0" />
-      <LineId Id="7" Count="0" />
-      <LineId Id="6" Count="0" />
-    </LineIds>
   </POU>
 </TcPlcObject>
