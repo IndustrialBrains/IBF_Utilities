@@ -44,7 +44,6 @@ fbReTriggerArmed(CLK := bTriggerArmed);
 		fOldAxisPos 		:= fAxisPos ;
 		nOldAxisRev			:= nAxisModuloRev ;
 		nTriggerRotation	:= 0 		; 
-		RETURN ;	
 	END_IF
 	
 // ==== check if encoder is at turnover =====
@@ -118,8 +117,9 @@ END_VAR
 	END_IF 
 
 // ==== compare positions to trigger ======
-
-	IF bEncoderTurnedOver THEN
+	IF NOT bTriggerArmed THEN 
+		bInternalTrigger := FALSE ;
+	ELSIF bEncoderTurnedOver THEN
 		IF bDirPositive THEN
 			bInternalTrigger S= Between(fOldAxisPos , fTriggerPosCompensated, fEncoderTurnover) ;
 			bInternalTrigger S= Between(0			, fTriggerPosCompensated, fAxisPos) ;
