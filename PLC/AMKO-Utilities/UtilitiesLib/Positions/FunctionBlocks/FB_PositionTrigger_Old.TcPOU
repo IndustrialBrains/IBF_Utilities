@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.5">
-  <POU Name="FB_PositionTrigger" Id="{29a82a2d-884a-4e36-899d-c4cbd8f9a218}" SpecialFunc="None">
-    <Declaration><![CDATA[FUNCTION_BLOCK PUBLIC FB_PositionTrigger // trigger function, sets trigger Q signal high when trigger position is between previous cycle's and current axis position.
+  <POU Name="FB_PositionTrigger_Old" Id="{fd987587-b4d1-405a-9d23-bb003d45ecc7}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK PUBLIC FB_PositionTrigger_Old // trigger function, sets trigger Q signal high when trigger position is between previous cycle's and current axis position.
 VAR_INPUT
 	fAxisPos			: LREAL	; // Axis position on which the to trigger
 	nAxisModuloRev		: DINT 	:= 0	; // axis modulo revolutions 
@@ -41,10 +41,12 @@ fbReTriggerArmed(CLK := bTriggerArmed);
 // ==== Skip function if trigger is not armed =====
 	IF NOT bTriggerArmed THEN  
 		bInternalTrigger	:= FALSE 	;
+		Q 					:= FALSE	;
+		RETURN ;	
+	ELSIF fbReTriggerArmed.Q THEN 
 		fOldAxisPos 		:= fAxisPos ;
 		nOldAxisRev			:= nAxisModuloRev ;
 		nTriggerRotation	:= 0 		; 
-		RETURN ;	
 	END_IF
 	
 // ==== check if encoder is at turnover =====
@@ -54,9 +56,8 @@ fbReTriggerArmed(CLK := bTriggerArmed);
 	ExecArmTrigger(); 
 ]]></ST>
     </Implementation>
-    <Folder Name="Commands" Id="{1b521a88-8867-4c30-a8f3-ffc419d26f85}" />
-    <Folder Name="Private" Id="{bd42943b-4545-4953-8e0b-5dc87f02bb8d}" />
-    <Method Name="CalcTriggerCompensation" Id="{c14346b9-8c2b-4214-9337-f365c25ed524}" FolderPath="Private\">
+    <Folder Name="Private" Id="{4208ffc7-0704-4b5d-8914-d67f25180c1c}" />
+    <Method Name="CalcTriggerCompensation" Id="{96ec8b32-d310-4326-901c-edd47b255ebf}" FolderPath="Private\">
       <Declaration><![CDATA[METHOD PRIVATE CalcTriggerCompensation : BOOL
 VAR_INPUT
 END_VAR
@@ -68,7 +69,7 @@ END_VAR
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="CmdArmTrigger" Id="{bb0874c5-3ee2-431d-ba3f-2e9148c0d095}" FolderPath="Commands\">
+    <Method Name="CmdArmTrigger" Id="{05a97c0b-39d0-42ba-8875-9046cdb77eac}">
       <Declaration><![CDATA[METHOD PUBLIC CmdArmTrigger : BOOL // arm trigger
 VAR_INPUT
 END_VAR
@@ -76,20 +77,18 @@ END_VAR
       <Implementation>
         <ST><![CDATA[// Arm trigger command 
 bTriggerArmed S= TRUE ;
-Q := FALSE ;
 
 // set feedback
-CmdArmTrigger := NOT Q
- ;
+CmdArmTrigger := NOT Q ;
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="CmdSetTriggerPos" Id="{cb333874-4acb-405a-a5fd-6ea784df9431}" FolderPath="Commands\">
+    <Method Name="CmdSetTriggerPos" Id="{456097cb-6b4e-4349-a84a-cae4874abe8e}">
       <Declaration><![CDATA[METHOD PUBLIC CmdSetTriggerPos : BOOL
 VAR_INPUT
 	fCmdPosition 	: LREAL ; // Trigger position 
-	nCmdRotations	: DINT 	; // Rotations before trigger is set  
-	nCmdReactionTime: LREAL ; // [ms]reaction time to trigger signal 
+	nCmdRotations	: DINT	:= 0 ; // Rotations before trigger is set  
+	nCmdReactionTime: LREAL := 0 ; // [ms]reaction time to trigger signal 
 END_VAR
 ]]></Declaration>
       <Implementation>
@@ -100,7 +99,7 @@ fReactionTime 		:= nCmdReactionTime ;
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="ExecArmTrigger" Id="{14cdc84b-dd46-46b1-af22-6c4d5c899f39}" FolderPath="Private\">
+    <Method Name="ExecArmTrigger" Id="{53cf7f82-8ace-4dd1-a2b0-26e0d90c74fe}" FolderPath="Private\">
       <Declaration><![CDATA[METHOD INTERNAL ExecArmTrigger : BOOL
 VAR_INPUT
 END_VAR
@@ -109,20 +108,21 @@ END_VAR
         <ST><![CDATA[// ===== Retract compensationdistance from trigger distance =====
 
 // check if trigger pos is not negative 
-	IF NOT bEnablenNegative AND fTriggerPosCompensated < 0 THEN
-		fTriggerPosCompensated 			:= fEncoderTurnover + fTriggerPosition ;
-		nRotBeforeTriggerCompensated	:= nRotBeforeTrigger -	1;  
-	ELSE
-		fTriggerPosCompensated 			:= fTriggerPosition - fCompensationDistance ;
-		nRotBeforeTriggerCompensated	:= nRotBeforeTrigger ;  
-	END_IF 
+IF NOT bEnablenNegative AND fTriggerPosCompensated < 0 THEN
+	fTriggerPosCompensated 			:= fEncoderTurnover + fTriggerPosition ;
+	nRotBeforeTriggerCompensated	:= nRotBeforeTrigger -	1;  
+ELSE
+	fTriggerPosCompensated 			:= fTriggerPosition - fCompensationDistance ;
+	nRotBeforeTriggerCompensated	:= nRotBeforeTrigger ;  
+END_IF 
 
 // ==== compare positions to trigger ======
+	bInternalTrigger := FALSE ;
 
 	IF bEncoderTurnedOver THEN
 		IF bDirPositive THEN
 			bInternalTrigger S= Between(fOldAxisPos , fTriggerPosCompensated, fEncoderTurnover) ;
-			bInternalTrigger S= Between(0			, fTriggerPosCompensated, fAxisPos) ;
+			bInternalTrigger S= Between(0	, fTriggerPosCompensated, fAxisPos) ;
 		ELSE 
 			bInternalTrigger S= Between(0			, fTriggerPosCompensated, fOldAxisPos) ;
 			bInternalTrigger S= Between(fAxisPos	, fTriggerPosCompensated, fEncoderTurnover) ;
@@ -139,26 +139,25 @@ END_VAR
 // ==== Check multiturn command =======
 	IF bInternalTrigger THEN 
 		IF nTriggerRotation >= nRotBeforeTriggerCompensated THEN 
-			Q := bInternalTrigger OR fAxisPos > fTriggerPosCompensated;
-			bTriggerArmed := FALSE ;			
+			Q S= bInternalTrigger OR fAxisPos > fTriggerPosCompensated;			
 		ELSE 
 			nTriggerRotation := nTriggerRotation + 1 ;
 		END_IF 
-		bInternalTrigger := FALSE ;
-	ELSE 
-		Q:= FALSE ;
 	END_IF
+
+// ==== Reset arm trigger command =====
+	bTriggerArmed 	R= Q ; 
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="ExecTurnoverCheck" Id="{6aecf1cd-9c99-4ef4-b1fa-e8dc716e5dac}" FolderPath="Private\">
+    <Method Name="ExecTurnoverCheck" Id="{10051210-68d4-4637-9383-f379a08b872f}" FolderPath="Private\">
       <Declaration><![CDATA[METHOD PRIVATE ExecTurnoverCheck : BOOL
 VAR_INPUT
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[	bEncoderTurnedOver 	:= nOldAxisRev <> nAxisModuloRev ;
-	nOldAxisRev 		:= nAxisModuloRev ;]]></ST>
+        <ST><![CDATA[	bEncoderTurnedOver := nOldAxisRev <> nAxisModuloRev ;
+	nOldAxisRev := nAxisModuloRev ;]]></ST>
       </Implementation>
     </Method>
   </POU>

@@ -229,6 +229,9 @@
     <Compile Include="PathFunctions\F_GetLevelFromPath.TcPOU">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Positions\FunctionBlocks\FB_PositionTrigger_Old.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Positions\FunctionBlocks\FB_PositionTrigger.TcPOU">
       <SubType>Code</SubType>
     </Compile>
