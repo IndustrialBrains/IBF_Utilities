@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.6">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.5">
   <POU Name="Fb_ParLogging" Id="{70cb49c5-c474-4a5d-8c59-0231168edf6a}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK PUBLIC Fb_ParLogging EXTENDS FB_ParameterHandler
 VAR_OUTPUT
@@ -132,17 +132,6 @@ END_VAR]]></Declaration>
         <ST><![CDATA[
 IF bCmdParFileWrite THEN 
 	FOR i := 1 TO nNumberOfParameters DO
-(*			IF 	NOT bFileNotFound AND
-				(arFileParameters[i].fValue <> arParameters[i].pParameter^.fValue OR
-				arFileParameters[i].fFactory <> arParameters[i].pParameter^.fFactory) THEN
-					sDTString := DT_TO_STRING(Sys_Variables.SystemTime);
-					sDTString := STRING_TO_CSVFIELD(sdtstring,TRUE);
-					arChangeLog[nNumberOfChanges*2] := CONCAT(sDTString,F_ParToCsvLine( arFileParameters[i],));
-					arChangeLog[(nNumberOfChanges*2)+1] := CONCAT( ';', STR2 := F_ParToCsvLine( arParameters[i].pParameter^)); 
-					bCmdParLogWrite 	:= TRUE ;
-					nNumberOfChanges	:= LIMIT(0,nNumberOfChanges + 1, nNumberOfParameters); 
-			END_IF 
-*)
 			// Save current actual value for later restore
 			IF arParameters[i].pParameter^.fValue <> arFileParameters[i].fValue THEN
 				arParameters[i].pParameter^.fSaved := arFileParameters[i].fValue ;
@@ -252,13 +241,13 @@ END_VAR]]></Declaration>
 									2: // Parameter type [String]
 										arFileParameters[nRow].sType 		:= sCSVFieldString;	
 									3: // Parameter discription [string]
-										arFileParameters[nRow].sDiscription:= sCSVFieldString;						
+										arFileParameters[nRow].sDiscription	:= sCSVFieldString;						
 									4: // Parameter factory value [LREAL]
-										arFileParameters[nRow].fFactory	:= STRING_TO_LREAL(sCSVFieldString);							
+										arFileParameters[nRow].fFactory		:= STRING_TO_LREAL(sCSVFieldString);							
 									5: // Parameter maximum value [LREAL]
-										arFileParameters[nRow].fMaximum	:= STRING_TO_LREAL(sCSVFieldString);							
+										arFileParameters[nRow].fMaximum		:= STRING_TO_LREAL(sCSVFieldString);							
 									6: // Parameter minimum value[LREAL]
-										arFileParameters[nRow].fMinimum	:= STRING_TO_LREAL(sCSVFieldString);							
+										arFileParameters[nRow].fMinimum		:= STRING_TO_LREAL(sCSVFieldString);							
 									7: // Parameter unit {String]
 										arFileParameters[nRow].sUnit 		:= sCSVFieldString;							
 									8: // Parameter value [LREAL]
@@ -266,9 +255,9 @@ END_VAR]]></Declaration>
 							ELSE
 								;
 							END_CASE
+							nColumn := nColumn + 1;(* Increment number of read columns *)
 						END_IF
 					END_IF
-					nColumn := nColumn + 1;(* Increment number of read columns *)
 					IF fbReader.bCRLF THEN(* CRLF == TRUE => End of reacord reached *)
 						nNumberOfParFromFile := nRow;
 						nRow 		:= nRow + 1;(* Increment number of read records *)
