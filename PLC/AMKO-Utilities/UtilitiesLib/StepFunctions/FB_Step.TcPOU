@@ -69,6 +69,10 @@ END_VAR
 
 IF nActStep <> nResetStep THEN 
 	bResetting := TRUE ;	
+ELSIF bResetting THEN 
+	nPreviousStep 	:= nActStep ;
+	nNextStep		:= nResetStep ;
+	nActStep 		:= nResetStep ;
 ELSE
 	CmdReset := TRUE ; 
 END_IF
@@ -116,9 +120,6 @@ END_VAR
 ]]></Declaration>
       <Implementation>
         <ST><![CDATA[IF bResetting THEN 
-	nPreviousStep 	:= nActStep ;
-	nNextStep		:= nResetStep ;
-	nActStep 		:= nResetStep ;
 	bResetting 		:= FALSE; 
 ELSIF bHold THEN 
 	bHold 			:= FALSE ;
