@@ -370,3 +370,5 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
+PLC/.vs/AMKO-Utilities/v15/.suo
+PLC/.vs/AMKO-Utilities/v15/.suo

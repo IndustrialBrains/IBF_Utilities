@@ -11,5 +11,65 @@
       <From>bDisplayFaults</From>
       <To>bHideFaults</To>
     </RenamedSymbol>
+    <RenamedType>
+      <Type guid="4e883c49-73bb-4954-a568-cf4eb5609e00">F_GETFUNCTIONLEVEL</Type>
+      <From>F_GetFunctionLevel</From>
+      <To>F_GetLevelFromPath</To>
+    </RenamedType>
+    <RenamedSymbol>
+      <Type guid="ef86906a-1986-411c-841b-bedecc286c14">FB_FunctionBase</Type>
+      <From>nFunctionId</From>
+      <To>nId</To>
+    </RenamedSymbol>
+    <RenamedSymbol>
+      <Type guid="ef86906a-1986-411c-841b-bedecc286c14">FB_FunctionBase</Type>
+      <From>sDevName</From>
+      <To>sName</To>
+    </RenamedSymbol>
+    <RenamedSymbol>
+      <Type guid="ef86906a-1986-411c-841b-bedecc286c14">FB_FunctionBase</Type>
+      <From>nDevNumber</From>
+      <To>nLocationNumber</To>
+    </RenamedSymbol>
+    <RenamedSymbol>
+      <Type guid="ef86906a-1986-411c-841b-bedecc286c14">FB_FunctionBase</Type>
+      <From>nDevId</From>
+      <To>nLocationId</To>
+    </RenamedSymbol>
+    <RenamedSymbol>
+      <Type guid="ef86906a-1986-411c-841b-bedecc286c14">FB_FunctionBase</Type>
+      <From>sDevActiveState</From>
+      <To>sActiveState</To>
+    </RenamedSymbol>
+    <RenamedSymbol>
+      <Type guid="ef86906a-1986-411c-841b-bedecc286c14">FB_FunctionBase</Type>
+      <From>bDevIsSafe</From>
+      <To>bIsSafe</To>
+    </RenamedSymbol>
+    <RenamedSymbol>
+      <Type guid="9315b401-f77f-4ecd-9e8e-d1a9cff67019">Udt_Parameter</Type>
+      <From>bCmdTeach</From>
+      <To>bTeachable</To>
+    </RenamedSymbol>
+    <RenamedType>
+      <Type guid="c383ca2b-0f6c-427f-82a9-3b5af80fb5b4">NOPAUSE</Type>
+      <From>NoPause</From>
+      <To>SkipPause</To>
+    </RenamedType>
+    <RenamedSymbol>
+      <Type guid="69b694f5-baa1-4f86-8caa-4a01db9ce8f8">FB_Step</Type>
+      <From>bBlocked</From>
+      <To>bHold</To>
+    </RenamedSymbol>
+    <RenamedSymbol>
+      <Type guid="279e7338-601a-42f5-8e17-8ce44587bb9a">E_ComponentTypes</Type>
+      <From>DiSensor</From>
+      <To>DiInput</To>
+    </RenamedSymbol>
+    <RenamedType>
+      <Type guid="37facf2e-03a6-42dd-a8a6-24c98287d97e">FACCDEC</Type>
+      <From>POU</From>
+      <To>fAccDecCalc</To>
+    </RenamedType>
   </Renames>
 </Refactors>

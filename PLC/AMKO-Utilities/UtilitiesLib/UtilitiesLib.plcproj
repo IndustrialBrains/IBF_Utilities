@@ -18,9 +18,75 @@
     <Company>AMKO-Engineering</Company>
     <Released>false</Released>
     <Title>Utilities_Library</Title>
-    <ProjectVersion>1.2.0.3</ProjectVersion>
+    <ProjectVersion>1.3.1.7</ProjectVersion>
     <Author>Chris van Kooij</Author>
     <Description>Utilities library contains all basic utilities needed like system variables messages parameters etc.</Description>
+    <LibraryCategories>
+      <LibraryCategory xmlns="">
+        <Id>{589fe09e-9317-462c-ba3b-ceb72fa5d919}</Id>
+        <Version>1.0.0.0</Version>
+        <DefaultName>AMKO-Engineering</DefaultName>
+      </LibraryCategory>
+      <LibraryCategory xmlns="">
+        <Id>{9052c1da-2179-403f-9f0a-49f63df589e9}</Id>
+        <Version>1.0.0.0</Version>
+        <ParentCategory>
+          <Id>{589fe09e-9317-462c-ba3b-ceb72fa5d919}</Id>
+        </ParentCategory>
+        <DefaultName>System</DefaultName>
+      </LibraryCategory>
+      <LibraryCategory xmlns="">
+        <Id>{d69a4e54-3b9a-4ecc-8074-fff937c26a40}</Id>
+        <Version>1.0.0.0</Version>
+        <ParentCategory>
+          <Id>{589fe09e-9317-462c-ba3b-ceb72fa5d919}</Id>
+        </ParentCategory>
+        <DefaultName>Utillities</DefaultName>
+      </LibraryCategory>
+      <LibraryCategory xmlns="">
+        <Id>{eb954523-a8af-4bd0-a32c-f81936b81c6d}</Id>
+        <Version>1.0.0.0</Version>
+        <ParentCategory>
+          <Id>{589fe09e-9317-462c-ba3b-ceb72fa5d919}</Id>
+        </ParentCategory>
+        <DefaultName>HMI</DefaultName>
+      </LibraryCategory>
+      <LibraryCategory xmlns="">
+        <Id>{846be616-7077-49df-82d2-98e957c13e93}</Id>
+        <Version>1.0.0.0</Version>
+        <ParentCategory>
+          <Id>{589fe09e-9317-462c-ba3b-ceb72fa5d919}</Id>
+        </ParentCategory>
+        <DefaultName>Machines</DefaultName>
+      </LibraryCategory>
+      <LibraryCategory xmlns="">
+        <Id>{009e50f4-d2ac-459e-96fa-8b145dea1d14}</Id>
+        <Version>1.0.0.0</Version>
+        <ParentCategory>
+          <Id>{589fe09e-9317-462c-ba3b-ceb72fa5d919}</Id>
+        </ParentCategory>
+        <DefaultName>Devices</DefaultName>
+      </LibraryCategory>
+      <LibraryCategory xmlns="">
+        <Id>{3ea1b3cc-00d0-4410-912b-09df72d0dc78}</Id>
+        <Version>1.0.0.0</Version>
+        <ParentCategory>
+          <Id>{589fe09e-9317-462c-ba3b-ceb72fa5d919}</Id>
+        </ParentCategory>
+        <DefaultName>MLT</DefaultName>
+      </LibraryCategory>
+      <LibraryCategory xmlns="">
+        <Id>{7456e3ea-ab98-4ec9-850d-33c9c8b9ad33}</Id>
+        <Version>1.0.0.0</Version>
+        <ParentCategory>
+          <Id>{589fe09e-9317-462c-ba3b-ceb72fa5d919}</Id>
+        </ParentCategory>
+        <DefaultName>Sewinghead</DefaultName>
+      </LibraryCategory>
+    </LibraryCategories>
+    <SelectedLibraryCategories>
+      <Id xmlns="">{d69a4e54-3b9a-4ecc-8074-fff937c26a40}</Id>
+    </SelectedLibraryCategories>
     <!--    <OutputType>Exe</OutputType>
     <RootNamespace>MyApplication</RootNamespace>
     <AssemblyName>MyApplication</AssemblyName>-->
@@ -35,6 +101,9 @@
     <Folder Include="GVLs" />
     <Folder Include="General" />
     <Folder Include="Compare" />
+    <Folder Include="BaseFunctions" />
+    <Folder Include="MovePathCalculations" />
+    <Folder Include="StepFunctions" />
     <Folder Include="PathFunctions" />
     <Folder Include="Parameter" />
     <Folder Include="Parameter\DataTypes" />
@@ -49,6 +118,12 @@
     <Folder Include="System\Functions\DataManagement" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BaseFunctions\FB_Base.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="BaseFunctions\FB_FunctionBase.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Compare\Functions\Between.TcPOU">
       <SubType>Code</SubType>
     </Compile>
@@ -89,10 +164,6 @@
       <SubType>Code</SubType>
       <LinkAlways>true</LinkAlways>
     </Compile>
-    <Compile Include="GVLs\GVL_Safety.TcGVL">
-      <SubType>Code</SubType>
-      <LinkAlways>true</LinkAlways>
-    </Compile>
     <Compile Include="GVLs\Sys_Variables.TcGVL">
       <SubType>Code</SubType>
       <LinkAlways>true</LinkAlways>
@@ -121,6 +192,9 @@
     <Compile Include="FaultsAndMessages\Param_Messages.TcGVL">
       <SubType>Code</SubType>
       <LinkAlways>true</LinkAlways>
+    </Compile>
+    <Compile Include="MovePathCalculations\fAccDecCalc.TcPOU">
+      <SubType>Code</SubType>
     </Compile>
     <Compile Include="Parameter\DataTypes\Old\UDT_Parameter_1.TcDUT">
       <SubType>Code</SubType>
@@ -152,6 +226,12 @@
     <Compile Include="PathFunctions\F_FBNameFromPath.TcPOU">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="PathFunctions\F_GetLevelFromPath.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Positions\FunctionBlocks\FB_PositionTrigger_Old.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Positions\FunctionBlocks\FB_PositionTrigger.TcPOU">
       <SubType>Code</SubType>
     </Compile>
@@ -168,6 +248,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Positions\Functions\F_TriggerPosOffset.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="StepFunctions\FB_Step.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="System\Functions\DataManagement\FB_PersistentDataManager.TcPOU">

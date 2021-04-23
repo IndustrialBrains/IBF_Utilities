@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.5">
+  <POU Name="fAccDecCalc" Id="{37facf2e-03a6-42dd-a8a6-24c98287d97e}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION fAccDecCalc : LREAL // calculates acceleration and deceleration values from path [units/sec^2]
+VAR_INPUT
+	fVelocity		: LREAL ; // current velocity [units]
+	fNewVelocity	: LREAL ; // New velocity [units] 
+	fDistance		: LREAL ; // Travel distance [units]
+END_VAR
+VAR
+	xDeltaVelo		: LREAL ; // delta velocity
+	xAverageVelo	: LREAL ; // Average velocity
+	xTime			: LREAL ; // Time it takes to slow down [s]
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[xDeltaVelo	:= ABS(fVelocity - fNewVelocity);
+xAverageVelo:= ABS(fVelocity + fNewVelocity)/2;
+xTime		:= fDistance / xAverageVelo ;
+fAccDecCalc	:= xDeltaVelo / xTime ;]]></ST>
+    </Implementation>
+    <LineIds Name="fAccDecCalc">
+      <LineId Id="7" Count="0" />
+      <LineId Id="33" Count="2" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

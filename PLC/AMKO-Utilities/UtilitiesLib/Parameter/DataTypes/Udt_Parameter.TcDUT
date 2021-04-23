@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.4">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.5">
   <DUT Name="Udt_Parameter" Id="{9315b401-f77f-4ecd-9e8e-d1a9cff67019}">
     <Declaration><![CDATA[TYPE Udt_Parameter :
 STRUCT PERSISTENT
@@ -14,7 +14,7 @@ STRUCT PERSISTENT
 	fValue		: LREAL		:= 0				; // [Column 8]Parameter data, Current (active) parameter value
 	fSaved		: LREAL		:= 0				; // Parameter data, Saved value or standard setpoint
 	fPrepared	: LREAL 	:= 0				; // Parameter data, Prepared value from teach function 
-	bCmdTeach	: BOOL		:= FALSE			; // Teach command for devices 
+	bTeachable	: BOOL		:= FALSE			; // Teach command for devices 
 	bAccepted	: BOOL 		:= FALSE 			; // Paramer value has been accepted
 END_STRUCT
 END_TYPE

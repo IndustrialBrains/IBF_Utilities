@@ -3,11 +3,11 @@
   <POU Name="FB_ParameterHandler" Id="{05138ead-89ff-49ee-b483-c922423e053d}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK PUBLIC FB_ParameterHandler
 VAR_OUTPUT
-	arParameters		: ARRAY [0..GVL_Parameters.MAX_PARAMETERS] OF Udt_ParameterId := [stDummyParId]; 
+	arParameters		: ARRAY [1..GVL_Parameters.MAX_PARAMETERS] OF Udt_ParameterId := [stDummyParId]; 
 END_VAR
 VAR
-	nLookupIndex		: UDINT := 0;
-	nNumberOfParameters : UDINT := 0;
+	nLookupIndex		: UDINT := 1;
+	nNumberOfParameters : UDINT := 1;
 	// parameter change commands
 	bCmdLoadfactory		: BOOL 	:= FALSE; // Load factory value into prepared value 
 	bCmdLoadFromPrevious: BOOL 	:= FALSE; // Load from saved previous value into prepared value
@@ -25,8 +25,8 @@ ExecChangeParValues();]]></ST>
     </Implementation>
     <Method Name="CmdAddParameter" Id="{583b0722-1ffd-474a-842a-92108166fa41}">
       <Declaration><![CDATA[METHOD PUBLIC CmdAddParameter : BOOL
-VAR_INPUT
-	refParameter : REFERENCE TO Udt_Parameter ; // reference to parameter 
+VAR_IN_OUT
+	refParameter : Udt_Parameter ; // Parameter to add
 END_VAR
 VAR
 	i 			: UDINT ;
@@ -35,34 +35,38 @@ VAR
 	bParFound	: BOOL 	:= FALSE ;
 END_VAR]]></Declaration>
       <Implementation>
-        <ST><![CDATA[// check if parameter is already added
-FOR i := 0 TO GVL_Parameters.MAX_PARAMETERS DO
-	IF arParameters[i].pParameter = 0 THEN 
-		nNumberOfParameters := i;
+        <ST><![CDATA[// Get number of parameters
+FOR i := 1 TO GVL_Parameters.MAX_PARAMETERS DO
+	IF arParameters[i].pParameter = 0 THEN
+		nNumberOfParameters := i - 1;
 		EXIT ;
-	ELSIF arParameters[i].nNumber = refParameter.nNumber THEN
+	END_IF
+END_FOR
+
+// check if parameter is already added
+FOR i := 1 TO nNumberOfParameters DO
+	IF arParameters[i].nNumber = refParameter.nNumber THEN
  		RETURN ;
 	END_IF
 END_FOR
 	
-// Add parameter to array if not already added
+// Add parameter to array
+nNumberOfParameters := nNumberOfParameters + 1; 
 arParameters[nNumberOfParameters].nNumber		:= refParameter.nNumber 	;
 arParameters[nNumberOfParameters].sName			:= refParameter.sName	;
 arParameters[nNumberOfParameters].sType			:= refParameter.sType	;
 arParameters[nNumberOfParameters].pParameter 	:= ADR(refParameter)	;
 
-IF nNumberOfParameters > 1 THEN 
-	// (re)sort parameter list
-	FOR i := 0 TO nNumberOfParameters BY 1 DO
-		FOR j := 0 TO nNumberOfParameters -1 BY 1 DO
-			IF (arParameters[j].nNumber > arParameters[j+1].nNumber)THEN
-				stTempPar 			:= arParameters[j+1];
-				arParameters[j+1]	:= arParameters[j];
-				arParameters[j]		:= stTempPar ;
-			END_IF
-		END_FOR
-	END_FOR	
-END_IF
+// (re)sort parameter list
+FOR i := 2 TO nNumberOfParameters BY 1 DO
+	FOR j := 1 TO nNumberOfParameters -1 BY 1 DO
+		IF (arParameters[j].nNumber > arParameters[j+1].nNumber)THEN
+			stTempPar 			:= arParameters[j+1];
+			arParameters[j+1]	:= arParameters[j];
+			arParameters[j]		:= stTempPar ;
+		END_IF
+	END_FOR
+END_FOR	
 
 // set feedback
 CmdAddParameter S= arParameters[nNumberOfParameters].pParameter > 0 ;]]></ST>
@@ -94,52 +98,5 @@ END_IF
 ]]></ST>
       </Implementation>
     </Method>
-    <LineIds Name="FB_ParameterHandler">
-      <LineId Id="9" Count="0" />
-      <LineId Id="33" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_ParameterHandler.CmdAddParameter">
-      <LineId Id="9" Count="0" />
-      <LineId Id="5" Count="0" />
-      <LineId Id="42" Count="1" />
-      <LineId Id="48" Count="0" />
-      <LineId Id="45" Count="0" />
-      <LineId Id="47" Count="0" />
-      <LineId Id="44" Count="0" />
-      <LineId Id="11" Count="0" />
-      <LineId Id="14" Count="0" />
-      <LineId Id="13" Count="0" />
-      <LineId Id="60" Count="1" />
-      <LineId Id="73" Count="0" />
-      <LineId Id="15" Count="0" />
-      <LineId Id="50" Count="0" />
-      <LineId Id="49" Count="0" />
-      <LineId Id="28" Count="3" />
-      <LineId Id="35" Count="0" />
-      <LineId Id="38" Count="1" />
-      <LineId Id="36" Count="0" />
-      <LineId Id="32" Count="0" />
-      <LineId Id="26" Count="0" />
-      <LineId Id="21" Count="0" />
-      <LineId Id="62" Count="0" />
-      <LineId Id="25" Count="0" />
-      <LineId Id="63" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_ParameterHandler.ExecChangeParValues">
-      <LineId Id="26" Count="0" />
-      <LineId Id="33" Count="2" />
-      <LineId Id="28" Count="0" />
-      <LineId Id="41" Count="0" />
-      <LineId Id="5" Count="0" />
-      <LineId Id="9" Count="1" />
-      <LineId Id="53" Count="0" />
-      <LineId Id="22" Count="0" />
-      <LineId Id="12" Count="0" />
-      <LineId Id="54" Count="0" />
-      <LineId Id="23" Count="1" />
-      <LineId Id="55" Count="0" />
-      <LineId Id="11" Count="0" />
-      <LineId Id="21" Count="0" />
-    </LineIds>
   </POU>
 </TcPlcObject>

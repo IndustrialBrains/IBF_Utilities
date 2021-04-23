@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.3">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.5">
   <POU Name="Fb_SystemVariables" Id="{da83f45a-6f6a-41cc-bbb4-a67342500421}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK Fb_SystemVariables
 VAR
@@ -9,13 +9,13 @@ VAR
 		Fb_TimerFast : Ton ; // Timer for fast blink bit
 		Fb_TimerSlow : Ton ; // Timer for slow blink bit
 		Fb_RisingPulse : R_Trig ; // Rinsing edge trigger function	
-
 	// ***** internal Variables *****
 		TimeStruct	: TIMESTRUCT ; // Time structure from system time function
 		HeartbeatOn	: BOOL ; // heartbeat is on
 		FlashFastOn	: BOOL ; // Fast Flash bit on
 		FlashSlowOn	: BOOL ; // Flash slow bit on
-		
+	
+		Fb_Timer100mSec : TON := (PT := T#100MS); // Timer for 100 ms pulse		
 END_VAR
 ]]></Declaration>
     <Implementation>
@@ -42,6 +42,9 @@ END_VAR
 
 // ===== one second pulse generator =====
 	Fb_RisingPulse(Clk := HeartbeatOn, Q => Sys_Variables.Pulse1Sec);
+	
+// ===== 100ms pulse generation ======
+	Fb_Timer100mSec( IN := NOT Sys_Variables.Pulse100ms, Q => Sys_Variables.Pulse100ms);
 
 // ===== Flash fast bit =====
 	Fb_TimerFast(In := NOT FlashFastOn, Pt := T#1S, Q => FlashFastOn);
@@ -83,6 +86,7 @@ END_VAR
       <LineId Id="30" Count="0" />
       <LineId Id="29" Count="0" />
       <LineId Id="31" Count="0" />
+      <LineId Id="171" Count="2" />
       <LineId Id="38" Count="0" />
       <LineId Id="36" Count="0" />
       <LineId Id="28" Count="0" />

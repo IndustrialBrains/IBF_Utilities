@@ -1,0 +1,45 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.5">
+  <POU Name="F_GetLevelFromPath" Id="{4e883c49-73bb-4954-a568-cf4eb5609e00}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION F_GetLevelFromPath : UDINT // Get Function nesting level from path by counting '.'
+VAR_INPUT
+	sPath	: STRING ;
+END_VAR
+VAR
+	sTemp		: STRING ;
+	nDotPos		: INT ; 
+	nLevel		: UDINT ;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[sTemp := sPath ;
+
+REPEAT 
+	nDotPos := FIND(sTemp,'.');
+	IF nDotPos <> 0 THEN 
+		nLevel := nLevel +1 ;
+		sTemp := DELETE(STR := sTemp,
+						LEN := nDotPos + 1,
+						POS	:= 0 );
+	END_IF
+UNTIL 
+	nDotPos = 0	
+END_REPEAT
+
+F_GetLevelFromPath := nLevel; ]]></ST>
+    </Implementation>
+    <LineIds Name="F_GetLevelFromPath">
+      <LineId Id="21" Count="0" />
+      <LineId Id="20" Count="0" />
+      <LineId Id="7" Count="0" />
+      <LineId Id="13" Count="0" />
+      <LineId Id="22" Count="1" />
+      <LineId Id="25" Count="2" />
+      <LineId Id="30" Count="0" />
+      <LineId Id="28" Count="1" />
+      <LineId Id="14" Count="0" />
+      <LineId Id="32" Count="0" />
+      <LineId Id="31" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>
