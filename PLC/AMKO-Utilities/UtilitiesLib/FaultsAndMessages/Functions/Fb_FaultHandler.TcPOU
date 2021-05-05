@@ -3,7 +3,6 @@
   <POU Name="Fb_FaultHandler" Id="{08f65884-c647-4a29-b7ba-51d088979c07}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK Fb_FaultHandler
 VAR_INPUT
-	bReset 				: BOOL 	:= FALSE	; // reference to fault reset bit
 END_VAR
 VAR_OUTPUT
 	arActiveFaults 	: ARRAY [0..Param_Messages.nMAX_MESSAGES_SHOWN] OF UDT_Fault  ; // reference to active fault array
@@ -14,6 +13,7 @@ VAR_OUTPUT
 	bActFF 			: BOOL := FALSE ;
 END_VAR
 VAR
+	bResetting		: BOOL := FALSE ;
 	// functional variables
 	i 					: UDINT ;
 	// fault data
@@ -58,11 +58,11 @@ END_VAR
 ]]></Declaration>
     <Implementation>
       <ST><![CDATA[// Check for active faults in list
-ExecSetFaultBit(); 
-// Check for reset is active 
-ExecResetFaults();
+IF NOT bResetting THEN 
+	ExecSetFaultBit(); 
+END_IF
 
-]]></ST>
+bResetting := FALSE ;]]></ST>
     </Implementation>
     <Folder Name="Private" Id="{2e728eb6-79bc-4de8-8875-9d08a8df9edd}" />
     <Method Name="CheckEntryValid" Id="{4ead88ed-0ad4-4581-8230-d979907ffe1b}" FolderPath="Private\">
@@ -90,8 +90,7 @@ VAR_IN_OUT
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[
-// coppy fault to internal fault udt
+        <ST><![CDATA[// coppy fault to internal fault udt
 IF stFault.FaultType <> E_FaultTypes.NA AND stFault.Active THEN 
 	THIS^.stFaultUdt	:= stFault ;
 	// Process fault data
@@ -102,6 +101,18 @@ IF stFault.FaultType <> E_FaultTypes.NA AND stFault.Active THEN
 	stFaultUdt.Active	:= FALSE ;
 END_IF
 
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="CmdReset" Id="{a9c5d6bc-61dd-41fc-99d9-5b14d5fa2712}">
+      <Declaration><![CDATA[METHOD PUBLIC CmdReset : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[bResetting := TRUE ;
+// Check for reset is active 
+CmdReset := ExecResetFaults();
 ]]></ST>
       </Implementation>
     </Method>
@@ -131,11 +142,7 @@ VAR
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF NOT bReset THEN 
-	RETURN;
-END_IF
-
-FOR i := 0 TO Param_Messages.nMAX_MESSAGES_SHOWN DO
+        <ST><![CDATA[FOR i := 0 TO Param_Messages.nMAX_MESSAGES_SHOWN DO
 	IF arActiveFaults[i].Active THEN
 		CONTINUE;
 	ELSE
@@ -161,7 +168,7 @@ ExecResetFaults := TRUE ;]]></ST>
 bActMC	:= FALSE;
 bActCF 	:= FALSE;
 bActFF 	:= FALSE;
-
+	
 FOR i := 0 TO nActiveFaults DO
 	// read message type 
 	CASE arActiveFaults[i].FaultType OF
@@ -220,88 +227,5 @@ END_IF
 ]]></ST>
       </Implementation>
     </Action>
-    <LineIds Name="Fb_FaultHandler">
-      <LineId Id="2408" Count="1" />
-      <LineId Id="2331" Count="0" />
-      <LineId Id="2333" Count="0" />
-      <LineId Id="2192" Count="0" />
-      <LineId Id="43" Count="0" />
-    </LineIds>
-    <LineIds Name="Fb_FaultHandler.CheckEntryValid">
-      <LineId Id="12" Count="1" />
-      <LineId Id="7" Count="0" />
-      <LineId Id="17" Count="1" />
-      <LineId Id="26" Count="0" />
-      <LineId Id="19" Count="0" />
-      <LineId Id="9" Count="0" />
-      <LineId Id="5" Count="0" />
-    </LineIds>
-    <LineIds Name="Fb_FaultHandler.CmdAddFault">
-      <LineId Id="14" Count="0" />
-      <LineId Id="7" Count="0" />
-      <LineId Id="15" Count="0" />
-      <LineId Id="5" Count="0" />
-      <LineId Id="18" Count="3" />
-      <LineId Id="40" Count="0" />
-      <LineId Id="34" Count="0" />
-      <LineId Id="9" Count="0" />
-      <LineId Id="16" Count="0" />
-      <LineId Id="8" Count="0" />
-    </LineIds>
-    <LineIds Name="Fb_FaultHandler.ExecCleanUpArray">
-      <LineId Id="6" Count="0" />
-      <LineId Id="20" Count="0" />
-      <LineId Id="8" Count="3" />
-      <LineId Id="15" Count="0" />
-      <LineId Id="5" Count="0" />
-    </LineIds>
-    <LineIds Name="Fb_FaultHandler.ExecResetFaults">
-      <LineId Id="41" Count="2" />
-      <LineId Id="55" Count="0" />
-      <LineId Id="54" Count="0" />
-      <LineId Id="58" Count="1" />
-      <LineId Id="61" Count="0" />
-      <LineId Id="63" Count="0" />
-      <LineId Id="60" Count="0" />
-      <LineId Id="57" Count="0" />
-      <LineId Id="64" Count="1" />
-      <LineId Id="53" Count="0" />
-      <LineId Id="30" Count="0" />
-      <LineId Id="33" Count="2" />
-      <LineId Id="23" Count="0" />
-      <LineId Id="5" Count="0" />
-    </LineIds>
-    <LineIds Name="Fb_FaultHandler.ExecSetFaultBit">
-      <LineId Id="19" Count="3" />
-      <LineId Id="69" Count="0" />
-      <LineId Id="24" Count="0" />
-      <LineId Id="26" Count="2" />
-      <LineId Id="112" Count="4" />
-      <LineId Id="35" Count="0" />
-      <LineId Id="107" Count="4" />
-      <LineId Id="42" Count="3" />
-      <LineId Id="53" Count="1" />
-      <LineId Id="46" Count="0" />
-      <LineId Id="95" Count="0" />
-      <LineId Id="140" Count="3" />
-      <LineId Id="90" Count="0" />
-      <LineId Id="80" Count="0" />
-      <LineId Id="47" Count="0" />
-      <LineId Id="148" Count="0" />
-      <LineId Id="144" Count="0" />
-      <LineId Id="147" Count="0" />
-    </LineIds>
-    <LineIds Name="Fb_FaultHandler.ExecWriteMessage">
-      <LineId Id="2" Count="1" />
-      <LineId Id="12" Count="2" />
-      <LineId Id="16" Count="0" />
-      <LineId Id="19" Count="1" />
-      <LineId Id="23" Count="0" />
-      <LineId Id="21" Count="0" />
-      <LineId Id="4" Count="1" />
-      <LineId Id="11" Count="0" />
-      <LineId Id="6" Count="4" />
-      <LineId Id="1" Count="0" />
-    </LineIds>
   </POU>
 </TcPlcObject>
