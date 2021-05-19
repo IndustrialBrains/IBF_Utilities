@@ -46,6 +46,7 @@ END_FOR
 // check if parameter is already added
 FOR i := 1 TO nNumberOfParameters DO
 	IF arParameters[i].nNumber = refParameter.nNumber THEN
+		CmdAddParameter := TRUE;
  		RETURN ;
 	END_IF
 END_FOR
