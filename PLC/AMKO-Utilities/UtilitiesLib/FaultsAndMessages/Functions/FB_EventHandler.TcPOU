@@ -1,0 +1,51 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.9">
+  <POU Name="FB_EventHandler" Id="{242c0742-ce94-4c50-8b4b-4fe926f6c01f}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK PUBLIC FB_EventHandler IMPLEMENTS ITF_EventHandler
+VAR_INPUT
+END_VAR
+VAR_OUTPUT
+	// Active events
+	bActOM 			: BOOL := FALSE ;
+	bActMC 			: BOOL := FALSE ;
+	bActCF 			: BOOL := FALSE ;
+	bActFF 			: BOOL := FALSE ;
+END_VAR
+VAR
+	
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Folder Name="Private" Id="{3cdb8e33-2081-4b0c-835c-170fac7f32d4}" />
+    <Method Name="CmdAddFault" Id="{4f6c68bd-8b92-4d33-8561-086305f8ef37}">
+      <Declaration><![CDATA[METHOD PUBLIC CmdAddFault : BOOL
+VAR_IN_OUT
+	stFault : UDT_Fault ; // actuive fault structure input
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="CmdReset" Id="{fc5c4d9b-e7c3-43bb-8e6f-c6ca055e77a1}">
+      <Declaration><![CDATA[METHOD PUBLIC CmdReset : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ExecSetActiveEvents" Id="{5c0e6ed2-0223-49c4-8136-66948ece5504}" FolderPath="Private\">
+      <Declaration><![CDATA[METHOD PRIVATE ExecSetActiveEvents : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+  </POU>
+</TcPlcObject>

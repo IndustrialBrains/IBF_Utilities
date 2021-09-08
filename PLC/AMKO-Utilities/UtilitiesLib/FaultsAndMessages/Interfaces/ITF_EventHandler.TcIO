@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.9">
+  <Itf Name="ITF_EventHandler" Id="{e0ad6bc5-60ea-49db-af8f-6d978affa684}">
+    <Declaration><![CDATA[INTERFACE ITF_EventHandler
+]]></Declaration>
+    <Method Name="CmdAddFault" Id="{7c67df34-80af-4fe4-8ff2-cc9ec23a1c1e}">
+      <Declaration><![CDATA[METHOD PUBLIC CmdAddFault : BOOL
+VAR_IN_OUT
+	stFault : UDT_Fault ; // actuive fault structure input
+END_VAR
+]]></Declaration>
+    </Method>
+    <Method Name="CmdReset" Id="{87c6c083-318a-44e4-b567-19b90f95408e}">
+      <Declaration><![CDATA[METHOD PUBLIC CmdReset : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+    </Method>
+  </Itf>
+</TcPlcObject>

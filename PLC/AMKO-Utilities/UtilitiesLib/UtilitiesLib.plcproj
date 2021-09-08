@@ -16,7 +16,7 @@
     <LibraryReferences>{e3f65d16-3d6a-4bd1-89f6-fe5cbb26a629}</LibraryReferences>
     <CombineIds>false</CombineIds>
     <Company>AMKO-Engineering</Company>
-    <Released>true</Released>
+    <Released>false</Released>
     <Title>Utilities_Library</Title>
     <ProjectVersion>1.4.0.0</ProjectVersion>
     <Author>Chris van Kooij</Author>
@@ -94,6 +94,7 @@
   <ItemGroup>
     <Folder Include="Compare\Functions" />
     <Folder Include="Conversion" />
+    <Folder Include="FaultsAndMessages\Interfaces" />
     <Folder Include="General\DataTypes" />
     <Folder Include="FaultsAndMessages" />
     <Folder Include="FaultsAndMessages\DataTypes" />
@@ -143,6 +144,12 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Conversion\Rpm_To_DegS.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FaultsAndMessages\Functions\FB_EventHandler.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FaultsAndMessages\Interfaces\ITF_EventHandler.TcIO">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="General\DataTypes\Udt_TimerBandwith.TcDUT">
@@ -275,6 +282,10 @@
     <PlaceholderReference Include="Tc2_Utilities">
       <DefaultResolution>Tc2_Utilities, * (Beckhoff Automation GmbH)</DefaultResolution>
       <Namespace>Tc2_Utilities</Namespace>
+    </PlaceholderReference>
+    <PlaceholderReference Include="Tc3_EventLogger">
+      <DefaultResolution>Tc3_EventLogger, * (Beckhoff Automation GmbH)</DefaultResolution>
+      <Namespace>Tc3_EventLogger</Namespace>
     </PlaceholderReference>
   </ItemGroup>
   <ItemGroup>

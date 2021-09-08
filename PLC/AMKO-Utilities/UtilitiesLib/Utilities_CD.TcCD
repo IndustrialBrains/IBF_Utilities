@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.5">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.9">
   <ClassDiagram Name="Utilities_CD" Id="{b813ab89-1a56-4c94-ab7d-4c0d98b39738}">
     <XmlArchive>
       <Data>
@@ -1555,14 +1555,14 @@
                   <v n="MethodParameterLength">20</v>
                   <v n="MethodParameterTooLong">false</v>
                 </o>
-                <v>69b2b7d1-18ff-442a-8c8e-bfbea5c9f66f</v>
+                <v>1d4b6758-0786-425a-a6f8-dc8178d0967d</v>
                 <o>
-                  <v n="MethodName">"ExecResetFaults"</v>
+                  <v n="MethodName">"ExecSetFaultBit"</v>
                   <v n="MethodBreakPointActive">false</v>
                   <v n="MethodReturnType">"BOOL"</v>
                   <l n="MethodParameter" t="ArrayList" />
                   <v n="MethodParent">{08f65884-c647-4a29-b7ba-51d088979c07}</v>
-                  <v n="MethodObjectGuid">{69b2b7d1-18ff-442a-8c8e-bfbea5c9f66f}</v>
+                  <v n="MethodObjectGuid">{1d4b6758-0786-425a-a6f8-dc8178d0967d}</v>
                   <v n="MethodStereotype">""</v>
                   <v n="MethodParameterLength">20</v>
                   <v n="MethodParameterTooLong">false</v>
@@ -1591,14 +1591,14 @@
                   <v n="MethodParameterLength">20</v>
                   <v n="MethodParameterTooLong">false</v>
                 </o>
-                <v>1d4b6758-0786-425a-a6f8-dc8178d0967d</v>
+                <v>69b2b7d1-18ff-442a-8c8e-bfbea5c9f66f</v>
                 <o>
-                  <v n="MethodName">"ExecSetFaultBit"</v>
+                  <v n="MethodName">"ExecResetFaults"</v>
                   <v n="MethodBreakPointActive">false</v>
                   <v n="MethodReturnType">"BOOL"</v>
                   <l n="MethodParameter" t="ArrayList" />
                   <v n="MethodParent">{08f65884-c647-4a29-b7ba-51d088979c07}</v>
-                  <v n="MethodObjectGuid">{1d4b6758-0786-425a-a6f8-dc8178d0967d}</v>
+                  <v n="MethodObjectGuid">{69b2b7d1-18ff-442a-8c8e-bfbea5c9f66f}</v>
                   <v n="MethodStereotype">""</v>
                   <v n="MethodParameterLength">20</v>
                   <v n="MethodParameterTooLong">false</v>
@@ -4472,6 +4472,7 @@
               <n n="ActionName" />
               <v n="ActionText">""</v>
               <v n="InjectedActionCode">""</v>
+              <v n="InjectedActionCodeBefore">true</v>
               <v n="ActionTextLength">100</v>
               <v n="ConditionText">"TRUE"</v>
               <v n="LengthConditionText">100</v>
@@ -4549,6 +4550,7 @@
               <n n="ActionName" />
               <v n="ActionText">""</v>
               <v n="InjectedActionCode">""</v>
+              <v n="InjectedActionCodeBefore">true</v>
               <v n="ActionTextLength">100</v>
               <v n="ConditionText">"TRUE"</v>
               <v n="LengthConditionText">100</v>
@@ -4626,6 +4628,7 @@
               <n n="ActionName" />
               <v n="ActionText">""</v>
               <v n="InjectedActionCode">""</v>
+              <v n="InjectedActionCodeBefore">true</v>
               <v n="ActionTextLength">100</v>
               <v n="ConditionText">"TRUE"</v>
               <v n="LengthConditionText">100</v>
@@ -4697,6 +4700,7 @@
               <n n="ActionName" />
               <v n="ActionText">""</v>
               <v n="InjectedActionCode">""</v>
+              <v n="InjectedActionCodeBefore">true</v>
               <v n="ActionTextLength">100</v>
               <v n="ConditionText">"TRUE"</v>
               <v n="LengthConditionText">100</v>
@@ -4774,6 +4778,7 @@
               <n n="ActionName" />
               <v n="ActionText">""</v>
               <v n="InjectedActionCode">""</v>
+              <v n="InjectedActionCodeBefore">true</v>
               <v n="ActionTextLength">100</v>
               <v n="ConditionText">"TRUE"</v>
               <v n="LengthConditionText">100</v>
@@ -4845,6 +4850,7 @@
               <n n="ActionName" />
               <v n="ActionText">""</v>
               <v n="InjectedActionCode">""</v>
+              <v n="InjectedActionCodeBefore">true</v>
               <v n="ActionTextLength">100</v>
               <v n="ConditionText">"TRUE"</v>
               <v n="LengthConditionText">100</v>
@@ -4922,6 +4928,7 @@
               <n n="ActionName" />
               <v n="ActionText">""</v>
               <v n="InjectedActionCode">""</v>
+              <v n="InjectedActionCodeBefore">true</v>
               <v n="ActionTextLength">100</v>
               <v n="ConditionText">"TRUE"</v>
               <v n="LengthConditionText">100</v>
@@ -4999,6 +5006,7 @@
               <n n="ActionName" />
               <v n="ActionText">""</v>
               <v n="InjectedActionCode">""</v>
+              <v n="InjectedActionCodeBefore">true</v>
               <v n="ActionTextLength">100</v>
               <v n="ConditionText">"TRUE"</v>
               <v n="LengthConditionText">100</v>
@@ -5076,6 +5084,7 @@
               <n n="ActionName" />
               <v n="ActionText">""</v>
               <v n="InjectedActionCode">""</v>
+              <v n="InjectedActionCodeBefore">true</v>
               <v n="ActionTextLength">100</v>
               <v n="ConditionText">"TRUE"</v>
               <v n="LengthConditionText">100</v>
