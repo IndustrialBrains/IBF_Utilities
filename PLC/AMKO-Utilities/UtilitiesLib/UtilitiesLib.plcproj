@@ -18,7 +18,7 @@
     <Company>AMKO-Engineering</Company>
     <Released>false</Released>
     <Title>Utilities_Library</Title>
-    <ProjectVersion>1.4.0.0</ProjectVersion>
+    <ProjectVersion>0.1.0.0</ProjectVersion>
     <Author>Chris van Kooij</Author>
     <Description>Utilities library contains all basic utilities needed like system variables messages parameters etc.</Description>
     <LibraryCategories>
@@ -147,9 +147,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="FaultsAndMessages\Functions\FB_EventHandler.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="FaultsAndMessages\Interfaces\ITF_EventHandler.TcIO">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="General\DataTypes\Udt_TimerBandwith.TcDUT">
@@ -287,11 +284,21 @@
       <DefaultResolution>Tc3_EventLogger, * (Beckhoff Automation GmbH)</DefaultResolution>
       <Namespace>Tc3_EventLogger</Namespace>
     </PlaceholderReference>
+    <PlaceholderReference Include="Tc3_Module">
+      <DefaultResolution>Tc3_Module, * (Beckhoff Automation GmbH)</DefaultResolution>
+      <Namespace>Tc3_Module</Namespace>
+    </PlaceholderReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="UtilitiesLib.tmc">
       <SubType>Content</SubType>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <PinnedGlobalDataType Include="E_CommunicationEvents" />
+    <PinnedGlobalDataType Include="E_DeviceEvents" />
+    <PinnedGlobalDataType Include="E_StateMessages" />
+    <PinnedGlobalDataType Include="E_SystemEvents" />
   </ItemGroup>
   <ProjectExtensions>
     <PlcProjectOptions>

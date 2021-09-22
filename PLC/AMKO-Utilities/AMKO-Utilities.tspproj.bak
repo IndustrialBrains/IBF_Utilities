@@ -2,7 +2,7 @@
 <TcSmProject xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.beckhoff.com/schemas/2012/07/TcSmProject" TcSmVersion="1.0" TcVersion="3.1.4024.17">
 	<DataTypes>
 		<DataType>
-			<Name GUID="{4C3619B9-2EE2-47B4-A03B-176EDDD6B583}" PersistentType="true">SystemEvents</Name>
+			<Name GUID="{62EDF317-0611-41BF-ABB9-E435F8661456}" PersistentType="true">SystemEvents</Name>
 			<DisplayName TxtId=""><![CDATA[SystemEvent]]></DisplayName>
 			<Comment TxtId=""><![CDATA[System events are generated at system level, for example "Main air supply low".]]></Comment>
 			<EventId>
@@ -20,10 +20,15 @@
 				<DisplayName TxtId=""><![CDATA[Emergency stop button {0} is pressed]]></DisplayName>
 				<Comment TxtId=""><![CDATA[Emergency stop button]]></Comment>
 				<Severity>Critical</Severity>
+				<CauseRemedy Idx="1">
+					<Cause TxtId=""><![CDATA[Estop button pressed]]></Cause>
+					<Remedy TxtId=""><![CDATA[Check if machine can operate safely then pull reset button an pres reset button.]]></Remedy>
+				</CauseRemedy>
 			</EventId>
 			<Hides>
 				<Hide GUID="{32144995-6E57-4C53-B5AE-3E0D9AD34E7F}"/>
 				<Hide GUID="{6BD032D4-4FF4-471B-86A5-AFDB87D8BAC9}"/>
+				<Hide GUID="{4C3619B9-2EE2-47B4-A03B-176EDDD6B583}"/>
 			</Hides>
 		</DataType>
 	</DataTypes>
