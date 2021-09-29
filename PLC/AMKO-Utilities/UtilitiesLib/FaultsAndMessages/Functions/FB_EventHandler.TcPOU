@@ -9,7 +9,7 @@ VAR_OUTPUT
 	bActCF 			: BOOL := FALSE ;
 	bActFF 			: BOOL := FALSE ;
 	// Last event
-	stLastEvent		: TcEventEntry ; // Event entry discription  
+	stLastEvent		: TcEventEntry 	; // Event entry discription  
 END_VAR
 VAR // Event Conformation data
 	bConfRequired 	: BOOL := FALSE ; // Conformation of  		

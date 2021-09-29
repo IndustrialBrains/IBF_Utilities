@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.5">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.9">
   <POU Name="FB_Step" Id="{69b694f5-baa1-4f86-8caa-4a01db9ce8f8}" SpecialFunc="None">
-    <Declaration><![CDATA[FUNCTION_BLOCK PUBLIC FB_Step EXTENDS FB_Base
+    <Declaration><![CDATA[FUNCTION_BLOCK PUBLIC FB_Step EXTENDS FB_Base_WithEvent
 VAR_INPUT
 END_VAR
 VAR_OUTPUT
@@ -110,7 +110,7 @@ END_VAR
       <Implementation>
         <ST><![CDATA[// ====== Calculate device id =====
 	ExecIdentifyDevice(nId,nParentId,E_ComponentTypes.StepProgram);
-
+	
 // ===== set reset step ======
 	nActStep 			:= nResetStep ;
 	THIS^.nResetStep	:= nResetStep ;]]></ST>
@@ -131,11 +131,7 @@ ELSIF bHold THEN
 	bHold 			:= FALSE ;
 	RETURN; 
 ELSIF bErrorActive THEN 
-	stFault.Active			:= TRUE ;
-	stFault.ComponentType	:= E_ComponentTypes.StepProgram ;
-	stFault.Discription		:= CONCAT(sName, ' Invalid step state');
-	stFault.FaultType		:= E_FaultTypes.FF;
-	stFault.MessageNumber	:= E_MessageNumbers.FF_ComunicationFault;
+	fbEvent.CmdAddEvent(Event := TC_EVENTS.ProgramEvents.StepNotDefined);
 ELSIF NOT bCmdPause OR bSkipPause THEN 
 	IF nActStep <> nNextStep THEN 
 		nPreviousStep 	:=	nActStep;	

@@ -122,7 +122,13 @@
     <Compile Include="BaseFunctions\FB_Base.TcPOU">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="BaseFunctions\FB_Base_WithEvent.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="BaseFunctions\FB_FunctionBase.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="BaseFunctions\FB_FunctionBase_WIthEvent.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Compare\Functions\Between.TcPOU">
