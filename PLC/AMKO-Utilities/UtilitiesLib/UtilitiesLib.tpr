@@ -1,4 +1,4 @@
-<TcModuleRefactorInfos RefactorCnt="1">
+<TcModuleRefactorInfos RefactorCnt="2">
   <TcModuleRefactorInfo RefactorCnt="1" DateTime="2020-10-18T14:34:12">
     <Renames>
       <RenameTypeItem>
@@ -60,6 +60,15 @@
         <Type>Fb_ParLogging</Type>
         <From>bCmdReadAllPar</From>
         <To>bCmdParFileRead</To>
+      </RenameTypeItem>
+    </Renames>
+  </TcModuleRefactorInfo>
+  <TcModuleRefactorInfo RefactorCnt="2" DateTime="2021-09-08T16:53:32">
+    <Renames>
+      <RenameTypeItem>
+        <Type>Udt_Parameter</Type>
+        <From>bCmdTeach</From>
+        <To>bTeachable</To>
       </RenameTypeItem>
     </Renames>
   </TcModuleRefactorInfo>

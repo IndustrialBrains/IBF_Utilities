@@ -16,9 +16,9 @@
     <LibraryReferences>{e3f65d16-3d6a-4bd1-89f6-fe5cbb26a629}</LibraryReferences>
     <CombineIds>false</CombineIds>
     <Company>AMKO-Engineering</Company>
-    <Released>true</Released>
+    <Released>false</Released>
     <Title>Utilities_Library</Title>
-    <ProjectVersion>1.4.0.0</ProjectVersion>
+    <ProjectVersion>0.1.0.0</ProjectVersion>
     <Author>Chris van Kooij</Author>
     <Description>Utilities library contains all basic utilities needed like system variables messages parameters etc.</Description>
     <LibraryCategories>
@@ -94,6 +94,7 @@
   <ItemGroup>
     <Folder Include="Compare\Functions" />
     <Folder Include="Conversion" />
+    <Folder Include="FaultsAndMessages\Interfaces" />
     <Folder Include="General\DataTypes" />
     <Folder Include="FaultsAndMessages" />
     <Folder Include="FaultsAndMessages\DataTypes" />
@@ -121,7 +122,13 @@
     <Compile Include="BaseFunctions\FB_Base.TcPOU">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="BaseFunctions\FB_Base_WithEvent.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="BaseFunctions\FB_FunctionBase.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="BaseFunctions\FB_FunctionBase_WIthEvent.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Compare\Functions\Between.TcPOU">
@@ -143,6 +150,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Conversion\Rpm_To_DegS.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FaultsAndMessages\Functions\FB_EventHandler.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="General\DataTypes\Udt_TimerBandwith.TcDUT">
@@ -276,11 +286,25 @@
       <DefaultResolution>Tc2_Utilities, * (Beckhoff Automation GmbH)</DefaultResolution>
       <Namespace>Tc2_Utilities</Namespace>
     </PlaceholderReference>
+    <PlaceholderReference Include="Tc3_EventLogger">
+      <DefaultResolution>Tc3_EventLogger, * (Beckhoff Automation GmbH)</DefaultResolution>
+      <Namespace>Tc3_EventLogger</Namespace>
+    </PlaceholderReference>
+    <PlaceholderReference Include="Tc3_Module">
+      <DefaultResolution>Tc3_Module, * (Beckhoff Automation GmbH)</DefaultResolution>
+      <Namespace>Tc3_Module</Namespace>
+    </PlaceholderReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="UtilitiesLib.tmc">
       <SubType>Content</SubType>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <PinnedGlobalDataType Include="E_CommunicationEvents" />
+    <PinnedGlobalDataType Include="E_DeviceEvents" />
+    <PinnedGlobalDataType Include="E_StateMessages" />
+    <PinnedGlobalDataType Include="E_SystemEvents" />
   </ItemGroup>
   <ProjectExtensions>
     <PlcProjectOptions>
