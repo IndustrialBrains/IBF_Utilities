@@ -1,0 +1,220 @@
+<?xml version="1.0"?>
+<TcModuleClass>
+	<Translations>
+		<Text TxtId="SystemEvent">
+			<Text LcId="19"><![CDATA[Systeem Gebeurtenis]]></Text>
+		</Text>
+		<Text TxtId="System events are generated at system level, for example &quot;Main air supply low&quot;.">
+			<Text LcId="19"><![CDATA[Systeem meldingen worden automatisch gegenereerd op systeem niveau. Bijvoorbeeld "Lucht druk laag"]]></Text>
+		</Text>
+		<Text TxtId="Main Air Supply is low">
+			<Text LcId="19"><![CDATA[Lucht druk is te laag]]></Text>
+		</Text>
+		<Text TxtId="Main air supply pressure is below minimum operational.">
+			<Text LcId="19"><![CDATA[Primaire toevoer lucht druk is onder minimum niveau]]></Text>
+		</Text>
+		<Text TxtId="Main air supply low">
+			<Text LcId="19"><![CDATA[Luct druk is te laag]]></Text>
+		</Text>
+		<Text TxtId="Check the main air supply going into the machine">
+			<Text LcId="19"><![CDATA[Controleer de ingaande lucht aansluiting op de machine]]></Text>
+		</Text>
+		<Text TxtId="Emergency stop button {0} is pressed">
+			<Text LcId="19"><![CDATA[Noodstop knop {0} is ingedrukt]]></Text>
+		</Text>
+		<Text TxtId="Emergency stop button">
+			<Text LcId="19"><![CDATA[Noodstop knop]]></Text>
+		</Text>
+		<Text TxtId="Estop button pressed">
+			<Text LcId="19"><![CDATA[Noodstop knop ingedrukt]]></Text>
+		</Text>
+		<Text TxtId="Check if machine can operate safely then pull reset button an pres reset button.">
+			<Text LcId="19"><![CDATA[Controleer of machine veilig is, trek noodstop knop uit en druk op reset]]></Text>
+		</Text>
+		<Text TxtId="Device Event">
+			<Text LcId="19"><![CDATA[Component Melding]]></Text>
+		</Text>
+		<Text TxtId="Cylinder {1} closing to slow">
+			<Text LcId="19"><![CDATA[cilinder {1} sluit te snel]]></Text>
+		</Text>
+		<Text TxtId="Cylinder closing time exceeds the maximum time allowed">
+			<Text LcId="19"><![CDATA[cilinder intrek snelheid duurt langer dan maximaal toegestaan]]></Text>
+		</Text>
+		<Text TxtId="Cylinder is to slow">
+			<Text LcId="19"><![CDATA[cilinder is te langzaam]]></Text>
+		</Text>
+		<Text TxtId="Check the air supply and check cylinder for damage, pollution or wear">
+			<Text LcId="19"><![CDATA[Controleer de lucht toevoer en controleer de cilinder op tekenen van slijtage of vervuiling]]></Text>
+		</Text>
+		<Text TxtId="Cylinder {0} opening to slow">
+			<Text LcId="19"><![CDATA[Cilinder {0} opent te langzaam]]></Text>
+		</Text>
+		<Text TxtId="Cylinder {0} moving in wrong direction">
+			<Text LcId="19"><![CDATA[Cilinder {0} beweegt in verkeerde richting]]></Text>
+		</Text>
+		<Text TxtId="Cylinder is not moving in the correct direction e.g. closing instead of opening">
+			<Text LcId="19"><![CDATA[Cilinder beweegt in verkeerde richting (voorbeeld: cilinder suit in plaats van opend)]]></Text>
+		</Text>
+		<Text TxtId="Incorrect connection">
+			<Text LcId="19"><![CDATA[Verkeerde aansluiting]]></Text>
+		</Text>
+		<Text TxtId="Check if air and feedback sensors are connected properly">
+			<Text LcId="19"><![CDATA[Controleer of lucht toevoer en sensoren correct zijn aangesloten]]></Text>
+		</Text>
+		<Text TxtId="Communication events">
+			<Text LcId="19"><![CDATA[Communicatie melding]]></Text>
+		</Text>
+		<Text TxtId="Communication event contains all comunication related events e.g. Ethercat communication between I/O module 10 lost.">
+			<Text LcId="19"><![CDATA[Communicatie melding beslaat alle communicatie gerelateerd meldingen (voorbeeld: Ethercat communicatie tussen I/O module 10 onderbroken)]]></Text>
+		</Text>
+		<Text TxtId="EtherCat communication lost">
+			<Text LcId="19"><![CDATA[Ethercat communicatie verbroken]]></Text>
+		</Text>
+		<Text TxtId="EhterCat communication lost, target node cannot be reached or connection timed out.">
+			<Text LcId="19"><![CDATA[Ehtercat communicatie verbroken, doel component kan niet worden benaderd of reageerd niet]]></Text>
+		</Text>
+		<Text TxtId="State message class used for sending state updates of functions and modules.">
+			<Text LcId="19"><![CDATA[Status melding classe gebruikt voor het verzenden van functies en modules]]></Text>
+		</Text>
+		<Text TxtId="Function {0} has been initialized">
+			<Text LcId="19"><![CDATA[Functie {0} is geinitialiseerd]]></Text>
+		</Text>
+		<Text TxtId="The function has been initilized and can be accessed and used.">
+			<Text LcId="19"><![CDATA[De functie kan worden geinitialiseerd en is klaar voor gebruik]]></Text>
+		</Text>
+	</Translations>
+	<DataTypes>
+		<DataType>
+			<Name GUID="{F38D5D8D-EE64-4495-8A08-673BC54A6A12}">SystemEvents</Name>
+			<DisplayName TxtId=""><![CDATA[SystemEvent]]></DisplayName>
+			<Comment TxtId=""><![CDATA[System events are generated at system level, for example "Main air supply low".]]></Comment>
+			<EventId>
+				<Name Id="1">MainAirLow</Name>
+				<DisplayName TxtId=""><![CDATA[Main Air Supply is low]]></DisplayName>
+				<Comment TxtId=""><![CDATA[Main air supply pressure is below minimum operational.]]></Comment>
+				<Severity>Critical</Severity>
+				<CauseRemedy Idx="1">
+					<Cause TxtId=""><![CDATA[Main air supply low]]></Cause>
+					<Remedy TxtId=""><![CDATA[Check the main air supply going into the machine]]></Remedy>
+				</CauseRemedy>
+			</EventId>
+			<EventId>
+				<Name Id="2">EmergencyStopPressed</Name>
+				<DisplayName TxtId=""><![CDATA[Emergency stop button {0} is pressed]]></DisplayName>
+				<Comment TxtId=""><![CDATA[Emergency stop button]]></Comment>
+				<Severity>Critical</Severity>
+				<CauseRemedy Idx="1">
+					<Cause TxtId=""><![CDATA[Estop button pressed]]></Cause>
+					<Remedy TxtId=""><![CDATA[Check if machine can operate safely then pull reset button an pres reset button.]]></Remedy>
+				</CauseRemedy>
+			</EventId>
+			<Hides>
+				<Hide GUID="{32144995-6E57-4C53-B5AE-3E0D9AD34E7F}"/>
+				<Hide GUID="{6BD032D4-4FF4-471B-86A5-AFDB87D8BAC9}"/>
+				<Hide GUID="{4C3619B9-2EE2-47B4-A03B-176EDDD6B583}"/>
+				<Hide GUID="{62EDF317-0611-41BF-ABB9-E435F8661456}"/>
+				<Hide GUID="{76623FFB-FB89-40A5-9AE3-F2BD0775A14E}"/>
+			</Hides>
+		</DataType>
+		<DataType>
+			<Name GUID="{F319D4D1-17DB-4ECB-8A01-5C1E2D122E27}">DeviceEvents</Name>
+			<DisplayName TxtId=""><![CDATA[Device Event]]></DisplayName>
+			<EventId>
+				<Name Id="1">CylinderClosingToSlow</Name>
+				<DisplayName TxtId=""><![CDATA[Cylinder {1} closing to slow]]></DisplayName>
+				<Comment TxtId=""><![CDATA[Cylinder closing time exceeds the maximum time allowed]]></Comment>
+				<Severity>Error</Severity>
+				<CauseRemedy Idx="1">
+					<Cause TxtId=""><![CDATA[Cylinder is to slow]]></Cause>
+					<Remedy TxtId=""><![CDATA[Check the air supply and check cylinder for damage, pollution or wear]]></Remedy>
+				</CauseRemedy>
+			</EventId>
+			<EventId>
+				<Name Id="2">CylinderOpeningToSlow</Name>
+				<DisplayName TxtId=""><![CDATA[Cylinder {0} opening to slow]]></DisplayName>
+				<Comment TxtId=""><![CDATA[Cylinder closing time exceeds the maximum time allowed]]></Comment>
+				<Severity>Error</Severity>
+				<CauseRemedy Idx="1">
+					<Cause TxtId=""><![CDATA[Cylinder is to slow]]></Cause>
+					<Remedy TxtId=""><![CDATA[Check the air supply and check cylinder for damage, pollution or wear]]></Remedy>
+				</CauseRemedy>
+			</EventId>
+			<EventId>
+				<Name Id="3">CylinderMovingInWrongDirection</Name>
+				<DisplayName TxtId=""><![CDATA[Cylinder {0} moving in wrong direction]]></DisplayName>
+				<Comment TxtId=""><![CDATA[Cylinder is not moving in the correct direction e.g. closing instead of opening]]></Comment>
+				<Severity>Error</Severity>
+				<CauseRemedy Idx="1">
+					<Cause TxtId=""><![CDATA[Incorrect connection]]></Cause>
+					<Remedy TxtId=""><![CDATA[Check if air and feedback sensors are connected properly]]></Remedy>
+				</CauseRemedy>
+			</EventId>
+			<Hides>
+				<Hide GUID="{A2A73E82-6695-4549-BFE5-9FBDBD142E93}"/>
+				<Hide GUID="{8054060B-C914-4DDA-BF88-3F6045BA1B02}"/>
+				<Hide GUID="{97BFE5EB-646F-4BF0-98DA-BFA04AB13500}"/>
+				<Hide GUID="{29913714-6A94-4272-81C4-E6DC680905CB}"/>
+				<Hide GUID="{BEF0321D-9324-4A2A-8EE2-C152607564D7}"/>
+				<Hide GUID="{1134BD45-620F-4480-BE36-6101C369777F}"/>
+				<Hide GUID="{E69E68E1-ACC2-4CC6-8C11-D31CAFDBB1A2}"/>
+			</Hides>
+		</DataType>
+		<DataType>
+			<Name GUID="{BE2E9998-CEFC-483A-993C-45E1DCDD9DC6}">CommunicationEvents</Name>
+			<DisplayName TxtId=""><![CDATA[Communication events]]></DisplayName>
+			<Comment TxtId=""><![CDATA[Communication event contains all comunication related events e.g. Ethercat communication between I/O module 10 lost.]]></Comment>
+			<EventId>
+				<Name Id="1">EtherCatComLost</Name>
+				<DisplayName TxtId=""><![CDATA[EtherCat communication lost]]></DisplayName>
+				<Comment TxtId=""><![CDATA[EhterCat communication lost, target node cannot be reached or connection timed out.]]></Comment>
+				<Severity>Critical</Severity>
+			</EventId>
+			<Hides>
+				<Hide GUID="{E34BC3CC-A991-4559-80C3-B8024995A621}"/>
+				<Hide GUID="{CB6C5BBE-81CC-46BE-BD83-4E9A354C795E}"/>
+				<Hide GUID="{AC3CF8BE-11D8-4B83-A6B0-8CD44B280DE6}"/>
+				<Hide GUID="{0CF2F498-5E9F-4E0C-8420-50CF64BC2212}"/>
+			</Hides>
+		</DataType>
+		<DataType>
+			<Name GUID="{672054E5-8614-4A1A-9225-A6E239D54976}">StateMessages</Name>
+			<DisplayName TxtId=""><![CDATA[State Message]]></DisplayName>
+			<Comment TxtId=""><![CDATA[State message class used for sending state updates of functions and modules.]]></Comment>
+			<EventId>
+				<Name Id="1">ModuleInitialized</Name>
+				<DisplayName TxtId=""><![CDATA[Function {0} has been initialized]]></DisplayName>
+				<Comment TxtId=""><![CDATA[The function has been initilized and can be accessed and used.]]></Comment>
+				<Severity>Verbose</Severity>
+			</EventId>
+			<EventId>
+				<Name Id="2">FunctionsIsBlocked</Name>
+				<DisplayName TxtId=""><![CDATA[Function is blocked]]></DisplayName>
+				<Comment TxtId=""><![CDATA[Function(block) is blocked for commands by another fucntion or active fault]]></Comment>
+				<Severity>Warning</Severity>
+			</EventId>
+			<Hides>
+				<Hide GUID="{4EC9C9F5-7479-417C-891F-1C7373DF0304}"/>
+				<Hide GUID="{BF37D496-ADB0-4241-982C-9C09972FB85C}"/>
+				<Hide GUID="{E6773970-1B47-463E-8579-E20B242770F0}"/>
+				<Hide GUID="{C2E6769B-91E4-4040-853E-907E06A2F2D4}"/>
+				<Hide GUID="{FE307D90-2406-4AAD-A34C-FC282824D86C}"/>
+				<Hide GUID="{6D013330-964B-4A16-915C-FD89DA9482FD}"/>
+			</Hides>
+		</DataType>
+		<DataType>
+			<Name GUID="{2AE0FA11-8558-47D1-9C13-952819E294ED}">ProgramEvents</Name>
+			<DisplayName TxtId=""><![CDATA[Program events and faults]]></DisplayName>
+			<Comment TxtId=""><![CDATA[Program related faults and messages e.g. step not defined or /0]]></Comment>
+			<EventId>
+				<Name Id="1">StepNotDefined</Name>
+				<DisplayName TxtId=""><![CDATA[Program step not defined]]></DisplayName>
+				<Comment TxtId=""><![CDATA[Program is trying to run a step that is not defined]]></Comment>
+				<Severity>Critical</Severity>
+			</EventId>
+			<Hides>
+				<Hide GUID="{1D0951C2-41FB-4000-8089-E28FA45E2069}"/>
+				<Hide GUID="{2F40475C-DD66-4D5A-9D1E-F6368EB6E6FF}"/>
+			</Hides>
+		</DataType>
+	</DataTypes>
+</TcModuleClass>
