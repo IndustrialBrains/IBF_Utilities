@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.9">
-  <POU Name="FB_Step" Id="{69b694f5-baa1-4f86-8caa-4a01db9ce8f8}" SpecialFunc="None">
-    <Declaration><![CDATA[FUNCTION_BLOCK PUBLIC FB_Step EXTENDS FB_Base
+  <POU Name="FB_Step_WithEvent" Id="{8163150a-eba2-4c92-a36c-3ad6e4b58a3e}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK PUBLIC FB_Step_WithEvent EXTENDS FB_Base_WithEvent
 VAR_INPUT
 END_VAR
 VAR_OUTPUT
@@ -21,8 +21,8 @@ END_VAR
     <Implementation>
       <ST><![CDATA[SetActiveStep();]]></ST>
     </Implementation>
-    <Folder Name="Commands" Id="{79421837-b695-48ee-b4a9-422180fd25e0}" />
-    <Method Name="CmdHold" Id="{8f8fda5c-2e20-4c09-b790-f4e6b77f96ee}" FolderPath="Commands\">
+    <Folder Name="Commands" Id="{351047e2-9846-4f5e-a261-60a5ae435eff}" />
+    <Method Name="CmdHold" Id="{be078b39-b7fd-471a-9809-11bbc319c72d}" FolderPath="Commands\">
       <Declaration><![CDATA[METHOD PUBLIC CmdHold : BOOL
 VAR_INPUT
 END_VAR
@@ -33,7 +33,7 @@ END_VAR
 CmdHold := bHold;]]></ST>
       </Implementation>
     </Method>
-    <Method Name="CmdNext" Id="{bc8d4796-dcaf-4c5e-bae9-87ceeef8aa99}" FolderPath="Commands\">
+    <Method Name="CmdNext" Id="{fe83e341-c65f-412f-a72d-cc8460dfa5ea}" FolderPath="Commands\">
       <Declaration><![CDATA[METHOD PUBLIC CmdNext : BOOL
 VAR_INPUT
 END_VAR
@@ -46,7 +46,7 @@ END_IF
 CmdNext := TRUE ;]]></ST>
       </Implementation>
     </Method>
-    <Method Name="CmdPrevious" Id="{c2b04311-04d7-4f84-889d-0728cdacbfa0}" FolderPath="Commands\">
+    <Method Name="CmdPrevious" Id="{71c57be0-5bf8-452d-884f-4e300932307b}" FolderPath="Commands\">
       <Declaration><![CDATA[METHOD PUBLIC CmdPrevious : BOOL
 VAR_INPUT
 END_VAR
@@ -59,7 +59,7 @@ END_IF
 CmdPrevious := TRUE ;]]></ST>
       </Implementation>
     </Method>
-    <Method Name="CmdReset" Id="{5aeae7cb-a474-4607-a12c-75090f5444bb}" FolderPath="Commands\">
+    <Method Name="CmdReset" Id="{d4ec1040-b69a-466b-b1b0-319a045e2af0}" FolderPath="Commands\">
       <Declaration><![CDATA[METHOD PUBLIC CmdReset : BOOL
 VAR_INPUT
 END_VAR
@@ -83,7 +83,7 @@ END_IF
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="CmdToStep" Id="{b9476a6f-d207-4362-99c9-73295ef1c21e}" FolderPath="Commands\">
+    <Method Name="CmdToStep" Id="{992bf66c-0789-4045-a56e-2f7fce72781c}" FolderPath="Commands\">
       <Declaration><![CDATA[METHOD PUBLIC CmdToStep : BOOL
 VAR_INPUT
 	nStep	: UDINT ;
@@ -98,7 +98,7 @@ CmdToStep := nNextStep = nStep ;
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="Init" Id="{decf4df9-b1c5-4f84-8d5c-781cd3a12a56}" FolderPath="Commands\">
+    <Method Name="Init" Id="{dea2a181-8e48-4a16-845c-f94c5d25ea06}" FolderPath="Commands\">
       <Declaration><![CDATA[METHOD PUBLIC Init : BOOL
 VAR_INPUT
 	// Location data for messages  
@@ -116,7 +116,7 @@ END_VAR
 	THIS^.nResetStep	:= nResetStep ;]]></ST>
       </Implementation>
     </Method>
-    <Method Name="SetActiveStep" Id="{ff41807d-3ee0-4176-8aab-e544184b5717}">
+    <Method Name="SetActiveStep" Id="{9c44019d-d595-4b02-8bb0-b01d568e5f50}">
       <Declaration><![CDATA[METHOD PRIVATE SetActiveStep : BOOL
 VAR_INPUT
 END_VAR
@@ -131,11 +131,7 @@ ELSIF bHold THEN
 	bHold 			:= FALSE ;
 	RETURN; 
 ELSIF bErrorActive THEN 
-	stFault.Active			:= TRUE ;
-	stFault.ComponentType	:= E_ComponentTypes.StepProgram ;
-	stFault.Discription		:= CONCAT(sName, ' Invalid step state');
-	stFault.FaultType		:= E_FaultTypes.FF;
-	stFault.MessageNumber	:= E_MessageNumbers.FF_ComunicationFault;
+	fbEvent.CmdAddEvent(Event := TC_EVENTS.ProgramEvents.StepNotDefined);
 ELSIF NOT bCmdPause OR bSkipPause THEN 
 	IF nActStep <> nNextStep THEN 
 		nPreviousStep 	:=	nActStep;	
@@ -148,7 +144,7 @@ bSkipPause 	:= FALSE ;
 bIdle 		:= nActStep = 0 ;]]></ST>
       </Implementation>
     </Method>
-    <Method Name="SkipPause" Id="{c383ca2b-0f6c-427f-82a9-3b5af80fb5b4}" FolderPath="Commands\">
+    <Method Name="SkipPause" Id="{68262b5d-cbb7-4be6-980a-7ff8deca1854}" FolderPath="Commands\">
       <Declaration><![CDATA[METHOD Public SkipPause : BOOL
 VAR_INPUT
 END_VAR
@@ -159,7 +155,7 @@ END_VAR
 SkipPause := true ;]]></ST>
       </Implementation>
     </Method>
-    <Method Name="StepError" Id="{65f1fa82-acef-4e31-8eee-11f570096477}" FolderPath="Commands\">
+    <Method Name="StepError" Id="{b95bc8a1-daca-4943-8632-b25432b05eea}" FolderPath="Commands\">
       <Declaration><![CDATA[METHOD PUBLIC StepError : BOOL
 VAR_INPUT
 END_VAR
