@@ -18,7 +18,7 @@
     <Company>AMKO-Engineering</Company>
     <Released>false</Released>
     <Title>Utilities_Library</Title>
-    <ProjectVersion>0.1.0.0</ProjectVersion>
+    <ProjectVersion>1.4.1.0</ProjectVersion>
     <Author>Chris van Kooij</Author>
     <Description>Utilities library contains all basic utilities needed like system variables messages parameters etc.</Description>
     <LibraryCategories>
