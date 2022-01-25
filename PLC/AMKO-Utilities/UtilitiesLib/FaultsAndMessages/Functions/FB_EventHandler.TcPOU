@@ -2,6 +2,9 @@
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.9">
   <POU Name="FB_EventHandler" Id="{242c0742-ce94-4c50-8b4b-4fe926f6c01f}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK PUBLIC FB_EventHandler
+VAR_INPUT
+	nTwincErrorId	: UDINT := 0; // OPTIONAL Error Id from twincat function block library
+END_VAR
 VAR_OUTPUT
 	// Active events
 	bActOM 			: BOOL := FALSE ;
@@ -72,12 +75,17 @@ CASE Event.eSeverity OF
 		RETURN;
 END_CASE
 
+// Add aditional error id
+IF nTwincErrorId >0 THEN 
+	fbAlarm.ipArguments.AddUDInt( value := nTwincErrorId);
+END_IF
+nTwincErrorId := 0; // Always clear error id after check
+
 IF FAILED(hr) THEN 
 	hrLastError := hr ;
 ELSE
 	CmdAddEvent := TRUE;
 END_IF
-
 ]]></ST>
       </Implementation>
     </Method>
