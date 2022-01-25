@@ -104,6 +104,7 @@
     <Folder Include="Compare" />
     <Folder Include="BaseFunctions" />
     <Folder Include="MovePathCalculations" />
+    <Folder Include="Avarage" />
     <Folder Include="StepFunctions" />
     <Folder Include="PathFunctions" />
     <Folder Include="Parameter" />
@@ -119,6 +120,18 @@
     <Folder Include="System\Functions\DataManagement" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Avarage\FB_RollingAverageLREAL.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Avarage\FB_RollingAverageTime.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Avarage\F_AverageLREAL.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Avarage\F_AverageTime.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="BaseFunctions\FB_Base.TcPOU">
       <SubType>Code</SubType>
     </Compile>
