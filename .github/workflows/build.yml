@@ -1,0 +1,38 @@
+# This workflow tries to build all projects in the repo, including libraries (which will be installed as well).
+
+name: Build
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events for all branches
+  push:
+    branches:
+    - '**'
+  pull_request:
+    branches:
+    - '**'
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: TwinCAT
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      - name: Library check
+        run: |
+          & c:/Users/Administrator/source/repos/TcCliTools/Python/venv/Scripts/Activate.ps1
+          python c:/Users/Administrator/source/repos/TcCliTools/Python/main.py .
+
+      - name: Restore library repository
+        run: |
+          Remove-Item -Recurse -Force "C:\TwinCAT\3.1\Components\Plc\Managed Libraries"
+          Copy-Item -Recurse -Path "C:\TwinCAT\3.1\Components\Plc\Managed Libraries - Backup" -Destination "C:\TwinCAT\3.1\Components\Plc\Managed Libraries"
