@@ -24,12 +24,20 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
+      - name: Checkout repository and submodules
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+          token: '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'
+
+      - name: Remove unversioned and ignored files
+        run: |
+          git clean -xfdf
+          git submodule foreach --recursive git clean -xfdf
 
       - name: Library check
         run: |
-          & c:/Users/Administrator/source/repos/TcCliTools/Python/venv/Scripts/Activate.ps1
+          c:/Users/Administrator/source/repos/TcCliTools/Python/venv/Scripts/Activate.ps1
           python c:/Users/Administrator/source/repos/TcCliTools/Python/main.py .
 
       - name: Restore library repository
