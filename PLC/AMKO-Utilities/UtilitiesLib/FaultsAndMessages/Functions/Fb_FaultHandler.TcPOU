@@ -130,7 +130,9 @@ FOR i := 0 TO Param_Messages.nMAX_MESSAGES_SHOWN - 1 DO
 		arActiveFaults[i+1] := stEmptyMessageUdt;
 	END_IF
 END_FOR
-]]></ST>
+
+//Sort messages after cleaning
+ExecSortMessages();]]></ST>
       </Implementation>
     </Method>
     <Method Name="ExecResetFaults" Id="{69b2b7d1-18ff-442a-8c8e-bfbea5c9f66f}" FolderPath="Private\">
