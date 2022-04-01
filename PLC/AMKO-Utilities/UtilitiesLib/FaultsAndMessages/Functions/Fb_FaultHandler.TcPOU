@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.5">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.10">
   <POU Name="Fb_FaultHandler" Id="{08f65884-c647-4a29-b7ba-51d088979c07}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK Fb_FaultHandler
 VAR_INPUT
@@ -75,7 +75,7 @@ END_VAR]]></Declaration>
         <ST><![CDATA[// ======= check if new entry is valid and not already active ======
 CheckEntryValid S= TRUE ;
 FOR i := 0 TO nActiveFaults DO
-	IF arActiveFaults[i].MessageNumber = stFaultUdt.MessageNumber THEN 
+	IF arActiveFaults[i].Discription = stFaultUdt.Discription THEN 
 		CheckEntryValid 			:= FALSE ; 
 		arActiveFaults[i].Active 	:= TRUE ; 
 	END_IF
