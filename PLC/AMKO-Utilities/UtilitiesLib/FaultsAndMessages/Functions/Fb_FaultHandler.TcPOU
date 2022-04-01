@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.5">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.10">
   <POU Name="Fb_FaultHandler" Id="{08f65884-c647-4a29-b7ba-51d088979c07}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK Fb_FaultHandler
 VAR_INPUT
@@ -204,6 +204,28 @@ END_FOR
 ExecCleanUpArray();]]></ST>
       </Implementation>
     </Method>
+    <Method Name="ExecSortMessages" Id="{9379339c-5f6e-4e04-abc6-6a8505afc20b}" FolderPath="Private\">
+      <Declaration><![CDATA[METHOD INTERNAL ExecSortMessages : BOOL
+VAR
+	k : UDINT ;
+	stTempMessageStorage : UDT_Fault ; // Temporary message storage for sorting
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FOR k := 1 TO Param_Messages.nMAX_MESSAGES_SHOWN - 1 DO 
+	FOR i := 0 TO Param_Messages.nMAX_MESSAGES_SHOWN - 2 DO 
+		IF arActiveFaults[i].FaultType < arActiveFaults[i+1].FaultType THEN 
+			stTempMessageStorage 	:= arActiveFaults[i];
+			arActiveFaults[i]		:= arActiveFaults[i+1];
+			arActiveFaults[i+1]		:= stTempMessageStorage;
+		END_IF
+	END_FOR	 
+END_FOR
+
+ExecSortMessages := TRUE;
+]]></ST>
+      </Implementation>
+    </Method>
     <Action Name="ExecWriteMessage" Id="{3af8b3ee-c7f9-4b45-bd33-128a18baf300}" FolderPath="Private\">
       <Implementation>
         <ST><![CDATA[// Set message start time 
@@ -218,12 +240,16 @@ stFaultUdt.FullFaultId := CONCAT(stFaultUdt.FullFaultId,'.');
 stFaultUdt.FullFaultId := CONCAT(stFaultUdt.FullFaultId,UDINT_TO_STRING(stFaultUdt.ComponentType));
 // send message to higher level 
 arActiveFaults[nActiveFaults] := stFaultUdt		;
+// Sort shown Massages
+ExecSortMessages();
 // Set pointer to next fault
 IF nActiveFaults < Param_Messages.nMAX_MESSAGES_SHOWN THEN 
 	nActiveFaults := nActiveFaults + 1 	;
 ELSE
 	nActiveFaults := 0 ;
 END_IF
+
+// Sort Messages by severity
 ]]></ST>
       </Implementation>
     </Action>
