@@ -43,7 +43,7 @@ END_IF
 IF bBlockedCommand THEN 
 	stFault.Active 			:= TRUE ;
 	stFault.ComponentType 	:= E_ComponentTypes.Assembly ;
-	stFault.Discription		:= CONCAT( STR1 := sName, STR2 := 'function is blocked');
+	stFault.Discription		:= CONCAT( STR1 := sName, STR2 := ' function is blocked');
 	stFault.FaultType		:= E_FaultTypes.MC;
 END_IF	
 
