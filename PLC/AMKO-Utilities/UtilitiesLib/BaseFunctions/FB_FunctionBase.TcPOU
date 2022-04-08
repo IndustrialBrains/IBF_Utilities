@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.5">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.10">
   <POU Name="FB_FunctionBase" Id="{ef86906a-1986-411c-841b-bedecc286c14}" SpecialFunc="None">
     <Declaration><![CDATA[{attribute 'reflection'}
 FUNCTION_BLOCK PUBLIC ABSTRACT FB_FunctionBase EXTENDS FB_Base
@@ -40,7 +40,7 @@ IF bInitOk THEN
 END_IF
 
 // Set fault if commands are blocked
-IF bBlockedCommand THEN 
+IF bBlockedCommand AND bHeld THEN 
 	stFault.Active 			:= TRUE ;
 	stFault.ComponentType 	:= E_ComponentTypes.Assembly ;
 	stFault.Discription		:= CONCAT( STR1 := sName, STR2 := ' function is blocked');
