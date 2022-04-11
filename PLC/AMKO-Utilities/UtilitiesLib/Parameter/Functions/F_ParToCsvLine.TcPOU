@@ -1,14 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.6">
   <POU Name="F_ParToCsvLine" Id="{823f7904-d7b6-4ae4-8508-8997ce4f51bf}" SpecialFunc="None">
-    <Declaration><![CDATA[FUNCTION F_ParToCsvLine : STRING // convert parameter into csv string (default UDt_Parameter setup)
+    <Declaration><![CDATA[FUNCTION F_ParToCsvLine : T_MaxString // convert parameter into csv string (default UDt_Parameter setup)
 VAR_INPUT
 	stParameter : Udt_Parameter ; 
 	nColumn		: UDINT ;
 END_VAR
 VAR
-	sTempString : STRING ;
-	sTempCsvField : STRING ;
+	sTempString : T_MaxString;
+	sTempCsvField : T_MaxString;
 END_VAR
 ]]></Declaration>
     <Implementation>
@@ -34,7 +34,8 @@ END_VAR
 	ELSE
 		;
 END_CASE
-	sTempCsvField := STRING_TO_CSVFIELD(sTempString, FALSE);
+
+sTempCsvField := STRING_TO_CSVFIELD(sTempString, FALSE);
 IF nColumn < 8 THEN 
 	sTempCsvField := CONCAT(StempCsvField,';');
 ELSE
