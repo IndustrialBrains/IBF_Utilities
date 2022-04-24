@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<TcSmProject xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.beckhoff.com/schemas/2012/07/TcSmProject" TcSmVersion="1.0" TcVersion="3.1.4024.17">
+<TcSmProject xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.beckhoff.com/schemas/2012/07/TcSmProject" TcSmVersion="1.0" TcVersion="3.1.4024.25">
 	<DataTypes>
 		<DataType>
 			<Name GUID="{62EDF317-0611-41BF-ABB9-E435F8661456}" PersistentType="true">SystemEvents</Name>
@@ -31,11 +31,81 @@
 				<Hide GUID="{4C3619B9-2EE2-47B4-A03B-176EDDD6B583}"/>
 			</Hides>
 		</DataType>
+		<DataType>
+			<Name GUID="{F876A1DB-5B08-4557-B3F0-FF50085803D4}" PersistentType="true">RFIDReaderEvents</Name>
+			<DisplayName TxtId=""><![CDATA[RFID reader events]]></DisplayName>
+			<Comment TxtId=""><![CDATA[RFID reader and tag processing events]]></Comment>
+			<EventId>
+				<Name Id="1">ConnectionFailed</Name>
+				<DisplayName TxtId=""><![CDATA[Connection with reader failed]]></DisplayName>
+				<Comment TxtId=""><![CDATA[Failed to establish a connection between PLC and RFID Reader. Check wiring.]]></Comment>
+				<Severity>Critical</Severity>
+			</EventId>
+			<EventId>
+				<Name Id="2">ConnectionTimeout</Name>
+				<DisplayName TxtId=""><![CDATA[Connection timeout]]></DisplayName>
+				<Comment TxtId=""><![CDATA[Connection watchdog timeout between PLC and RFID reader. Check wiring and reader power.]]></Comment>
+				<Severity>Critical</Severity>
+			</EventId>
+			<EventId>
+				<Name Id="3">SendCommandError</Name>
+				<DisplayName TxtId=""><![CDATA[Send command error {0}]]></DisplayName>
+				<Comment TxtId=""><![CDATA[An error occured while sending command to RFID reader]]></Comment>
+				<Severity>Error</Severity>
+			</EventId>
+			<EventId>
+				<Name Id="4">CommandResponseTimeout</Name>
+				<DisplayName TxtId=""><![CDATA[Command response timout]]></DisplayName>
+				<Comment TxtId=""><![CDATA[The comand response comformation is taking longer then expected]]></Comment>
+				<Severity>Error</Severity>
+			</EventId>
+			<EventId>
+				<Name Id="5">CommandResponseError</Name>
+				<DisplayName TxtId=""><![CDATA[Command response error]]></DisplayName>
+				<Comment TxtId=""><![CDATA[The reader has send a command error in response of previous command]]></Comment>
+				<Severity>Error</Severity>
+			</EventId>
+			<EventId>
+				<Name Id="6">RecieveDataError</Name>
+				<DisplayName TxtId=""><![CDATA[Recieve data error]]></DisplayName>
+				<Comment TxtId=""><![CDATA[Error recieving data from reader.]]></Comment>
+				<Severity>Error</Severity>
+			</EventId>
+			<EventId>
+				<Name Id="7">RecieveDataTimeout</Name>
+				<DisplayName TxtId=""><![CDATA[Recieve data timeout]]></DisplayName>
+				<Comment TxtId=""><![CDATA[Data reception timout occured]]></Comment>
+				<Severity>Error</Severity>
+			</EventId>
+			<EventId>
+				<Name Id="8">RFIDInventoryFault</Name>
+				<DisplayName TxtId=""><![CDATA[Inventory data is in fault state (Status {0})]]></DisplayName>
+				<Severity>Error</Severity>
+			</EventId>
+			<Hides>
+				<Hide GUID="{DAC4E64D-6AF5-463F-814A-0A3F3D32BFAF}"/>
+				<Hide GUID="{BA0E9AE3-BB4B-45F4-9C8F-A9801773443F}"/>
+				<Hide GUID="{00DE3401-A93C-4B62-99F1-B55251AA612F}"/>
+				<Hide GUID="{4B8B993D-D805-4BF8-94DF-08A3F4366A6D}"/>
+				<Hide GUID="{15053EB3-2569-4C37-8B6F-E2B5DFD120DB}"/>
+				<Hide GUID="{091A0EF8-DD3D-48C5-9084-16FF1415DC26}"/>
+				<Hide GUID="{29028529-32BE-439D-843E-BD9C2A3F37CD}"/>
+				<Hide GUID="{BF2D1E2A-A79D-4B18-A8A8-37C1E996E4C8}"/>
+				<Hide GUID="{9E7BA5FB-94CE-43FC-8D76-1FB6413A2D84}"/>
+				<Hide GUID="{90E9CA1A-AAED-4371-A637-AEFACBDDD2FF}"/>
+				<Hide GUID="{5D6A0266-F433-4728-B2D4-64A24C25005F}"/>
+				<Hide GUID="{CEC301EC-A459-4683-A633-E8E134DB5205}"/>
+				<Hide GUID="{DEF4383A-7697-422D-9712-25CE5F8EA536}"/>
+				<Hide GUID="{1A5E2A81-DDE4-48B4-B824-41A6054D73AA}"/>
+				<Hide GUID="{EA08E686-9D4D-4827-ADE9-B6032C06D07E}"/>
+				<Hide GUID="{87BA9982-6F44-4FAA-87C0-3D152EB8FD71}"/>
+			</Hides>
+		</DataType>
 	</DataTypes>
-	<Project ProjectGUID="{79E3A078-6DC3-43A5-884A-141864AA17FC}" Target64Bit="true" ShowHideConfigurations="#x306">
+	<Project ProjectGUID="{79E3A078-6DC3-43A5-884A-141864AA17FC}" ShowHideConfigurations="#x306">
 		<System>
 			<TypeSystem>
-				<AdditionalTmcFile Name="EventTypes" File="..\..\..\Data Types\EventTypes.tmc"/>
+				<AdditionalTmcFile Name="EventTypes" File="..\..\Data Types\EventTypes.tmc"/>
 			</TypeSystem>
 		</System>
 		<Plc>
