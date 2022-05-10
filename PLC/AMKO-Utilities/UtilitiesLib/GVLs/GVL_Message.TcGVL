@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.5">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.10">
   <GVL Name="GVL_Message" Id="{50f467a8-facb-42cb-96fd-d0c9df172a76}">
     <Declaration><![CDATA[{attribute 'qualified_only'}
 VAR_GLOBAL
@@ -11,7 +11,7 @@ VAR_GLOBAL
 	sOPeratorMessage	: STRING ;	// operator message for displaying non vital machine data
 END_VAR
 VAR_GLOBAL CONSTANT 
-	tMESSAGESNOOZEDURATION	: TIME 	:= T#5s ; // duration of message snooze after button press 
+	tMESSAGESNOOZEDURATION	: TIME 	:= T#20S ; // duration of message snooze after button press 
 END_VAR]]></Declaration>
   </GVL>
 </TcPlcObject>
