@@ -67,6 +67,9 @@ bResetting := FALSE ;]]></ST>
     <Folder Name="Private" Id="{2e728eb6-79bc-4de8-8875-9d08a8df9edd}" />
     <Method Name="CheckEntryValid" Id="{4ead88ed-0ad4-4581-8230-d979907ffe1b}" FolderPath="Private\">
       <Declaration><![CDATA[METHOD PRIVATE CheckEntryValid : BOOL
+VAR_IN_OUT
+	stFault : UDT_Fault ; // actuive fault structure input
+END_VAR
 VAR
 	// functional variables
 	i 	: UDINT ;
@@ -75,7 +78,7 @@ END_VAR]]></Declaration>
         <ST><![CDATA[// ======= check if new entry is valid and not already active ======
 CheckEntryValid S= TRUE ;
 FOR i := 0 TO nActiveFaults DO
-	IF arActiveFaults[i].Discription = stFaultUdt.Discription THEN 
+	IF arActiveFaults[i].Discription = stFault.Discription THEN 
 		CheckEntryValid 			:= FALSE ; 
 		arActiveFaults[i].Active 	:= TRUE ; 
 	END_IF
@@ -86,15 +89,15 @@ END_FOR
     <Method Name="CmdAddFault" Id="{cd103280-aca4-4b4a-a070-10b84eec5ffb}">
       <Declaration><![CDATA[METHOD PUBLIC CmdAddFault : BOOL
 VAR_IN_OUT
-	stFault : UDT_Fault ; // actuive fault structure input
+	stFault : UDT_Fault ; // active fault structure input
 END_VAR
 ]]></Declaration>
       <Implementation>
         <ST><![CDATA[// coppy fault to internal fault udt
 IF stFault.FaultType <> E_FaultTypes.NA AND stFault.Active THEN 
-	THIS^.stFaultUdt	:= stFault ;
 	// Process fault data
-	IF CheckEntryValid() THEN
+	IF CheckEntryValid(stFault) AND NOT bResetting THEN
+		THIS^.stFaultUdt	:= stFault ;
 		ExecWriteMessage();
 	END_IF
 	stFault 			:= stEmptyMessageUdt ;
@@ -177,6 +180,7 @@ FOR i := 0 TO nActiveFaults DO
 		E_FaultTypes.OM : 
 			IF arActiveFaults[i].Active THEN 
 				bActOM 		S= TRUE ;
+				
 			ELSE 
 				bTimedOut 	S= TRUE ;
 			END_IF 
