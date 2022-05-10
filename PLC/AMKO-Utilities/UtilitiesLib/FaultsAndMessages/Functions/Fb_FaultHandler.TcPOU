@@ -128,7 +128,7 @@ END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[// Clean up array by removing blanc spaces 
 FOR i := 0 TO Param_Messages.nMAX_MESSAGES_SHOWN - 1 DO 
-	IF arActiveFaults[i].FaultType = 0 THEN 
+	IF arActiveFaults[i].FaultType = E_FaultTypes.NA THEN 
 		arActiveFaults[i] 	:= arActiveFaults[i+1];
 		arActiveFaults[i+1] := stEmptyMessageUdt;
 	END_IF
