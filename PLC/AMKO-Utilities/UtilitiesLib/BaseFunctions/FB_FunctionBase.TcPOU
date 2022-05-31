@@ -27,6 +27,8 @@ ELSIF bErrorActive THEN
 ELSIF NOT bInitOk THEN 
 	sActiveState := 'Not initialized';
 ELSIF bManual THEN 
+	sActiveState := 'Manual operation';
+ELSE
 	sActiveState := 'Operational';
 END_IF 
 
