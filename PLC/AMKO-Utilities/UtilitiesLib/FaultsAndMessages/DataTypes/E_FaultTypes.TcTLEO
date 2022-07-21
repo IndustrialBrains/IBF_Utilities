@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.3">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.10">
   <EnumerationTextList Name="E_FaultTypes" Id="{80d266b1-3eb3-4c6d-b0bb-2f4400a81ab3}">
     <Declaration><![CDATA[{attribute 'qualified_only'}
 {attribute 'strict'}
@@ -10,7 +10,8 @@ TYPE E_FaultTypes :
 	OM 	:= 1, // Operator message
 	MC	:= 2, // Missing condition
 	CF	:= 3, // Cycle Fault
-	FF	:= 4 // Fatal fault
+	FF	:= 4, // Fatal fault
+	OW  := 5  // Operator warning
 )UDINT;
 END_TYPE
 ]]></Declaration>
@@ -41,6 +42,11 @@ END_TYPE
             <o>
               <v n="TextID">"FF"</v>
               <v n="TextDefault">"4"</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"OW"</v>
+              <v n="TextDefault">"5"</v>
               <l n="LanguageTexts" t="ArrayList" />
             </o>
             <o>

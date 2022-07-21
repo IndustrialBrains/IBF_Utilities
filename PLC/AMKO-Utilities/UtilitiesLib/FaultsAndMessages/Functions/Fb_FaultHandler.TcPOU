@@ -11,6 +11,7 @@ VAR_OUTPUT
 	bActMC 			: BOOL := FALSE ;
 	bActCF 			: BOOL := FALSE ;
 	bActFF 			: BOOL := FALSE ;
+	bActOW 			: BOOL := FALSE ;
 END_VAR
 VAR
 	bResetting		: BOOL := FALSE ;
@@ -161,6 +162,7 @@ bActOM 			:= FALSE;
 bActMC 			:= FALSE;
 bActCF 			:= FALSE;
 bActFF 			:= FALSE;
+bActOW 			:= FALSE;
 
 ExecResetFaults := TRUE ;]]></ST>
       </Implementation>
@@ -173,6 +175,7 @@ ExecResetFaults := TRUE ;]]></ST>
 bActMC	:= FALSE;
 bActCF 	:= FALSE;
 bActFF 	:= FALSE;
+bActOW  := FALSE;
 	
 FOR i := 0 TO nActiveFaults DO
 	// read message type 
@@ -194,6 +197,13 @@ FOR i := 0 TO nActiveFaults DO
 			bActCF 		S= TRUE ;
 		E_FaultTypes.FF:
 			bActFF 		S= TRUE ;
+		E_FaultTypes.OW:
+			IF arActiveFaults[i].Active THEN 
+				bActOW 		S= TRUE ;
+			ELSE 
+				bTimedOut 	S= TRUE ;
+			END_IF
+			
 		ELSE
 			bTimedOut := FALSE ;
 	END_CASE
