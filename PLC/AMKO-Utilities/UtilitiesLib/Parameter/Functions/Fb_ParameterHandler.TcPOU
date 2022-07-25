@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.5">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.10">
   <POU Name="FB_ParameterHandler" Id="{05138ead-89ff-49ee-b483-c922423e053d}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK PUBLIC FB_ParameterHandler
 VAR_OUTPUT
@@ -53,24 +53,30 @@ END_FOR
 	
 // Add parameter to array
 nNumberOfParameters := nNumberOfParameters + 1; 
-arParameters[nNumberOfParameters].nNumber		:= refParameter.nNumber 	;
-arParameters[nNumberOfParameters].sName			:= refParameter.sName	;
-arParameters[nNumberOfParameters].sType			:= refParameter.sType	;
-arParameters[nNumberOfParameters].pParameter 	:= ADR(refParameter)	;
+IF nNumberOfParameters <= GVL_Parameters.MAX_PARAMETERS THEN
+	arParameters[nNumberOfParameters].nNumber		:= refParameter.nNumber 	;
+	arParameters[nNumberOfParameters].sName			:= refParameter.sName	;
+	arParameters[nNumberOfParameters].sType			:= refParameter.sType	;
+	arParameters[nNumberOfParameters].pParameter 	:= ADR(refParameter)	;
+	
+	// (re)sort parameter list
+	FOR i := 2 TO nNumberOfParameters BY 1 DO
+		FOR j := 1 TO nNumberOfParameters -1 BY 1 DO
+			IF (arParameters[j].nNumber > arParameters[j+1].nNumber)THEN
+				stTempPar 			:= arParameters[j+1];
+				arParameters[j+1]	:= arParameters[j];
+				arParameters[j]		:= stTempPar ;
+			END_IF
+		END_FOR
+	END_FOR	
+	
+	// set feedback
+	CmdAddParameter S= arParameters[nNumberOfParameters].pParameter > 0 ;
+ELSE
+	CmdAddParameter := FALSE;	
+END_IF
 
-// (re)sort parameter list
-FOR i := 2 TO nNumberOfParameters BY 1 DO
-	FOR j := 1 TO nNumberOfParameters -1 BY 1 DO
-		IF (arParameters[j].nNumber > arParameters[j+1].nNumber)THEN
-			stTempPar 			:= arParameters[j+1];
-			arParameters[j+1]	:= arParameters[j];
-			arParameters[j]		:= stTempPar ;
-		END_IF
-	END_FOR
-END_FOR	
-
-// set feedback
-CmdAddParameter S= arParameters[nNumberOfParameters].pParameter > 0 ;]]></ST>
+]]></ST>
       </Implementation>
     </Method>
     <Method Name="ExecChangeParValues" Id="{c7b35048-067c-42e5-b2e3-c5adbe6ea0da}">
