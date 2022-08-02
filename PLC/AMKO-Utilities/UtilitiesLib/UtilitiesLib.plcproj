@@ -273,6 +273,9 @@
     <Compile Include="Positions\Functions\F_TriggerPosOffset.TcPOU">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="StepFunctions\FB_CycleTrigger.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="StepFunctions\FB_Step.TcPOU">
       <SubType>Code</SubType>
     </Compile>

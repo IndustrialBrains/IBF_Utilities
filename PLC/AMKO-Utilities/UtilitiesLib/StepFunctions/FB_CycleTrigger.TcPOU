@@ -1,0 +1,47 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="FB_CycleTrigger" Id="{3ee0d948-25d9-4a8a-a0c3-91cb3bb1b3ed}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_CycleTrigger // This function can be used to start state machines and wait for them to finish
+VAR_OUTPUT
+	bStart 	: BOOL ; // Start cycle 
+	bBusy 	: BOOL ; // cycle is bussy
+	bDone	: BOOL ; // cycle is done
+END_VAR
+VAR
+	fbreStartCycle : R_TRIG ; // rising edge trigger for cycle start
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Action Name="Reset" Id="{2e606475-f64a-48b1-ba1f-3b3677d1e9ec}">
+      <Implementation>
+        <ST><![CDATA[bDone 	:= FALSE;
+bBusy 	:= FALSE;
+bStart	:= FALSE;]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="SetDone" Id="{6d335d99-9d45-408a-9374-5d527d113da7}">
+      <Implementation>
+        <ST><![CDATA[bBusy := FALSE 	;
+bDone := TRUE	;
+
+]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="SetStart" Id="{ca054a1f-b63d-4ae6-9552-74e489f45e0b}">
+      <Implementation>
+        <ST><![CDATA[IF fbreStartCycle.Q THEN
+	bBusy := TRUE; 
+ELSIF bDone THEN 
+	bStart := FALSE;
+ELSE
+	bStart := TRUE;
+END_IF
+
+fbreStartCycle(CLK := bStart); 
+]]></ST>
+      </Implementation>
+    </Action>
+  </POU>
+</TcPlcObject>
