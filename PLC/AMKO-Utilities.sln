@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
+# TcXaeShell Solution File, Format Version 11.00
 VisualStudioVersion = 15.0.28307.1300
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{DFBE7525-6864-4E62-8B2E-D530D69D9D96}") = "AMKO-Utilities", "AMKO-Utilities\AMKO-Utilities.tspproj", "{79E3A078-6DC3-43A5-884A-141864AA17FC}"
+Project("{DFBE7525-6864-4E62-8B2E-D530D69D9D96}") = "PLC", "AMKO-Utilities\PLC.tspproj", "{79E3A078-6DC3-43A5-884A-141864AA17FC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
