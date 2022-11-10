@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.2">
+  <GVL Name="DataManager" Id="{a7a689c2-2421-4e24-91c7-6cb14ea8f288}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL
+	FbPersistentManager : FB_PersistentDataManager ;
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

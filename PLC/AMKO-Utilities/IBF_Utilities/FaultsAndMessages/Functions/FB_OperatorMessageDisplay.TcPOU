@@ -1,0 +1,57 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.3">
+  <POU Name="FB_OperatorMessageDisplay" Id="{761ee70d-4135-411d-bd17-be6eeceff81d}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_OperatorMessageDisplay // function compares messages and shows latest message on screen for a set period of time
+VAR_INPUT
+	bEnable 	: BOOL 	:= TRUE ; // enable messages
+	tDisplayTime: TIME	:= Param_Messages.tMESSAGE_TIMEOUT ; // Time before message relevance is checked (default = Param_Messages.tMESSAGE_TIMEOUT)
+END_VAR
+VAR_IN_OUT
+	sMessage 	: STRING ; // Operator message (default = GVL_Message.sOPeratorMessage)
+END_VAR
+VAR_OUTPUT
+	sOutMessage : STRING ; // message output to screen
+END_VAR
+VAR
+	sOldMessage 	: STRING := ''; // old message as displayed 
+	tonDisplayTimer	: TON ; // Display timer
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[// Run timers
+tonDisplayTimer(PT := tDisplayTime);
+
+// compare old message with new message 
+IF sMessage = sOldMessage THEN 
+	tonDisplayTimer.IN := TRUE ;
+	IF tonDisplayTimer.Q = TRUE THEN 
+		sMessage := '';
+	END_IF
+ELSE 
+	tonDisplayTimer.IN 	:= FALSE 	;
+	sOldMessage 		:= sMessage ; 
+END_IF
+
+// write message to display
+sOutMessage := sMessage ;]]></ST>
+    </Implementation>
+    <LineIds Name="FB_OperatorMessageDisplay">
+      <LineId Id="22" Count="0" />
+      <LineId Id="26" Count="0" />
+      <LineId Id="23" Count="0" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="16" Count="0" />
+      <LineId Id="27" Count="0" />
+      <LineId Id="29" Count="0" />
+      <LineId Id="33" Count="0" />
+      <LineId Id="31" Count="0" />
+      <LineId Id="36" Count="0" />
+      <LineId Id="40" Count="0" />
+      <LineId Id="37" Count="0" />
+      <LineId Id="28" Count="0" />
+      <LineId Id="42" Count="0" />
+      <LineId Id="41" Count="0" />
+      <LineId Id="43" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

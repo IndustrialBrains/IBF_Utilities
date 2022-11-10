@@ -1,0 +1,73 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.9">
+  <POU Name="FB_Base_WithEvent" Id="{6c09d532-42b8-4ae9-83c4-97acf5f0d656}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK PUBLIC ABSTRACT FB_Base_WithEvent
+{attribute 'reflection'}
+VAR_INPUT
+	bEnable			: BOOL 		:= TRUE 	; // Module enable signal reference Default := TRUE (when using system library := GVL_Main.stModules[nModuleId].bEnabled)
+	refFbParHandler	: REFERENCE TO Fb_ParLogging 	:= GVL_Parameters.fbParameterHandler	; // reference to parameter handler
+	bCmdPause 		: BOOL 		:= FALSE	; // Command Pause functions		
+END_VAR
+VAR_OUTPUT
+	bInitOk			: BOOL 			:= FALSE 	; // function is initialized
+	bBussy 			: BOOL 			:= FALSE 	; // device is busy
+	bReady			: BOOL 			:= FALSE 	; // device is ready for new command 
+	bErrorActive	: BOOL			:= FALSE	; // device Error active 
+END_VAR
+VAR
+	fbEvent			: FB_EventHandler 			; // Event handler for fault and message data			
+	sName			: STRING 		:= ''		; // Name of device distilled from the path 
+	nLocationId		: UDINT 		:= 0		; // device id number made up of module and device number				
+
+	// Function path 
+	{attribute 'instance-path'} 
+    {attribute 'noinit'}
+	sPath			: STRING	; // Path name of function (used for manual reference)
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[// Check for system wide errors
+bErrorActive s= fbEvent.bActCF OR fbEvent.bActFF;]]></ST>
+    </Implementation>
+    <Method Name="CmdReset" Id="{5171951b-b208-4947-a7a5-31787eeadc5b}">
+      <Declaration><![CDATA[METHOD PUBLIC CmdReset : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[bErrorActive := fbEvent.CmdReset() ;
+
+CmdReset := NOT bErrorActive ;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ExecIdentifyDevice" Id="{f3bc0802-e9f2-4ba4-8907-847d76b84077}">
+      <Declaration><![CDATA[METHOD PROTECTED ExecIdentifyDevice : BOOL
+VAR_INPUT
+	// Message location data
+	nId				: UDINT ; // Identification number of object
+	nParentId		: UDINT ; // Id of higher level If aplicable (0 = no parent)
+	eComponentType	: E_ComponentTypes ; // COmponent or function type for message compilation
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// Check device ID
+IF nLocationId = 0 THEN
+	nLocationId := (nParentId * 10000) + nId * 100 ;
+END_IF
+
+// Get device name from function and add device to manual
+IF sName = '' THEN 
+	sName := F_FBNameFromPath(sPath := sPath);
+END_IF
+
+// set message location information
+fbEvent.Init ( 	sLocationName	:= sName,
+				eComponentType 	:= eComponentType,
+				nModuleID		:= nLocationId); 
+
+ExecIdentifyDevice := nLocationId <> 0 AND sName <> '';]]></ST>
+      </Implementation>
+    </Method>
+  </POU>
+</TcPlcObject>

@@ -1,0 +1,57 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.9">
+  <POU Name="FB_RollingAverageLREAL" Id="{e9954890-609c-4769-a5c6-15e6a7988322}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK PUBLIC FB_RollingAverageLREAL
+VAR_INPUT
+	fInputValue	: LREAL ; // Input value [Anny_Number] 
+END_VAR
+VAR_IN_OUT
+	bNewValue		: BOOL ; // Add value to array (set back to false)
+	arLREALValues 	: ARRAY [*] OF LREAL ; // Array of LREAL values, from thich to get the average
+END_VAR
+VAR_OUTPUT
+	fAverage	: LREAL ; // Everage of entries
+END_VAR
+VAR
+	nWriteIndex			: DINT := 0;
+	nArrayUpperBound 	: DINT;
+	nArrayLowerBound 	: DINT;
+	
+	reNewValue	: R_TRIG ; // New value trigger
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[// determine array boundries
+nArrayLowerBound := LOWER_BOUND(arLREALValues,1);
+nArrayUpperBound := LOWER_BOUND(arLREALValues,1);
+
+// Check if nwrite index is within array bounds
+nWriteIndex := LIMIT(nArrayLowerBound, nWriteIndex, nArrayUpperBound);
+
+// Add value to Array 
+reNewValue(CLK := bNewValue);
+IF reNewValue.Q THEN
+	arLREALValues[nWriteIndex] := fInputValue;
+	IF nWriteIndex = nArrayUpperBound THEN
+		nWriteIndex := nArrayLowerBound;
+	ELSE
+		nWriteIndex := nWriteIndex +1;
+	END_IF
+END_IF 
+
+// Calculate average value 
+fAverage := F_AverageLREAL(arLREALValues);
+]]></ST>
+    </Implementation>
+    <Method Name="Cmd_Reset" Id="{10c99727-94a8-484c-8007-66cfb033dea7}">
+      <Declaration><![CDATA[METHOD PUBLIC Cmd_Reset : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[MEMSET(destAddr := ADR(arLREALValues), 0, n := SIZEOF(arLREALValues));
+Cmd_Reset := true;]]></ST>
+      </Implementation>
+    </Method>
+  </POU>
+</TcPlcObject>

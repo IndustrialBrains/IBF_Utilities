@@ -1,0 +1,146 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.9">
+  <POU Name="FB_EventHandler" Id="{242c0742-ce94-4c50-8b4b-4fe926f6c01f}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK PUBLIC FB_EventHandler
+VAR_INPUT
+	nTwincErrorId	: UDINT := 0; // OPTIONAL Error Id from twincat function block library
+END_VAR
+VAR_OUTPUT
+	// Active events
+	bActOM 			: BOOL := FALSE ;
+	bActMC 			: BOOL := FALSE ;
+	bActCF 			: BOOL := FALSE ;
+	bActFF 			: BOOL := FALSE ;
+	// Last event
+	stLastEvent		: TcEventEntry 	; // Event entry discription  
+END_VAR
+VAR // Event Conformation data
+	bConfRequired 	: BOOL := FALSE ; // Conformation of  		
+	// Resetting
+	bResetting		: BOOL := FALSE ;
+END_VAR
+VAR // location data
+	// Location
+	nLocationNumber	: UDINT 			:= 0; // message number array ([1]= System, [2]= Module,[3]= sub module, [4]= Component)
+	sLocationName	: STRING			:= ''; // Location discription name
+	eComponentType 	: E_ComponentTypes 	:= E_ComponentTypes.NA; // Part type discription
+	// Module number
+	nModuleID		: UDINT 			; // module reference number used for fault, enable, reset, and safety functions (default := 1, 0 = main system)
+	// Source
+	fbSource		: FB_TcSourceInfo;
+END_VAR
+VAR // Event functions 
+	fbAlarm		: FB_TcAlarm ; // alarm event function
+	fbMessage 	: FB_TcMessage ; // Message event
+	
+	hr 			: HRESULT;
+	hrLastError : HRESULT;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Folder Name="Private" Id="{3cdb8e33-2081-4b0c-835c-170fac7f32d4}" />
+    <Method Name="CmdAddEvent" Id="{4f6c68bd-8b92-4d33-8561-086305f8ef37}">
+      <Declaration><![CDATA[METHOD PUBLIC CmdAddEvent : BOOL
+VAR_INPUT
+	Event			: TcEventEntry ; // Event entry discription  
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// check if allarm has already been raised
+IF fbAlarm.EqualsToEventEntryEx(stOther	:= Event) THEN
+	CmdAddEvent := TRUE;
+	RETURN;
+END_IF
+
+// Check Event severity
+CASE Event.eSeverity OF 
+	TcEventSeverity.Critical:
+		bActFF 			S= TRUE ;	
+		fbAlarm.CreateEx(Event,TRUE,fbSource);
+		hr := fbAlarm.Raise(0);
+	TcEventSeverity.Error:
+		bActCF 			S= TRUE ;	
+		fbAlarm.CreateEx(Event,TRUE,fbSource);
+		hr := fbAlarm.Raise(0);
+	TcEventSeverity.Warning:
+		bActMC 			S= TRUE ;	
+		fbAlarm.CreateEx(Event,FALSE,fbSource);
+		hr := fbAlarm.Raise(0);
+	TcEventSeverity.Info:
+		bActOM 			S= TRUE ;	
+		fbMessage.CreateEx(Event,fbSource);
+		hr := fbMessage.Send(0);
+	ELSE 
+		RETURN;
+END_CASE
+
+// Add aditional error id
+IF nTwincErrorId >0 THEN 
+	fbAlarm.ipArguments.AddUDInt( value := nTwincErrorId);
+END_IF
+nTwincErrorId := 0; // Always clear error id after check
+
+IF FAILED(hr) THEN 
+	hrLastError := hr ;
+ELSE
+	CmdAddEvent := TRUE;
+END_IF
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="CmdReset" Id="{fc5c4d9b-e7c3-43bb-8e6f-c6ca055e77a1}">
+      <Declaration><![CDATA[METHOD PUBLIC CmdReset : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[bResetting := TRUE ;
+
+hr := fbAlarm.Clear(0,TRUE);
+
+IF NOT FAILED(hr) THEN 
+	bResetting := FALSE ; 
+	bActOM 	:= FALSE ;
+	bActMC	:= FALSE ;
+	bActCF	:= FALSE ;
+	bActFF	:= FALSE ;
+END_IF
+
+// Set feedback
+CmdReset := NOT bResetting;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ExecSetActiveEvents" Id="{5c0e6ed2-0223-49c4-8136-66948ece5504}" FolderPath="Private\">
+      <Declaration><![CDATA[METHOD PRIVATE ExecSetActiveEvents : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Init" Id="{92890216-436b-46eb-a28f-84c717065ef8}">
+      <Declaration><![CDATA[METHOD PUBLIC Init : BOOL
+VAR_INPUT
+	// Location
+		sLocationName	: STRING			:= ''; // Location discription name
+		eComponentType 	: E_ComponentTypes 	:= E_ComponentTypes.NA; // Part type discription
+	// Module number
+		nModuleID		: UDINT 			; // module reference number used for fault, enable, reset, and safety functions (default := 1, 0 = main system)
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// Transfer location data into event location data format
+fbSource.nId 	:= nModuleID;
+fbSource.sName	:= TO_STRING(eComponentType);
+fbSource.ExtendName(sLocationName);
+
+fbMessage.CreateEx(TC_EVENTS.StateMessages.ModuleInitialized,fbSource);
+fbMessage.Send(0);
+
+Init := TRUE ;]]></ST>
+      </Implementation>
+    </Method>
+  </POU>
+</TcPlcObject>

@@ -1,0 +1,170 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.9">
+  <POU Name="FB_Step_WithEvent" Id="{8163150a-eba2-4c92-a36c-3ad6e4b58a3e}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK PUBLIC FB_Step_WithEvent EXTENDS FB_Base_WithEvent
+VAR_INPUT
+END_VAR
+VAR_OUTPUT
+	nActStep	: UDINT := 0 ; // Active step
+	bIdle		: BOOL	:= TRUE  ; // Stepper is idle (Step 0)
+	bPaused		: BOOL 	:= FALSE ; // Stepper is paused
+	bHold		: BOOL 	:= FALSE ; // Stepper is blocked for changes
+	bSkipPause	: BOOL	:= FALSE ; // Pause function is skipped in this step 
+	bResetting	: BOOL  := False ; // Reset is active
+END_VAR
+VAR
+	nPreviousStep 	: UDINT ; // Previous active step
+	nNextStep		: UDINT ; // Next step to activate
+	nResetStep		: UDINT ; // step to which the stepper will go after reset
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[SetActiveStep();]]></ST>
+    </Implementation>
+    <Folder Name="Commands" Id="{351047e2-9846-4f5e-a261-60a5ae435eff}" />
+    <Method Name="CmdHold" Id="{be078b39-b7fd-471a-9809-11bbc319c72d}" FolderPath="Commands\">
+      <Declaration><![CDATA[METHOD PUBLIC CmdHold : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[bHold := TRUE ;
+
+CmdHold := bHold;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="CmdNext" Id="{fe83e341-c65f-412f-a72d-cc8460dfa5ea}" FolderPath="Commands\">
+      <Declaration><![CDATA[METHOD PUBLIC CmdNext : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT bHold THEN 
+	nNextStep := nActStep +	1 ;	
+END_IF
+
+CmdNext := TRUE ;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="CmdPrevious" Id="{71c57be0-5bf8-452d-884f-4e300932307b}" FolderPath="Commands\">
+      <Declaration><![CDATA[METHOD PUBLIC CmdPrevious : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT bHold THEN 
+	nNextStep := nPreviousStep ;	
+END_IF
+
+CmdPrevious := TRUE ;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="CmdReset" Id="{d4ec1040-b69a-466b-b1b0-319a045e2af0}" FolderPath="Commands\">
+      <Declaration><![CDATA[METHOD PUBLIC CmdReset : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[bErrorActive := FALSE ;
+
+IF nActStep <> nResetStep THEN 
+	IF NOT bResetting THEN
+		bResetting := TRUE ;
+	ELSE
+		nPreviousStep 	:= nActStep ;
+		nNextStep		:= nResetStep ;
+		nActStep 		:= nResetStep ;
+		bResetting 		:= FALSE;
+	END_IF
+ELSE
+	CmdReset := TRUE ; 
+END_IF
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="CmdToStep" Id="{992bf66c-0789-4045-a56e-2f7fce72781c}" FolderPath="Commands\">
+      <Declaration><![CDATA[METHOD PUBLIC CmdToStep : BOOL
+VAR_INPUT
+	nStep	: UDINT ;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT bHold THEN 
+	nNextStep := nStep ;
+END_IF
+
+CmdToStep := nNextStep = nStep ;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Init" Id="{dea2a181-8e48-4a16-845c-f94c5d25ea06}" FolderPath="Commands\">
+      <Declaration><![CDATA[METHOD PUBLIC Init : BOOL
+VAR_INPUT
+	// Location data for messages  
+	nId			: UDINT ; // Identification number of object
+	nParentId	: UDINT ; // Id of higher level If aplicable (0 = no parent)
+	nResetStep	: UDINT ; // step to which the stepper wil go at reset
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// ====== Calculate device id =====
+	ExecIdentifyDevice(nId,nParentId,E_ComponentTypes.StepProgram);
+	
+// ===== set reset step ======
+	nActStep 			:= nResetStep ;
+	THIS^.nResetStep	:= nResetStep ;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="SetActiveStep" Id="{9c44019d-d595-4b02-8bb0-b01d568e5f50}">
+      <Declaration><![CDATA[METHOD PRIVATE SetActiveStep : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF bResetting THEN 
+	nPreviousStep 	:= nActStep ;
+	nNextStep		:= nResetStep ;
+	nActStep 		:= nResetStep ;
+	bResetting 		:= FALSE; 
+ELSIF bHold THEN 
+	bHold 			:= FALSE ;
+	RETURN; 
+ELSIF bErrorActive THEN 
+	fbEvent.CmdAddEvent(Event := TC_EVENTS.ProgramEvents.StepNotDefined);
+ELSIF NOT bCmdPause OR bSkipPause THEN 
+	IF nActStep <> nNextStep THEN 
+		nPreviousStep 	:=	nActStep;	
+		nActStep		:= 	nNextStep;
+	END_IF
+END_IF
+
+bPaused 	:= bCmdPause ;	
+bSkipPause 	:= FALSE ; 
+bIdle 		:= nActStep = 0 ;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="SkipPause" Id="{68262b5d-cbb7-4be6-980a-7ff8deca1854}" FolderPath="Commands\">
+      <Declaration><![CDATA[METHOD Public SkipPause : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[bSkipPause := TRUE ;
+
+SkipPause := true ;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="StepError" Id="{b95bc8a1-daca-4943-8632-b25432b05eea}" FolderPath="Commands\">
+      <Declaration><![CDATA[METHOD PUBLIC StepError : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[bErrorActive := TRUE ;
+
+]]></ST>
+      </Implementation>
+    </Method>
+  </POU>
+</TcPlcObject>

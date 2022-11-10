@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.3">
+  <POU Name="F_TopVelocityFromTime" Id="{b4f621b0-59e9-4170-9020-5068723bd2ed}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION F_TopVelocityFromTime : LREAL
+VAR_INPUT
+	nAccel	: LREAL ; // acceleration or deceleration [units/s^2]
+	nTimeMs		: LREAL	; // Time for acceleratio/ deceleration to take place [ms]
+END_VAR
+VAR
+	nTimeSec	: LREAL;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[nTimeSec := nTimeMs/1000;
+
+F_TopVelocityFromTime := nAccel * nTimeSec;
+]]></ST>
+    </Implementation>
+    <LineIds Name="F_TopVelocityFromTime">
+      <LineId Id="15" Count="2" />
+      <LineId Id="7" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

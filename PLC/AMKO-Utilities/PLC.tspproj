@@ -109,7 +109,7 @@
 			</TypeSystem>
 		</System>
 		<Plc>
-			<Project GUID="{37E17773-2B5B-4355-B2E3-89962716C1FD}" Name="UtilitiesLib" PrjFilePath="UtilitiesLib\UtilitiesLib.plcproj" TmcFilePath="UtilitiesLib\UtilitiesLib.tmc" ReloadTmc="true" AmsPort="851" FileArchiveSettings="#x000e"/>
+			<Project GUID="{37E17773-2B5B-4355-B2E3-89962716C1FD}" Name="IBF_Utilities" PrjFilePath="IBF_Utilities\IBF_Utilities.plcproj" TmcFilePath="IBF_Utilities\IBF_Utilities.tmc" ReloadTmc="true" AmsPort="851" FileArchiveSettings="#x000e"/>
 		</Plc>
 	</Project>
 </TcSmProject>

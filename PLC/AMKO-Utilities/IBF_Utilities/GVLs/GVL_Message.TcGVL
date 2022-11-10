@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.10">
+  <GVL Name="GVL_Message" Id="{50f467a8-facb-42cb-96fd-d0c9df172a76}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL
+	bResetFaults		: BOOL 	:= FALSE	; // Reset system faults 
+	bCmdSnoozeMessage	: BOOL 	:= FALSE	; // Snooze message display
+	bHideFaults			: BOOL 	:= FALSE 	; // Display fault message popup on screen (when MC, CF of FF are active)
+	bHideReset			: BOOL 	:= FALSE 	; // Hide reset button in display unless CF of FF is active 
+	bHideWarnAck		: BOOL	:= FALSE	; // Hide the warning acknowledge button on the HMI (when OW is active)
+	bAckWarnings		: BOOL	:= FALSE	; // Acknowledge the warning(s)
+	arActiveFaults 		: ARRAY [0..Param_Messages.nMAX_MESSAGES_SHOWN] OF UDT_Fault ; // Active faults overview for showing in HMI
+	sOPeratorMessage	: STRING ;	// operator message for displaying non vital machine data
+END_VAR
+VAR_GLOBAL CONSTANT 
+	tMESSAGESNOOZEDURATION	: TIME 	:= T#5s ; // duration of message snooze after button press 
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>
