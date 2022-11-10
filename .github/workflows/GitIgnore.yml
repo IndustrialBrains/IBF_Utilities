@@ -31,11 +31,12 @@ jobs:
         with:
           script: |
             import os
-            with open(".gitmodules") as f:
-              for line in f.readlines():
-                items=[x.strip() for x in line.split("=")]
-                if len(items)==2 and items[0]=="path":
-                  os.system(f'git restore --staged "{items[1]}"')
+            if os.path.exists(".gitmodules"):
+              with open(".gitmodules") as f:
+                for line in f.readlines():
+                  items=[x.strip() for x in line.split("=")]
+                  if len(items)==2 and items[0]=="path":
+                    os.system(f'git restore --staged "{items[1]}"')
 
       - name: Check for staged files
         id: commit
