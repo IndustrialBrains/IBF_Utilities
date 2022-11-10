@@ -30,10 +30,172 @@
     <SelectedLibraryCategories>
       <Id xmlns="">{25052fee-a005-47ad-93b2-b0f6630efe72}</Id>
     </SelectedLibraryCategories>
-    <CombineIds>false</CombineIds>
+    <CombineIds>true</CombineIds>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Avarage\FB_RollingAverageLREAL.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Avarage\FB_RollingAverageTime.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Avarage\F_AverageLREAL.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Avarage\F_AverageTime.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="BaseFunctions\FB_Base.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="BaseFunctions\FB_Base_WithEvent.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="BaseFunctions\FB_FunctionBase.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="BaseFunctions\FB_FunctionBase_WIthEvent.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Compare\Functions\Between.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Compare\Functions\Between360deg.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Conversion\DegS_To_Rpm.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Conversion\DegS_To_Rpm_And_MMin.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Conversion\Grey_To_Bin.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Conversion\MMin_To_Rpm_And_DegS.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Conversion\Rpm_To_DegS.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FaultsAndMessages\DataTypes\E_ComponentTypes.TcTLEO">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FaultsAndMessages\DataTypes\E_FaultTypes.TcTLEO">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FaultsAndMessages\DataTypes\E_Locations.TcTLEO">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FaultsAndMessages\DataTypes\E_MessageNumbers.TcTLEO">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FaultsAndMessages\DataTypes\UDT_Fault.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FaultsAndMessages\Functions\FB_EventHandler.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FaultsAndMessages\Functions\Fb_FaultHandler.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FaultsAndMessages\Functions\FB_OperatorMessageDisplay.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FaultsAndMessages\Param_Messages.TcGVL">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="General\DataTypes\Udt_TimerBandwith.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="GVLs\DataManager.TcGVL">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="GVLs\GVL_FixedValues.TcGVL">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="GVLs\GVL_Message.TcGVL">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="GVLs\GVL_Parameters.TcGVL">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="GVLs\Sys_Variables.TcGVL">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MovePathCalculations\fAccDecCalc.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Parameter\DataTypes\Old\Udt_ParameterRetain.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Parameter\DataTypes\Old\UDT_Parameter_1.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Parameter\DataTypes\Old\Udt_Parameter_2.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Parameter\DataTypes\Old\Udt_ParLog_Old.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Parameter\DataTypes\Udt_Parameter.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Parameter\DataTypes\Udt_ParameterId.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Parameter\Functions\FB_ParameterHandler.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Parameter\Functions\Fb_ParLogging.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Parameter\Functions\F_ParToCsvLine.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PathFunctions\F_FBNameFromPath.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PathFunctions\F_GetLevelFromPath.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="PlcTask.TcTTO">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Positions\FunctionBlocks\FB_PositionTrigger.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Positions\FunctionBlocks\FB_PositionTrigger_Old.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Positions\Functions\F_AccDecDistanceFromTime.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Positions\Functions\F_AccDecDistanceFromVelo.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Positions\Functions\F_PosCheck.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Positions\Functions\F_TopVelocityFromTime.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Positions\Functions\F_TriggerPosOffset.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="StepFunctions\FB_CycleTrigger.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="StepFunctions\FB_Step.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="StepFunctions\FB_Step_WithEvent.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="System\Functions\DataManagement\FB_PersistentDataManager.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="System\Functions\Fb_SystemVariables.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="_TESTS\PRG_TEST.TcPOU">
@@ -81,6 +243,10 @@
     <PlaceholderReference Include="Tc2_Utilities">
       <DefaultResolution>Tc2_Utilities, * (Beckhoff Automation GmbH)</DefaultResolution>
       <Namespace>Tc2_Utilities</Namespace>
+    </PlaceholderReference>
+    <PlaceholderReference Include="Tc3_EventLogger">
+      <DefaultResolution>Tc3_EventLogger, * (Beckhoff Automation GmbH)</DefaultResolution>
+      <Namespace>Tc3_EventLogger</Namespace>
     </PlaceholderReference>
     <PlaceholderReference Include="Tc3_Module">
       <DefaultResolution>Tc3_Module, * (Beckhoff Automation GmbH)</DefaultResolution>
