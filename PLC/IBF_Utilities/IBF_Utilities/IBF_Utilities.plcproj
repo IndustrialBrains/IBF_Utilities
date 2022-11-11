@@ -33,16 +33,16 @@
     <CombineIds>true</CombineIds>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Avarage\FB_RollingAverageLREAL.TcPOU">
+    <Compile Include="Average\FB_RollingAverageLREAL.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Avarage\FB_RollingAverageTime.TcPOU">
+    <Compile Include="Average\FB_RollingAverageTime.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Avarage\F_AverageLREAL.TcPOU">
+    <Compile Include="Average\F_AverageLREAL.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Avarage\F_AverageTime.TcPOU">
+    <Compile Include="Average\F_AverageTime.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="BaseFunctions\FB_Base.TcPOU">
@@ -216,7 +216,7 @@
     <Folder Include="Compare" />
     <Folder Include="BaseFunctions" />
     <Folder Include="MovePathCalculations" />
-    <Folder Include="Avarage" />
+    <Folder Include="Average" />
     <Folder Include="StepFunctions" />
     <Folder Include="PathFunctions" />
     <Folder Include="Parameter" />
