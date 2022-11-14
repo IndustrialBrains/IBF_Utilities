@@ -3,10 +3,25 @@
   <POU Name="PRG_TEST" Id="{df25c322-66e9-42b5-bf1e-d85a6c4b3bb3}" SpecialFunc="None">
     <Declaration><![CDATA[PROGRAM INTERNAL PRG_TEST
 VAR
+	fbFaultHandler 	: Fb_FaultHandler;
+	stFault 		: UDT_Fault;
+
+	bActive 		: BOOL;
+	bReset			: BOOL;
+	reReset			: R_TRIG;
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[]]></ST>
+      <ST><![CDATA[fbFaultHandler();
+
+stFault.Active := bActive;
+fbFaultHandler.CmdAddFault(stFault);
+
+reReset(CLK := bReset);
+IF reReset.Q THEN
+	fbFaultHandler.CmdReset();
+END_IF
+]]></ST>
     </Implementation>
   </POU>
 </TcPlcObject>
