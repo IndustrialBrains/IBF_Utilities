@@ -48,13 +48,7 @@
     <Compile Include="BaseFunctions\FB_Base.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="BaseFunctions\FB_Base_WithEvent.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="BaseFunctions\FB_FunctionBase.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="BaseFunctions\FB_FunctionBase_WIthEvent.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Compare\Functions\Between.TcPOU">
@@ -91,9 +85,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="FaultsAndMessages\DataTypes\UDT_Fault.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="FaultsAndMessages\Functions\FB_EventHandler.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="FaultsAndMessages\Functions\FB_FaultHandler.TcPOU">
@@ -187,9 +178,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="StepFunctions\FB_Step.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="StepFunctions\FB_Step_WithEvent.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="System\Functions\DataManagement\FB_PersistentDataManager.TcPOU">

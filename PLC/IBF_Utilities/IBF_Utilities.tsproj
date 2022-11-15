@@ -72,16 +72,13 @@
 			</Hides>
 		</DataType>
 	</DataTypes>
-	<Project ProjectGUID="{29E302B1-007D-404D-A737-6BB0C2310B05}" Target64Bit="true" ShowHideConfigurations="#x106">
+	<Project ProjectGUID="{29E302B1-007D-404D-A737-6BB0C2310B05}" TargetNetId="41.151.80.134.1.1" Target64Bit="true" ShowHideConfigurations="#x106">
 		<System>
 			<Tasks>
 				<Task Id="3" Priority="20" CycleTime="100000" AmsPort="350" AdtTasks="true">
 					<Name>PlcTask</Name>
 				</Task>
 			</Tasks>
-			<TypeSystem>
-				<AdditionalTmcFile Name="EventTypes" File="..\..\Data Types\EventTypes.tmc"/>
-			</TypeSystem>
 		</System>
 		<Plc>
 			<Project File="IBF_Utilities.xti"/>
