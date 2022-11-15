@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.5">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
   <POU Name="FB_Base" Id="{addcf94a-59e2-4b15-ab00-a0d8c219c4bc}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK PUBLIC ABSTRACT FB_Base
 {attribute 'reflection'}
@@ -13,7 +13,7 @@ VAR_IN_OUT
 END_VAR
 VAR_OUTPUT
 	bInitOk			: BOOL 			:= FALSE 	; // function is initialized
-	bBussy 			: BOOL 			:= FALSE 	; // device is busy
+	bBusy 			: BOOL 			:= FALSE 	; // device is busy
 	bReady			: BOOL 			:= FALSE 	; // device is ready for new command 
 	bErrorActive	: BOOL			:= FALSE	; // device Error active 
 END_VAR
