@@ -42,6 +42,15 @@ class TestFB_Base(unittest.TestCase):
         conn.write_by_name(var, True)
         wait_cycles(1)
 
+    def test_init(self):
+        stFault = f"{self.PREFIX}.fbBase.stFault"
+        self.assertEqual(conn.read_by_name(f"{stFault}.LocationName"), "Base")
+        # Magic numbers from hardcoded values in PRG_TEST_FB_BASE
+        self.assertEqual(conn.read_by_name(f"{stFault}.LocationNumber"), 20100)
+        self.assertEqual(
+            conn.read_by_name(f"{stFault}.ComponentType", pyads.PLCTYPE_UDINT), 100
+        )
+
     def test_fault(self):
         stFault = f"{self.PREFIX}.fbBase.stFault"
         conn.write_by_name(f"{stFault}.FaultType", 1, pyads.PLCTYPE_UDINT)

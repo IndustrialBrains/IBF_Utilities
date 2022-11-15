@@ -9,6 +9,7 @@ END_VAR
 ]]></Declaration>
     <Implementation>
       <ST><![CDATA[fbFaultHandler();
+fbBase.Init(1, 2, E_ComponentTypes.MainProgram);
 fbBase(refFbFault := fbFaultHandler);
 ]]></ST>
     </Implementation>

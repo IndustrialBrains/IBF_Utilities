@@ -1,8 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
   <POU Name="FB_Base" Id="{addcf94a-59e2-4b15-ab00-a0d8c219c4bc}" SpecialFunc="None">
-    <Declaration><![CDATA[FUNCTION_BLOCK PUBLIC ABSTRACT FB_Base
-{attribute 'reflection'}
+    <Declaration><![CDATA[{attribute 'reflection'}
+FUNCTION_BLOCK PUBLIC ABSTRACT FB_Base
 VAR_INPUT
 	bEnable			: BOOL 		:= TRUE 	; // Module enable signal reference Default := TRUE (when using system library := GVL_Main.stModules[nModuleId].bEnabled)
 	refFbParHandler	: REFERENCE TO Fb_ParLogging 	:= GVL_Parameters.fbParameterHandler	; // reference to parameter handler
