@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.5">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
   <POU Name="Fb_SystemVariables" Id="{da83f45a-6f6a-41cc-bbb4-a67342500421}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK Fb_SystemVariables
 VAR
@@ -10,7 +10,7 @@ VAR
 		Fb_TimerSlow : Ton ; // Timer for slow blink bit
 		Fb_RisingPulse : R_Trig ; // Rinsing edge trigger function	
 	// ***** internal Variables *****
-		TimeStruct	: TIMESTRUCT ; // Time structure from system time function
+		SystemTime	: TIMESTRUCT ; // Time structure from system time function
 		HeartbeatOn	: BOOL ; // heartbeat is on
 		FlashFastOn	: BOOL ; // Fast Flash bit on
 		FlashSlowOn	: BOOL ; // Flash slow bit on
@@ -26,11 +26,11 @@ END_VAR
 						dwCycle := 1,
 						dwOpt := 0, 
 						tTimeout := DEFAULT_ADS_TIMEOUT, 	
-						systemTime => TimeStruct,
+						systemTime => SystemTime,
 						tzID	=> Sys_Variables.TimeZoneId
 						);
 	// ****** convert to time of day format *****
-		Sys_Variables.SystemTime := SYSTEMTIME_TO_DT(TIMESTR := TimeStruct) ;
+		Sys_Variables.SystemTime := SYSTEMTIME_TO_DT(TIMESTR := SystemTime) ;
 
 // ===== Heartbeat generator =====
 	Fb_TimerHbOn(In := NOT HeartbeatOn , PT:= T#1S, Q => HeartbeatOn);
@@ -68,37 +68,5 @@ END_VAR
 // ===== Manage persistent data ======
 	DataManager.FbPersistentManager();]]></ST>
     </Implementation>
-    <LineIds Name="Fb_SystemVariables">
-      <LineId Id="76" Count="0" />
-      <LineId Id="90" Count="0" />
-      <LineId Id="78" Count="0" />
-      <LineId Id="80" Count="5" />
-      <LineId Id="87" Count="0" />
-      <LineId Id="91" Count="1" />
-      <LineId Id="77" Count="0" />
-      <LineId Id="9" Count="0" />
-      <LineId Id="16" Count="0" />
-      <LineId Id="27" Count="0" />
-      <LineId Id="32" Count="0" />
-      <LineId Id="44" Count="0" />
-      <LineId Id="46" Count="0" />
-      <LineId Id="33" Count="0" />
-      <LineId Id="30" Count="0" />
-      <LineId Id="29" Count="0" />
-      <LineId Id="31" Count="0" />
-      <LineId Id="171" Count="2" />
-      <LineId Id="38" Count="0" />
-      <LineId Id="36" Count="0" />
-      <LineId Id="28" Count="0" />
-      <LineId Id="42" Count="1" />
-      <LineId Id="47" Count="3" />
-      <LineId Id="53" Count="4" />
-      <LineId Id="51" Count="0" />
-      <LineId Id="75" Count="0" />
-      <LineId Id="58" Count="0" />
-      <LineId Id="111" Count="1" />
-      <LineId Id="131" Count="1" />
-      <LineId Id="152" Count="0" />
-    </LineIds>
   </POU>
 </TcPlcObject>
