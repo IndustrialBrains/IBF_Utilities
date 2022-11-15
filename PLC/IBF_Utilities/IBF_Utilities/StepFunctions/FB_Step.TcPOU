@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.9">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
   <POU Name="FB_Step" Id="{69b694f5-baa1-4f86-8caa-4a01db9ce8f8}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK PUBLIC FB_Step EXTENDS FB_Base
 VAR_INPUT
@@ -133,7 +133,7 @@ ELSIF bHold THEN
 ELSIF bErrorActive THEN 
 	stFault.Active			:= TRUE ;
 	stFault.ComponentType	:= E_ComponentTypes.StepProgram ;
-	stFault.Discription		:= CONCAT(sName, ' Invalid step state');
+	stFault.Description		:= CONCAT(sName, ' Invalid step state');
 	stFault.FaultType		:= E_FaultTypes.FF;
 	stFault.MessageNumber	:= E_MessageNumbers.FF_ComunicationFault;
 ELSIF NOT bCmdPause OR bSkipPause THEN 

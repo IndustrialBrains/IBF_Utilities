@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.3">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
   <DUT Name="UDT_Fault" Id="{4279845d-19ed-4754-876f-7c5a27f78cb3}">
     <Declaration><![CDATA[TYPE UDT_Fault :
 STRUCT
@@ -11,7 +11,7 @@ STRUCT
 		MessageNumber 	: UDINT				:= 0; // message number
 		LocationNumber	: UDINT 			:= 0; // message number array ([1]= System, [2]= Module,[3]= sub module, [4]= Component)
 	// Message discription
-		Discription 	: STRING 			:= ''; // Message text discription in english (service personel only)
+		Description 	: STRING 			:= ''; // Message text discription in english (service personel only)
 	// Location
 		LocationName	: STRING			:= ''; // Location discription name
 		ComponentType 	: E_ComponentTypes 	:= E_ComponentTypes.NA; // Part type discription

@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.4">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
   <DUT Name="Udt_Parameter_2" Id="{2d1c912f-466e-49cf-841a-49521d4ad4e3}">
     <Declaration><![CDATA[TYPE Udt_Parameter_2 :
 STRUCT
@@ -8,7 +8,7 @@ STRUCT
 	Number		: INT	; // [Column 1]Parameter data, parameter number
 	Name		: STRING; // [Column 2]Parameter data, Parameter name
 	Par_Type	: STRING; // [Column 3]Parameter data, Type of parameter [Mpar, Cpar, Opar, Ppar]
-	Discription	: STRING; // [Column 4]Parameter data, Parmater discription
+	Description	: STRING; // [Column 4]Parameter data, Parmater discription
 	Factory		: LREAL	; // [Column 5]Parameter data, Factory standard value
 	Maximum		: LREAL	; // [Column 6]Parameter data, Maximum parameter value
 	Minimum		: LREAL	; // [Column 7]Parameter data, Minimum parameter value
