@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="PRG_TEST_FB_BASE" Id="{05d4333a-a3eb-08b5-275b-311b3bcb566f}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM PRG_TEST_FB_BASE
+VAR
+	fbBase : FB_Base_Test;
+	fbFaultHandler : FB_FaultHandler;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[fbFaultHandler();
+fbBase(refFbFault := fbFaultHandler);
+]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>

@@ -96,7 +96,7 @@
     <Compile Include="FaultsAndMessages\Functions\FB_EventHandler.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="FaultsAndMessages\Functions\Fb_FaultHandler.TcPOU">
+    <Compile Include="FaultsAndMessages\Functions\FB_FaultHandler.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="FaultsAndMessages\Functions\FB_OperatorMessageDisplay.TcPOU">
@@ -198,7 +198,13 @@
     <Compile Include="System\Functions\Fb_SystemVariables.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="_TESTS\PRG_TEST.TcPOU">
+    <Compile Include="_TESTS\FB_Base_Test.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_TESTS\PRG_TEST_FB_BASE.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_TESTS\PRG_TEST_FB_FAULTHANDLER.TcPOU">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>

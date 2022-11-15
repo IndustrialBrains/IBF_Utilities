@@ -1,4 +1,4 @@
-"""Tests for Fb_FaultHandler"""
+"""Tests for FB_FaultHandler"""
 # pylint: disable=missing-function-docstring, missing-class-docstring, invalid-name
 import sys
 import unittest
@@ -20,9 +20,9 @@ class E_FaultTypes(IntEnum):
     OW = 5  # Operator warning
 
 
-class TestFb_FaultHandler(unittest.TestCase):
+class TestFB_FaultHandler(unittest.TestCase):
 
-    PREFIX = "PRG_TEST"
+    PREFIX = "PRG_TEST_FB_FAULTHANDLER"
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -53,13 +53,12 @@ class TestFb_FaultHandler(unittest.TestCase):
         wait_cycles(1)
 
     def activate_fault(self, fault_type: E_FaultTypes, description: str):
-        conn.write_by_name(f"{self.PREFIX}.bActive", False)
         conn.write_by_name(
             f"{self.PREFIX}.stFault.FaultType", fault_type, pyads.PLCTYPE_UDINT
         )
-        conn.write_by_name(f"{self.PREFIX}.stFault.Discription", description)
-        # Always set bActive TRUE as last, because it clear stFault
-        conn.write_by_name(f"{self.PREFIX}.bActive", True)
+        conn.write_by_name(f"{self.PREFIX}.stFault.Description", description)
+        # Always set Active TRUE as last, because it clear stFault
+        conn.write_by_name(f"{self.PREFIX}.stFault.Active", True)
         wait_cycles(1)
 
     def test_00_initial_state(self):
@@ -92,7 +91,7 @@ class TestFb_FaultHandler(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    for _ in range(10):  # increase value to repeat the test
+    for _ in range(1):  # increase value to repeat the test
         test = unittest.main(verbosity=2, exit=False, failfast=True)
         if not test.result.wasSuccessful():
             sys.exit(-1)

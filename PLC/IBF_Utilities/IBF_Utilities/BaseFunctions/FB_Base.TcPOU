@@ -9,7 +9,7 @@ VAR_INPUT
 	bCmdPause 		: BOOL 		:= FALSE	; // Command Pause functions		
 END_VAR
 VAR_IN_OUT
-	refFbFault	: Fb_FaultHandler	; // reference to fault handler ( when using utilities library := GVL_Main.stModules[nModuleId].fbFaultHandler)
+	refFbFault	: FB_FaultHandler	; // reference to fault handler ( when using utilities library := GVL_Main.stModules[nModuleId].fbFaultHandler)
 END_VAR
 VAR_OUTPUT
 	bInitOk			: BOOL 			:= FALSE 	; // function is initialized
@@ -54,7 +54,7 @@ VAR_INPUT
 	// Message location data
 	nId				: UDINT ; // Identification number of object
 	nParentId		: UDINT ; // Id of higher level If aplicable (0 = no parent)
-	eComponentType	: E_ComponentTypes ; // COmponent or function type for message compilation
+	eComponentType	: E_ComponentTypes ; // Component or function type for message compilation
 END_VAR
 ]]></Declaration>
       <Implementation>

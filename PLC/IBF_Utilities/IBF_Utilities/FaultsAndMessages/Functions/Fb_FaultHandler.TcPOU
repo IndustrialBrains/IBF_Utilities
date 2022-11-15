@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
-  <POU Name="Fb_FaultHandler" Id="{08f65884-c647-4a29-b7ba-51d088979c07}" SpecialFunc="None">
-    <Declaration><![CDATA[FUNCTION_BLOCK Fb_FaultHandler
+  <POU Name="FB_FaultHandler" Id="{08f65884-c647-4a29-b7ba-51d088979c07}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_FaultHandler
 VAR_INPUT
 END_VAR
 VAR_OUTPUT
