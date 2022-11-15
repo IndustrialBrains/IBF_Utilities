@@ -28,20 +28,6 @@ class TestFB_Base(unittest.TestCase):
             cold_reset()
         return super().setUp()
 
-    @staticmethod
-    def _trigger_falling_edge(var: str) -> None:
-        conn.write_by_name(var, True)
-        wait_cycles(1)
-        conn.write_by_name(var, False)
-        wait_cycles(1)
-
-    @staticmethod
-    def _trigger_rising_edge(var: str) -> None:
-        conn.write_by_name(var, False)
-        wait_cycles(1)
-        conn.write_by_name(var, True)
-        wait_cycles(1)
-
     def test_init(self):
         stFault = f"{self.PREFIX}.fbBase.stFault"
         self.assertEqual(conn.read_by_name(f"{stFault}.LocationName"), "Base")

@@ -1,5 +1,6 @@
 """Provide a PyADS connection to a PLC"""
 from time import sleep, time
+from typing import Any
 
 import pyads
 
@@ -16,8 +17,9 @@ class TimeOutError(Exception):  # pylint: disable=missing-class-docstring
     ...
 
 
-def cold_reset(timeout: float = 1.0):
-    """Cold reset the PLC (similar to clicking the `Reset cold` button)"""
+def cold_reset(timeout: float = 1.0) -> None:
+    """Cold reset the PLC (similar to clicking the `Reset cold` button)
+    NOTE: A cold reset deactivates all debug breakpoints in the PLC."""
     conn.write_control(pyads.ADSSTATE_RESET, 0, 0, pyads.PLCTYPE_BOOL)
     conn.write_control(pyads.ADSSTATE_RUN, 0, 0, pyads.PLCTYPE_BOOL)
 
@@ -32,5 +34,33 @@ def cold_reset(timeout: float = 1.0):
 
 
 def wait_cycles(cycles: int) -> None:
-    """Wait for a number of PLC cycles. Cycletime is a fixed value: `PLC_CYCLETIME`"""
+    """Wait for a number of PLC cycles (roughly). Cycletime is a fixed value: `PLC_CYCLETIME`
+    Note that this will not match the exact number of cycles: the Python process
+    is not running in sync with the PLC and no exact timers are used."""
     sleep(PLC_CYCLETIME * cycles)
+
+
+def wait_value(var: str, value: Any, timeout: float) -> bool:
+    """Wait for a variable to get a value. Return True on success, False on timeout."""
+    start_time = time()
+    while (time() - start_time) < timeout:
+        if conn.read_by_name(var) == value:
+            return True
+        wait_cycles(1)
+    return False
+
+
+def trigger_falling_edge(var: str) -> None:
+    """Trigger a falling edge"""
+    conn.write_by_name(var, True)
+    wait_cycles(1)
+    conn.write_by_name(var, False)
+    wait_cycles(1)
+
+
+def trigger_rising_edge(var: str) -> None:
+    """Trigger a rising edge"""
+    conn.write_by_name(var, False)
+    wait_cycles(1)
+    conn.write_by_name(var, True)
+    wait_cycles(1)

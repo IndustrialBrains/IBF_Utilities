@@ -38,20 +38,6 @@ class TestFB_FaultHandler(unittest.TestCase):
             cold_reset()
         return super().setUp()
 
-    @staticmethod
-    def _trigger_falling_edge(var: str) -> None:
-        conn.write_by_name(var, True)
-        wait_cycles(1)
-        conn.write_by_name(var, False)
-        wait_cycles(1)
-
-    @staticmethod
-    def _trigger_rising_edge(var: str) -> None:
-        conn.write_by_name(var, False)
-        wait_cycles(1)
-        conn.write_by_name(var, True)
-        wait_cycles(1)
-
     def activate_fault(self, fault_type: E_FaultTypes, description: str):
         conn.write_by_name(
             f"{self.PREFIX}.stFault.FaultType", fault_type, pyads.PLCTYPE_UDINT

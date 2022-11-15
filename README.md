@@ -10,10 +10,9 @@ This repo contains the Utilities library, and also a `.libcat.xml` file that can
 
 1. Add build action
 1. Add automatic tests
-1. Rename project
-1. (check) force use of access specifiers
 
 ### Improvements
 
 1. `fbFaultHandler.CmdReset` will reset all bActXXX bits for one cycle, even if faults are still active
 1. `fbFaultHandler.nActiveFaults` does not always match actual number of active faults (can be +1)
+1. Fix errors generated when static analysis rule "Unused variables" is enabled
