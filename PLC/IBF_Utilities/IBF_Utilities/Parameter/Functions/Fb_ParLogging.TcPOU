@@ -1,9 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.5">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
   <POU Name="Fb_ParLogging" Id="{70cb49c5-c474-4a5d-8c59-0231168edf6a}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK PUBLIC Fb_ParLogging EXTENDS FB_ParameterHandler
 VAR_OUTPUT
-	stParLog		: Udt_ParLog_Old ; // active parameter list
 	bReadBusy		: BOOL		:= FALSE	; // File acces Bussy
 	bWriteBusy		: BOOL 		:= FALSE	; // file write bussy
 	bError			: BOOL		:= FALSE	; // File acces error
@@ -22,7 +21,6 @@ VAR
 		bCmdParFileWrite	: BOOL ; // write alle parameters to .csv file
 		bCmdParLogWrite		: BOOL ; // write all changes to .csv file
 		bCmdParFileRead		: BOOL ; // Read all parameters from .csv file 
-		StParameter			: UDT_Parameter_1 ;
 	// ====== File headers ======
 		sCsvFileHeader : STRING := 'NUMBER;NAME;TYPE;DISCRIPTION;FACTORY;MAXIMUM;MINIMUM;UNIT;VALUE$L';
 	// ====== internal status ======

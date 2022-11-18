@@ -16,3 +16,5 @@ This repo contains the Utilities library, and also a `.libcat.xml` file that can
 1. `fbFaultHandler.CmdReset` will reset all bActXXX bits for one cycle, even if faults are still active
 1. `fbFaultHandler.nActiveFaults` does not always match actual number of active faults (can be +1)
 1. Fix errors generated when static analysis rule "Unused variables" is enabled
+1. `GVL_Parameters.fbParameterHandler`: parameter array has invalid element on index 1
+

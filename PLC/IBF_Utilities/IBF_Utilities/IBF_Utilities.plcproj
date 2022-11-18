@@ -117,18 +117,6 @@
     <Compile Include="MovePathCalculations\fAccDecCalc.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Parameter\DataTypes\Old\Udt_ParameterRetain.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Parameter\DataTypes\Old\UDT_Parameter_1.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Parameter\DataTypes\Old\Udt_Parameter_2.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Parameter\DataTypes\Old\Udt_ParLog_Old.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Parameter\DataTypes\Udt_Parameter.TcDUT">
       <SubType>Code</SubType>
     </Compile>
@@ -218,7 +206,6 @@
     <Folder Include="PathFunctions" />
     <Folder Include="Parameter" />
     <Folder Include="Parameter\DataTypes" />
-    <Folder Include="Parameter\DataTypes\Old" />
     <Folder Include="Parameter\Functions" />
     <Folder Include="Positions" />
     <Folder Include="Positions\Functions" />
