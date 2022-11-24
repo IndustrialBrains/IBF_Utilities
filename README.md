@@ -17,4 +17,8 @@ This repo contains the Utilities library, and also a `.libcat.xml` file that can
 1. `fbFaultHandler.nActiveFaults` does not always match actual number of active faults (can be +1)
 1. Fix errors generated when static analysis rule "Unused variables" is enabled
 1. `GVL_Parameters.fbParameterHandler`: parameter array has invalid element on index 1
-
+1. `Fb_ParLogging`: 
+	- not triggering error when parameter file path is invalid
+	- can trigger page faults
+	- test if parameter name with `;` break CSV file
+	- test extreme values, e.g. `1e-50`

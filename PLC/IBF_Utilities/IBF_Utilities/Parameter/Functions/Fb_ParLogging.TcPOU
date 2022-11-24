@@ -104,13 +104,15 @@ IF NOT bParCountDiference THEN
 			nDiferenceRow		:= i ;
 			CONTINUE;
 		ELSE
-			IF (arParameters[i].pParameter^.fValue <> arFileParameters[i].fValue) THEN 
-				fTempValue := arParameters[i].pParameter^.fValue;  
-			ELSE
-				fTempValue := 0;
+			IF (arParameters[i].pParameter > 0) THEN
+				IF (arParameters[i].pParameter^.fValue <> arFileParameters[i].fValue) THEN 
+					fTempValue := arParameters[i].pParameter^.fValue;  
+				ELSE
+					fTempValue := 0;
+				END_IF
+				arParameters[i].pParameter^			:= arFileParameters[i];
+				arParameters[i].pParameter^.fSaved 	:= fTempValue;
 			END_IF
-			arParameters[i].pParameter^			:= arFileParameters[i];
-			arParameters[i].pParameter^.fSaved 	:= fTempValue;
 		END_IF
 	END_FOR
 END_IF 
@@ -131,10 +133,12 @@ END_VAR]]></Declaration>
 IF bCmdParFileWrite THEN 
 	FOR i := 1 TO nNumberOfParameters DO
 			// Save current actual value for later restore
-			IF arParameters[i].pParameter^.fValue <> arFileParameters[i].fValue THEN
-				arParameters[i].pParameter^.fSaved := arFileParameters[i].fValue ;
+			IF (arParameters[i].pParameter > 0) THEN
+				IF arParameters[i].pParameter^.fValue <> arFileParameters[i].fValue THEN
+					arParameters[i].pParameter^.fSaved := arFileParameters[i].fValue;
+				END_IF
+				arFileParameters[i] := arParameters[i].pParameter^;
 			END_IF
-			arFileParameters[i] := arParameters[i].pParameter^ ;
 	END_FOR
 END_IF
 

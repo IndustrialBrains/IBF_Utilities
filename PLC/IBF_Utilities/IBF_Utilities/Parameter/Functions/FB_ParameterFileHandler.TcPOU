@@ -1,0 +1,247 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="FB_ParameterFileHandler" Id="{052dee22-c06d-0a14-2ec0-25219a011600}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_ParameterFileHandler EXTENDS FB_ParameterHandler
+VAR CONSTANT
+	BUFFER_SIZE : UINT := 1024;
+END_VAR
+VAR
+	eState : E_PFH_InitState;
+	eErrState : E_PFH_InitState;
+	
+	// File function blocks (asynchronous)
+	fbFileOpen	: FB_FileOpen; // https://infosys.beckhoff.com/content/1033/tcplclib_tc2_system/30977547.html
+	fbFileWrite	: FB_FileWrite; // https://infosys.beckhoff.com/content/1033/tcplclib_tc2_system/30986763.html
+	fbFileClose	: FB_FileClose; // https://infosys.beckhoff.com/content/1033/tcplclib_tc2_system/30972939.html
+	fbFileGets	: FB_FileGets; // https://infosys.beckhoff.com/content/1033/tcplclib_tc2_system/30976011.html
+	fbCsvMemBufReader : FB_CSVMemBufferReader; // https://infosys.beckhoff.com/content/1033/tcplclib_tc2_utilities/34977931.html
+	fbCsvMemBufWriter : FB_CSVMemBufferWriter; // https://infosys.beckhoff.com/content/1033/tcplclib_tc2_utilities/34979467.html
+
+	// Miscelleanous
+	nIdxPar : DINT; // Parameter array iterator
+	// TODO: replace CSVLine with buffer
+	sCSVLine		: T_MaxString := '';(* Single CSV text line (row, record), we are using string as record buffer (your are able to see created fields) *)
+
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Method Name="Init" Id="{d9fae5f4-5172-06d7-1319-23a49bf2ac18}">
+      <Declaration><![CDATA[METHOD Init : BOOL // Initialize parameter file handler: try to read parameter file, create if nonexisting
+VAR CONSTANT
+	MAX_FIELDS : UINT := 9;
+END_VAR
+VAR
+	i : UINT; // Iterator
+	pParameter : POINTER TO Udt_Parameter;
+	sCSVField : T_MaxString; // Single CSV field value (record field)
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[CASE eState OF
+	E_PFH_InitState.InitialState:
+		// Initialize file function blocks
+		fbFileOpen(
+			bExecute := FALSE,
+			ePath := PATH_GENERIC,
+			sPathName := GVL_Parameters.sPARLIST_FILE
+		);
+		fbFileWrite(
+			bExecute := FALSE,
+			pWriteBuff := ADR(sCSVLine)
+		);
+		fbFileClose(bExecute := FALSE);
+		fbFileGets(bExecute := FALSE);
+
+		fbCsvMemBufWriter.pBuffer := ADR(sCSVLine);
+		fbCsvMemBufReader.pBuffer := ADR(sCSVLine);
+		fbCsvMemBufWriter.cbBuffer := SIZEOF(sCSVLine) - 1;
+		fbCsvMemBufReader.cbBuffer := SIZEOF(sCSVLine);
+	
+		eState := E_PFH_InitState.OpenFile;
+
+	E_PFH_InitState.OpenFile:
+		fbFileOpen(
+			bExecute := TRUE,	
+			nMode := FOPEN_MODEREAD OR FOPEN_MODETEXT, // Open file in text mode
+		);
+
+		IF (NOT fbFileOpen.bBusy) THEN
+			fbFileOpen(bExecute := FALSE);
+
+			IF fbFileOpen.bError THEN
+				// Check error codes
+				IF (fbFileOpen.nErrId = 16#70C) THEN
+					// File not found
+					eState := E_PFH_InitState.CreateFile;
+				ELSE
+					eErrState := eState; 
+					eState := E_PFH_InitState.Error;
+				END_IF
+			ELSE
+				nIdxPar := 0;
+				eState := E_PFH_InitState.ReadRecord;
+			END_IF
+		END_IF
+
+	E_PFH_InitState.CreateFile:
+		fbFileOpen(
+			bExecute := TRUE,	
+			nMode := FOPEN_MODEWRITE OR FOPEN_MODETEXT, // Open file in text mode
+		);
+
+		IF (NOT fbFileOpen.bBusy) THEN
+			fbFileOpen(bExecute := FALSE);
+
+			IF fbFileOpen.bError THEN
+				eErrState := eState; 
+				eState := E_PFH_InitState.Error;
+			ELSE		
+				fbFileWrite.hFile := fbFileOpen.hFile;
+				nIdxPar := 1;
+				eState := E_PFH_InitState.WriteRecord;
+			END_IF
+		END_IF
+		
+	E_PFH_InitState.WriteRecord:
+		// Code based on Beckhoff example: https://infosys.beckhoff.com/content/1033/tcplclib_tc2_utilities/34979467.html
+		sCSVLine := '';
+		fbCsvMemBufWriter.eCmd := eEnumCmd_First; // Write first field value
+
+		IF (nIdxPar > ANY_TO_DINT(nNumberOfParameters)) THEN
+			// Done (all parameters were added)
+			eState := E_PFH_InitState.CloseFile;
+		ELSE
+			// Add the next parameter
+			pParameter := arParameters[nIdxPar].pParameter;
+			IF (pParameter = 0) THEN
+				// Unexpected null pointer
+				eErrState := eState; 
+				eState := E_PFH_InitState.Error;
+			ELSE
+				// We're good to go, iterate over all record fields
+				FOR i := 1 TO MAX_FIELDS DO 
+					CASE i OF
+						1: sCSVField := UDINT_TO_STRING(pParameter^.nNumber);
+						2: sCSVField := pParameter^.sName;
+						3: sCSVField := pParameter^.sType;
+						4: sCSVField := pParameter^.sDiscription;
+						5: sCSVField := LREAL_TO_STRING(pParameter^.fFactory);
+						6: sCSVField := LREAL_TO_STRING(pParameter^.fMaximum);
+						7: sCSVField := LREAL_TO_STRING(pParameter^.fMinimum);
+						8: sCSVField := pParameter^.sUnit;
+						9: sCSVField := LREAL_TO_STRING(pParameter^.fValue);
+					END_CASE
+					sCSVField := STRING_TO_CSVFIELD(sCSVField, FALSE);
+					
+					// Add new field to the record buffer
+					fbCsvMemBufWriter(
+						putValue := sCSVField,
+						bCRLF := (i = MAX_FIELDS) // Write CRLF after the last field value 
+					);
+					IF fbCsvMemBufWriter.bOk THEN
+						fbCsvMemBufWriter.eCmd := eEnumCmd_Next;
+					ELSE // Error
+						eErrState := eState; 
+						eState := E_PFH_InitState.Error;
+						RETURN;
+					END_IF
+	
+				END_FOR
+
+				eState := E_PFH_InitState.WriteRecordBusy;
+			END_IF;
+		END_IF;
+
+	E_PFH_InitState.WriteRecordBusy:
+		fbFileWrite(bExecute := TRUE, cbWriteLen := LEN(sCSVLine));
+		IF (NOT fbFileWrite.bBusy) THEN
+			fbFileWrite(bExecute := FALSE);
+			IF fbFileWrite.bError THEN
+				eErrState := eState; 
+				eState := E_PFH_InitState.Error;
+			ELSE		
+				nIdxPar := nIdxPar + 1;	 
+				eState := E_PFH_InitState.WriteRecord;
+			END_IF
+		END_IF
+		
+	E_PFH_InitState.ReadRecord:
+		fbFileGets(bExecute := TRUE, hFile := fbFileOpen.hFile);
+		IF (NOT fbFileGets.bBusy) THEN
+			sCSVLine := fbFileGets.sLine;
+			fbFileGets(bExecute := FALSE);
+			IF fbFileGets.bError THEN
+				eErrState := eState; 
+				eState := E_PFH_InitState.Error;
+			ELSIF fbFileGets.bEOF THEN
+				eState := E_PFH_InitState.CloseFile;			
+			ELSIF (sCSVLine = '') THEN
+				; // Skip empty lines
+			ELSE
+				nIdxPar := nIdxPar + 1;
+				eState := E_PFH_InitState.ParseRecord;
+			END_IF
+		END_IF
+
+	E_PFH_InitState.ParseRecord:
+		fbCsvMemBufReader.eCmd := eEnumCmd_First; // Read first field value
+
+		// Get the next parameter
+		pParameter := arParameters[nIdxPar].pParameter;
+		IF (pParameter = 0) THEN
+			// Unexpected null pointer
+			eErrState := eState; 
+			eState := E_PFH_InitState.Error;
+		ELSE
+			FOR i := 1 TO MAX_FIELDS DO 
+				// Read field from the record buffer
+				fbCsvMemBufReader(getValue => sCSVField);
+				IF fbCsvMemBufReader.bOk THEN
+					sCSVField := CSVFIELD_TO_STRING(sCSVField, FALSE);
+					CASE i OF
+						1: pParameter^.nNumber := STRING_TO_UDINT(sCSVField);
+						2: pParameter^.sName := sCSVField;
+						3: pParameter^.sType := sCSVField;
+						4: pParameter^.sDiscription := sCSVField;
+						5: pParameter^.fFactory := STRING_TO_LREAL(sCSVField);
+						6: pParameter^.fMaximum := STRING_TO_LREAL(sCSVField);
+						7: pParameter^.fMinimum := STRING_TO_LREAL(sCSVField);
+						8: pParameter^.sUnit := sCSVField;
+						9: pParameter^.fValue := STRING_TO_LREAL(sCSVField);
+					END_CASE
+					
+					fbCsvMemBufReader.eCmd := eEnumCmd_Next;
+				ELSE // Error
+					eErrState := eState; 
+					eState := E_PFH_InitState.Error;
+					RETURN;
+				END_IF
+	
+			END_FOR
+
+			eState := E_PFH_InitState.ReadRecord;
+		END_IF
+	
+	E_PFH_InitState.CloseFile:
+		fbFileClose(bExecute := TRUE, hFile := fbFileOpen.hFile);
+		IF (NOT fbFileClose.bBusy) THEN
+			fbFileClose(bExecute := FALSE);
+			IF fbFileClose.bError THEN
+				eErrState := eState; 
+				eState := E_PFH_InitState.Error;
+			ELSE		
+				eState := E_PFH_InitState.Done;
+			END_IF
+		END_IF
+	
+	E_PFH_InitState.Done:
+		Init := TRUE;
+
+	E_PFH_InitState.Error:
+		;
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+  </POU>
+</TcPlcObject>

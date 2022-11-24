@@ -117,10 +117,16 @@
     <Compile Include="MovePathCalculations\fAccDecCalc.TcPOU">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Parameter\DataTypes\E_PFH_InitState.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Parameter\DataTypes\Udt_Parameter.TcDUT">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Parameter\DataTypes\Udt_ParameterId.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Parameter\Functions\FB_ParameterFileHandler.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Parameter\Functions\FB_ParameterHandler.TcPOU">
@@ -184,6 +190,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="_TESTS\PRG_TEST_FB_PARAMETERHANDLER.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_TESTS\PRG_TEST_FB_PARLOGGING.TcPOU">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>

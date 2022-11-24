@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="PRG_TEST_FB_PARLOGGING" Id="{9f293204-c2aa-0fe1-1474-f57aeffff999}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM PRG_TEST_FB_PARLOGGING
+VAR
+	fbParLogging 	: FB_ParameterFileHandler;
+	//fbParLogging 	: Fb_ParLogging;
+	stParameter 	: Udt_Parameter; // NOTE: Udt_Parameter is persistent
+	bAddParameter 	: BOOL;
+	bInit			: BOOL;
+END_VAR
+
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[fbParLogging();
+
+IF bAddParameter THEN
+	bAddParameter := FALSE;
+	fbParLogging.CmdAddParameter(stParameter);
+END_IF
+
+IF bInit THEN
+	bInit R= fbParLogging.Init();
+END_IF
+]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>
