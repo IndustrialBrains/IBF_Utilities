@@ -1,21 +1,21 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.5">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
   <DUT Name="Udt_Parameter" Id="{9315b401-f77f-4ecd-9e8e-d1a9cff67019}">
     <Declaration><![CDATA[TYPE Udt_Parameter :
 STRUCT PERSISTENT
-	nNumber		: UDINT	 	:= 0				; // [Column 0]Parameter data, parameter number
-	sName		: STRING	:= 'No parameter' 	; // [Column 1]Parameter data, Parameter name
-	sType		: STRING	:= 'PPar'			; // [Column 2]Parameter data, Type of parameter [Mpar, Cpar, Opar, Ppar]
-	sDiscription: STRING	:= 'No parameter selcted'; // [Column 3]Parameter data, Parmater discription
-	fFactory	: LREAL		:= 0				; // [Column 4]Parameter data, Factory standard value
-	fMaximum	: LREAL		:= 0				; // [Column 5]Parameter data, Maximum parameter value
-	fMinimum	: LREAL		:= 0				; // [Column 6]Parameter data, Minimum parameter value
-	sUnit		: STRING	:= 'na'				; // [Column 7]Parameter data, Unit of measurement
-	fValue		: LREAL		:= 0				; // [Column 8]Parameter data, Current (active) parameter value
-	fSaved		: LREAL		:= 0				; // Parameter data, Saved value or standard setpoint
-	fPrepared	: LREAL 	:= 0				; // Parameter data, Prepared value from teach function 
-	bTeachable	: BOOL		:= FALSE			; // Teach command for devices 
-	bAccepted	: BOOL 		:= FALSE 			; // Paramer value has been accepted
+	nNumber		: UDINT			:= 0				; // [Column 1]Parameter data, parameter number
+	sName		: STRING[50]	:= 'No parameter' 	; // [Column 2]Parameter data, Parameter name
+	sType		: STRING[4]		:= 'PPar'			; // [Column 3]Parameter data, Type of parameter [Mpar, Cpar, Opar, Ppar]
+	sDiscription: STRING[80]	:= 'No parameter selected'; // [Column 4]Parameter data, Parmater discription
+	fFactory	: LREAL			:= 0				; // [Column 5]Parameter data, Factory standard value
+	fMaximum	: LREAL			:= 0				; // [Column 6]Parameter data, Maximum parameter value
+	fMinimum	: LREAL			:= 0				; // [Column 7]Parameter data, Minimum parameter value
+	sUnit		: STRING[8]		:= 'na'				; // [Column 8]Parameter data, Unit of measurement
+	fValue		: LREAL			:= 0				; // [Column 9]Parameter data, Current (active) parameter value
+	fSaved		: LREAL			:= 0				; // Parameter data, Saved value or standard setpoint
+	fPrepared	: LREAL 		:= 0				; // Parameter data, Prepared value from teach function 
+	bTeachable	: BOOL			:= FALSE			; // Teach command for devices 
+	bAccepted	: BOOL 			:= FALSE 			; // Paramer value has been accepted
 END_STRUCT
 END_TYPE
 ]]></Declaration>

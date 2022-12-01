@@ -18,7 +18,7 @@ VAR_OUTPUT
 	bErrorActive	: BOOL			:= FALSE	; // device Error active 
 END_VAR
 VAR
-	sName			: STRING 		:= ''		; // Name of device distilled from the path 
+	sName			: STRING[50]	:= ''		; // Name of device distilled from the path 
 	nLocationId		: UDINT 		:= 0		; // device id number made up of module and device number				
 	
 	stFault			: UDT_Fault		; // Fault data from device

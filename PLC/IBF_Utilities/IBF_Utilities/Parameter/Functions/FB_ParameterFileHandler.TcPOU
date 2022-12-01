@@ -2,9 +2,6 @@
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
   <POU Name="FB_ParameterFileHandler" Id="{052dee22-c06d-0a14-2ec0-25219a011600}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_ParameterFileHandler EXTENDS FB_ParameterHandler
-VAR CONSTANT
-	BUFFER_SIZE : UINT := 1024;
-END_VAR
 VAR
 	eState : E_PFH_InitState;
 	eErrState : E_PFH_InitState;
@@ -18,9 +15,8 @@ VAR
 	fbCsvMemBufWriter : FB_CSVMemBufferWriter; // https://infosys.beckhoff.com/content/1033/tcplclib_tc2_utilities/34979467.html
 
 	// Miscelleanous
-	nIdxPar : DINT; // Parameter array iterator
-	// TODO: replace CSVLine with buffer
-	sCSVLine		: T_MaxString := '';(* Single CSV text line (row, record), we are using string as record buffer (your are able to see created fields) *)
+	nIdxPar  : UINT; // Parameter array iterator
+	sCSVLine : T_MaxString := ''; // String buffer (single CSV text line)
 
 END_VAR
 ]]></Declaration>
@@ -154,7 +150,7 @@ END_VAR]]></Declaration>
 		END_IF;
 
 	E_PFH_InitState.WriteRecordBusy:
-		fbFileWrite(bExecute := TRUE, cbWriteLen := LEN(sCSVLine));
+		fbFileWrite(bExecute := TRUE, cbWriteLen := INT_TO_UDINT(LEN(sCSVLine)));
 		IF (NOT fbFileWrite.bBusy) THEN
 			fbFileWrite(bExecute := FALSE);
 			IF fbFileWrite.bError THEN
