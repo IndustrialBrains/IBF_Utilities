@@ -2,6 +2,9 @@
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
   <POU Name="FB_ParameterFileHandler" Id="{052dee22-c06d-0a14-2ec0-25219a011600}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_ParameterFileHandler EXTENDS FB_ParameterHandler
+VAR CONSTANT
+	sCSVFileHeader : STRING := 'NUMBER;NAME;TYPE;DESCRIPTION;FACTORY;MAXIMUM;MINIMUM;UNIT;VALUE$L';
+END_VAR
 VAR
 	eState : E_PFH_InitState;
 	eErrState : E_PFH_InitState;
@@ -17,6 +20,7 @@ VAR
 	// Miscelleanous
 	nIdxPar  : UINT; // Parameter array iterator
 	sCSVLine : T_MaxString := ''; // String buffer (single CSV text line)
+	bHeaderRead : BOOL; // TRUE once the header has be read
 
 END_VAR
 ]]></Declaration>
@@ -76,6 +80,7 @@ END_VAR]]></Declaration>
 				END_IF
 			ELSE
 				nIdxPar := 0;
+				bHeaderRead := FALSE;
 				eState := E_PFH_InitState.ReadRecord;
 			END_IF
 		END_IF
@@ -94,7 +99,7 @@ END_VAR]]></Declaration>
 				eState := E_PFH_InitState.Error;
 			ELSE		
 				fbFileWrite.hFile := fbFileOpen.hFile;
-				nIdxPar := 1;
+				nIdxPar := 0;
 				eState := E_PFH_InitState.WriteRecord;
 			END_IF
 		END_IF
@@ -107,6 +112,10 @@ END_VAR]]></Declaration>
 		IF (nIdxPar > ANY_TO_DINT(nNumberOfParameters)) THEN
 			// Done (all parameters were added)
 			eState := E_PFH_InitState.CloseFile;
+		ELSIF (nIdxPar = 0) THEN
+			// First line: write the CSV header
+			sCSVLine := sCSVFileHeader;
+			eState := E_PFH_InitState.WriteRecordBusy;
 		ELSE
 			// Add the next parameter
 			pParameter := arParameters[nIdxPar].pParameter;
@@ -171,10 +180,13 @@ END_VAR]]></Declaration>
 				eErrState := eState; 
 				eState := E_PFH_InitState.Error;
 			ELSIF fbFileGets.bEOF THEN
+				// Finished reading the file
 				eState := E_PFH_InitState.CloseFile;			
-			ELSIF (sCSVLine = '') THEN
-				; // Skip empty lines
+			ELSIF NOT bHeaderRead THEN 
+				// Skip first line (header)
+				bHeaderRead := TRUE;
 			ELSE
+				// Parse the line
 				nIdxPar := nIdxPar + 1;
 				eState := E_PFH_InitState.ParseRecord;
 			END_IF
