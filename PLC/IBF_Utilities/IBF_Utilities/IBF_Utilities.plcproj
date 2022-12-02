@@ -132,9 +132,6 @@
     <Compile Include="Parameter\Functions\FB_ParameterHandler.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Parameter\Functions\Fb_ParLogging.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Parameter\Functions\F_ParToCsvLine.TcPOU">
       <SubType>Code</SubType>
     </Compile>

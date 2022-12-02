@@ -5,7 +5,7 @@
 FUNCTION_BLOCK PUBLIC ABSTRACT FB_Base
 VAR_INPUT
 	bEnable			: BOOL 		:= TRUE 	; // Module enable signal reference Default := TRUE (when using system library := GVL_Main.stModules[nModuleId].bEnabled)
-	refFbParHandler	: REFERENCE TO Fb_ParLogging 	:= GVL_Parameters.fbParameterHandler	; // reference to parameter handler
+	refFbParHandler	: REFERENCE TO FB_ParameterFileHandler := GVL_Parameters.fbParameterHandler	; // reference to parameter handler
 	bCmdPause 		: BOOL 		:= FALSE	; // Command Pause functions		
 END_VAR
 VAR_IN_OUT
