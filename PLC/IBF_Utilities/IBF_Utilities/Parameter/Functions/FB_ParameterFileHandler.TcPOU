@@ -10,11 +10,11 @@ VAR_OUTPUT
 	// State outputs
 	bInitialized 	: BOOL;
 	bError			: BOOL;
+	sErrorMessage	: STRING;
 END_VAR
 VAR
 	// States
 	eState 		: E_ParameterHandlerState := E_ParameterHandlerState.InitializeFBs;
-	eErrState 	: E_ParameterHandlerState := E_ParameterHandlerState.Error; // For debugging purposes: the state preceding the error
 	
 	// Commands
 	bCmdInit 	: BOOL;
@@ -95,7 +95,7 @@ CASE eState OF
 					// File not found
 					eState := E_ParameterHandlerState.CreateFile;
 				ELSE
-					eErrState := eState; 
+					sErrorMessage := 'Unable to open file';
 					eState := E_ParameterHandlerState.Error;
 				END_IF
 			ELSE
@@ -116,7 +116,7 @@ CASE eState OF
 			fbFileOpen(bExecute := FALSE);
 
 			IF fbFileOpen.bError THEN
-				eErrState := eState; 
+				sErrorMessage := 'Unable to create file';
 				eState := E_ParameterHandlerState.Error;
 			ELSE		
 				fbFileWrite.hFile := fbFileOpen.hFile;
@@ -141,8 +141,7 @@ CASE eState OF
 			// Add the next parameter
 			pParameter := arParameters[nIdxPar].pParameter;
 			IF (pParameter = 0) THEN
-				// Unexpected null pointer
-				eErrState := eState; 
+				sErrorMessage := 'Unexpected null pointer';
 				eState := E_ParameterHandlerState.Error;
 			ELSE
 				// We're good to go, iterate over all record fields
@@ -168,7 +167,7 @@ CASE eState OF
 					IF fbCsvMemBufWriter.bOk THEN
 						fbCsvMemBufWriter.eCmd := eEnumCmd_Next;
 					ELSE // Error
-						eErrState := eState; 
+						sErrorMessage := 'Unable to store fields in CSV buffer';
 						eState := E_ParameterHandlerState.Error;
 						RETURN;
 					END_IF
@@ -184,7 +183,7 @@ CASE eState OF
 		IF (NOT fbFileWrite.bBusy) THEN
 			fbFileWrite(bExecute := FALSE);
 			IF fbFileWrite.bError THEN
-				eErrState := eState; 
+				sErrorMessage := 'Unable to write record to file';
 				eState := E_ParameterHandlerState.Error;
 			ELSE		
 				nIdxPar := nIdxPar + 1;	 
@@ -198,7 +197,7 @@ CASE eState OF
 			sCsvRecord := fbFileGets.sLine;
 			fbFileGets(bExecute := FALSE);
 			IF fbFileGets.bError THEN
-				eErrState := eState; 
+				sErrorMessage := 'Unable to read line from file';
 				eState := E_ParameterHandlerState.Error;
 			ELSIF fbFileGets.bEOF THEN
 				// Finished reading the file
@@ -233,7 +232,7 @@ CASE eState OF
 				
 				fbCsvMemBufReader.eCmd := eEnumCmd_Next;
 			ELSE // Error
-				eErrState := eState; 
+				sErrorMessage := 'Unable to parse all CSV fields';
 				eState := E_ParameterHandlerState.Error;
 				RETURN;
 			END_IF
@@ -263,8 +262,7 @@ CASE eState OF
 			// Finished, move to the next record		
 			eState := E_ParameterHandlerState.ReadRecord;
 		ELSE
-			// Parameter in file not found in PLC
-			eErrState := eState; 
+			sErrorMessage := 'Parameter in CSV file not found in PLC';
 			eState := E_ParameterHandlerState.Error;
 		END_IF
 	
@@ -273,7 +271,7 @@ CASE eState OF
 		IF (NOT fbFileClose.bBusy) THEN
 			fbFileClose(bExecute := FALSE);
 			IF fbFileClose.bError THEN
-				eErrState := eState; 
+				sErrorMessage := 'Unable to close file'; 
 				eState := E_ParameterHandlerState.Error;
 			ELSE
 				bInitialized S= bCmdInit;
@@ -282,6 +280,9 @@ CASE eState OF
 		END_IF
 	
 	E_ParameterHandlerState.Error:
+		IF (sErrorMessage = '') THEN
+			sErrorMessage := 'Unknown error';
+		END_IF
 		;
 END_CASE
 
