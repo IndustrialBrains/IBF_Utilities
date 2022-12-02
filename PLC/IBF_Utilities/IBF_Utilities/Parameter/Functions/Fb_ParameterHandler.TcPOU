@@ -1,13 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.10">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
   <POU Name="FB_ParameterHandler" Id="{05138ead-89ff-49ee-b483-c922423e053d}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK PUBLIC FB_ParameterHandler
 VAR_OUTPUT
 	arParameters		: ARRAY [1..GVL_Parameters.MAX_PARAMETERS] OF Udt_ParameterId := [stDummyParId]; 
 END_VAR
 VAR
-	nLookupIndex		: UDINT := 1;
-	nNumberOfParameters : UDINT := 1;
+	nLookupIndex		: UINT := 1;
+	nNumberOfParameters : UINT := 1;
 	// parameter change commands
 	bCmdLoadfactory		: BOOL 	:= FALSE; // Load factory value into prepared value 
 	bCmdLoadFromPrevious: BOOL 	:= FALSE; // Load from saved previous value into prepared value
@@ -29,8 +29,8 @@ VAR_IN_OUT
 	refParameter : Udt_Parameter ; // Parameter to add
 END_VAR
 VAR
-	i 			: UDINT ;
-	j			: UDINT ;
+	i 			: UINT ;
+	j			: UINT ;
 	stTempPar	: Udt_ParameterId ;
 	bParFound	: BOOL 	:= FALSE ;
 END_VAR]]></Declaration>

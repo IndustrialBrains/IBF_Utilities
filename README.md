@@ -22,3 +22,4 @@ This repo contains the Utilities library, and also a `.libcat.xml` file that can
 	- can trigger page faults
 	- test if parameter name with `;` break CSV file
 	- test extreme values, e.g. `1e-50`
+1. Remove all (fault)logging code, untested

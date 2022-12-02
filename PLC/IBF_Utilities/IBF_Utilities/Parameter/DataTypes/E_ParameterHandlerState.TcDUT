@@ -1,19 +1,19 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
-  <DUT Name="E_PFH_InitState" Id="{c51eac8f-cae4-067a-33c0-c0715d3aafd1}">
+  <DUT Name="E_ParameterHandlerState" Id="{c51eac8f-cae4-067a-33c0-c0715d3aafd1}">
     <Declaration><![CDATA[{attribute 'qualified_only'}
 {attribute 'strict'}
-TYPE E_PFH_InitState : // Parameter file handler (PFH) init state
+TYPE E_ParameterHandlerState : // Parameter file handler state
 (
-	InitialState,
-	OpenFile,
+	InitializeFBs,
+	WaitForCommand,
+	OpenExistingFile,
 	CreateFile,
 	WriteRecord,
 	WriteRecordBusy,
 	ReadRecord,
 	ParseRecord,
 	CloseFile,
-	Done,
 	Error
 );
 END_TYPE

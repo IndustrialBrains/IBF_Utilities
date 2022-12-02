@@ -3,48 +3,60 @@
   <POU Name="FB_ParameterFileHandler" Id="{052dee22-c06d-0a14-2ec0-25219a011600}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_ParameterFileHandler EXTENDS FB_ParameterHandler
 VAR CONSTANT
-	sCSVFileHeader : STRING := 'NUMBER;NAME;TYPE;DESCRIPTION;FACTORY;MAXIMUM;MINIMUM;UNIT;VALUE$L';
+	sCSVFileHeader 	: STRING := 'NUMBER;NAME;TYPE;DESCRIPTION;FACTORY;MAXIMUM;MINIMUM;UNIT;VALUE$L';
+	CSV_FIELDS 		: UINT := 9;
+END_VAR
+VAR_OUTPUT
+	// State outputs
+	bInitialized 	: BOOL;
+	bError			: BOOL;
 END_VAR
 VAR
-	eState : E_PFH_InitState;
-	eErrState : E_PFH_InitState;
+	// States
+	eState 		: E_ParameterHandlerState := E_ParameterHandlerState.InitializeFBs;
+	eErrState 	: E_ParameterHandlerState := E_ParameterHandlerState.Error; // For debugging purposes: the state preceding the error
+	
+	// Commands
+	bCmdInit 	: BOOL;
 	
 	// File function blocks (asynchronous)
 	fbFileOpen	: FB_FileOpen; // https://infosys.beckhoff.com/content/1033/tcplclib_tc2_system/30977547.html
 	fbFileWrite	: FB_FileWrite; // https://infosys.beckhoff.com/content/1033/tcplclib_tc2_system/30986763.html
 	fbFileClose	: FB_FileClose; // https://infosys.beckhoff.com/content/1033/tcplclib_tc2_system/30972939.html
 	fbFileGets	: FB_FileGets; // https://infosys.beckhoff.com/content/1033/tcplclib_tc2_system/30976011.html
+
+	// CSV handling function blocks
 	fbCsvMemBufReader : FB_CSVMemBufferReader; // https://infosys.beckhoff.com/content/1033/tcplclib_tc2_utilities/34977931.html
 	fbCsvMemBufWriter : FB_CSVMemBufferWriter; // https://infosys.beckhoff.com/content/1033/tcplclib_tc2_utilities/34979467.html
 
 	// Miscelleanous
 	nIdxPar  : UINT; // Parameter array iterator
 	sCSVLine : T_MaxString := ''; // String buffer (single CSV text line)
-	bHeaderRead : BOOL; // TRUE once the header has be read
-
+	bHeaderRead : BOOL; // TRUE once the CSV header line has been read
 END_VAR
+
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[]]></ST>
+      <ST><![CDATA[ExecStateMachine();
+]]></ST>
     </Implementation>
-    <Method Name="Init" Id="{d9fae5f4-5172-06d7-1319-23a49bf2ac18}">
-      <Declaration><![CDATA[METHOD Init : BOOL // Initialize parameter file handler: try to read parameter file, create if nonexisting
-VAR CONSTANT
-	MAX_FIELDS : UINT := 9;
-END_VAR
+    <Folder Name="Commands" Id="{bcbefad3-29cb-0730-1187-e3aea827e983}" />
+    <Folder Name="Private" Id="{11dd7ad9-4d84-0833-08cb-6ecb397bdce4}" />
+    <Method Name="ExecStateMachine" Id="{56cdb778-6ecd-014e-21b9-022e7b6f4d2c}" FolderPath="Private\">
+      <Declaration><![CDATA[METHOD PRIVATE ExecStateMachine : BOOL
 VAR
-	i : UINT; // Iterator
-	pParameter : POINTER TO Udt_Parameter;
-	sCSVField : T_MaxString; // Single CSV field value (record field)
+	i 			: UINT; // Iterator
+	pParameter 	: POINTER TO Udt_Parameter; // Temporary pointer to parameter
+	sCSVField 	: T_MaxString; // Single CSV field value (record field)
 END_VAR]]></Declaration>
       <Implementation>
-        <ST><![CDATA[CASE eState OF
-	E_PFH_InitState.InitialState:
-		// Initialize file function blocks
+        <ST><![CDATA[// Parameter file handler state machine
+CASE eState OF
+	E_ParameterHandlerState.InitializeFBs:
+		// Initialize function blocks
 		fbFileOpen(
 			bExecute := FALSE,
 			ePath := PATH_GENERIC,
-			sPathName := GVL_Parameters.sPARLIST_FILE
 		);
 		fbFileWrite(
 			bExecute := FALSE,
@@ -58,12 +70,18 @@ END_VAR]]></Declaration>
 		fbCsvMemBufWriter.cbBuffer := SIZEOF(sCSVLine) - 1;
 		fbCsvMemBufReader.cbBuffer := SIZEOF(sCSVLine);
 	
-		eState := E_PFH_InitState.OpenFile;
+		eState := E_ParameterHandlerState.WaitForCommand;
 
-	E_PFH_InitState.OpenFile:
+	E_ParameterHandlerState.WaitForCommand:
+		IF bCmdInit THEN
+			eState := E_ParameterHandlerState.OpenExistingFile;
+		END_IF	
+
+	E_ParameterHandlerState.OpenExistingFile:
 		fbFileOpen(
 			bExecute := TRUE,	
-			nMode := FOPEN_MODEREAD OR FOPEN_MODETEXT, // Open file in text mode
+			sPathName := GVL_Parameters.sPARLIST_FILE,
+			nMode := FOPEN_MODEREAD OR FOPEN_MODETEXT, // Open file in read only text mode
 		);
 
 		IF (NOT fbFileOpen.bBusy) THEN
@@ -73,22 +91,23 @@ END_VAR]]></Declaration>
 				// Check error codes
 				IF (fbFileOpen.nErrId = 16#70C) THEN
 					// File not found
-					eState := E_PFH_InitState.CreateFile;
+					eState := E_ParameterHandlerState.CreateFile;
 				ELSE
 					eErrState := eState; 
-					eState := E_PFH_InitState.Error;
+					eState := E_ParameterHandlerState.Error;
 				END_IF
 			ELSE
 				nIdxPar := 0;
 				bHeaderRead := FALSE;
-				eState := E_PFH_InitState.ReadRecord;
+				eState := E_ParameterHandlerState.ReadRecord;
 			END_IF
 		END_IF
 
-	E_PFH_InitState.CreateFile:
+	E_ParameterHandlerState.CreateFile:
 		fbFileOpen(
 			bExecute := TRUE,	
-			nMode := FOPEN_MODEWRITE OR FOPEN_MODETEXT, // Open file in text mode
+			sPathName := GVL_Parameters.sPARLIST_FILE,
+			nMode := FOPEN_MODEWRITE OR FOPEN_MODETEXT, // Open file in read/write text mode
 		);
 
 		IF (NOT fbFileOpen.bBusy) THEN
@@ -96,36 +115,36 @@ END_VAR]]></Declaration>
 
 			IF fbFileOpen.bError THEN
 				eErrState := eState; 
-				eState := E_PFH_InitState.Error;
+				eState := E_ParameterHandlerState.Error;
 			ELSE		
 				fbFileWrite.hFile := fbFileOpen.hFile;
 				nIdxPar := 0;
-				eState := E_PFH_InitState.WriteRecord;
+				eState := E_ParameterHandlerState.WriteRecord;
 			END_IF
 		END_IF
 		
-	E_PFH_InitState.WriteRecord:
+	E_ParameterHandlerState.WriteRecord:
 		// Code based on Beckhoff example: https://infosys.beckhoff.com/content/1033/tcplclib_tc2_utilities/34979467.html
 		sCSVLine := '';
 		fbCsvMemBufWriter.eCmd := eEnumCmd_First; // Write first field value
 
 		IF (nIdxPar > ANY_TO_DINT(nNumberOfParameters)) THEN
 			// Done (all parameters were added)
-			eState := E_PFH_InitState.CloseFile;
+			eState := E_ParameterHandlerState.CloseFile;
 		ELSIF (nIdxPar = 0) THEN
 			// First line: write the CSV header
 			sCSVLine := sCSVFileHeader;
-			eState := E_PFH_InitState.WriteRecordBusy;
+			eState := E_ParameterHandlerState.WriteRecordBusy;
 		ELSE
 			// Add the next parameter
 			pParameter := arParameters[nIdxPar].pParameter;
 			IF (pParameter = 0) THEN
 				// Unexpected null pointer
 				eErrState := eState; 
-				eState := E_PFH_InitState.Error;
+				eState := E_ParameterHandlerState.Error;
 			ELSE
 				// We're good to go, iterate over all record fields
-				FOR i := 1 TO MAX_FIELDS DO 
+				FOR i := 1 TO CSV_FIELDS DO 
 					CASE i OF
 						1: sCSVField := UDINT_TO_STRING(pParameter^.nNumber);
 						2: sCSVField := pParameter^.sName;
@@ -142,57 +161,57 @@ END_VAR]]></Declaration>
 					// Add new field to the record buffer
 					fbCsvMemBufWriter(
 						putValue := sCSVField,
-						bCRLF := (i = MAX_FIELDS) // Write CRLF after the last field value 
+						bCRLF := (i = CSV_FIELDS) // Write CRLF after the last field value 
 					);
 					IF fbCsvMemBufWriter.bOk THEN
 						fbCsvMemBufWriter.eCmd := eEnumCmd_Next;
 					ELSE // Error
 						eErrState := eState; 
-						eState := E_PFH_InitState.Error;
+						eState := E_ParameterHandlerState.Error;
 						RETURN;
 					END_IF
 	
 				END_FOR
 
-				eState := E_PFH_InitState.WriteRecordBusy;
+				eState := E_ParameterHandlerState.WriteRecordBusy;
 			END_IF;
 		END_IF;
 
-	E_PFH_InitState.WriteRecordBusy:
+	E_ParameterHandlerState.WriteRecordBusy:
 		fbFileWrite(bExecute := TRUE, cbWriteLen := INT_TO_UDINT(LEN(sCSVLine)));
 		IF (NOT fbFileWrite.bBusy) THEN
 			fbFileWrite(bExecute := FALSE);
 			IF fbFileWrite.bError THEN
 				eErrState := eState; 
-				eState := E_PFH_InitState.Error;
+				eState := E_ParameterHandlerState.Error;
 			ELSE		
 				nIdxPar := nIdxPar + 1;	 
-				eState := E_PFH_InitState.WriteRecord;
+				eState := E_ParameterHandlerState.WriteRecord;
 			END_IF
 		END_IF
 		
-	E_PFH_InitState.ReadRecord:
+	E_ParameterHandlerState.ReadRecord:
 		fbFileGets(bExecute := TRUE, hFile := fbFileOpen.hFile);
 		IF (NOT fbFileGets.bBusy) THEN
 			sCSVLine := fbFileGets.sLine;
 			fbFileGets(bExecute := FALSE);
 			IF fbFileGets.bError THEN
 				eErrState := eState; 
-				eState := E_PFH_InitState.Error;
+				eState := E_ParameterHandlerState.Error;
 			ELSIF fbFileGets.bEOF THEN
 				// Finished reading the file
-				eState := E_PFH_InitState.CloseFile;			
+				eState := E_ParameterHandlerState.CloseFile;			
 			ELSIF NOT bHeaderRead THEN 
 				// Skip first line (header)
 				bHeaderRead := TRUE;
 			ELSE
 				// Parse the line
 				nIdxPar := nIdxPar + 1;
-				eState := E_PFH_InitState.ParseRecord;
+				eState := E_ParameterHandlerState.ParseRecord;
 			END_IF
 		END_IF
 
-	E_PFH_InitState.ParseRecord:
+	E_ParameterHandlerState.ParseRecord:
 		fbCsvMemBufReader.eCmd := eEnumCmd_First; // Read first field value
 
 		// Get the next parameter
@@ -200,9 +219,9 @@ END_VAR]]></Declaration>
 		IF (pParameter = 0) THEN
 			// Unexpected null pointer
 			eErrState := eState; 
-			eState := E_PFH_InitState.Error;
+			eState := E_ParameterHandlerState.Error;
 		ELSE
-			FOR i := 1 TO MAX_FIELDS DO 
+			FOR i := 1 TO CSV_FIELDS DO 
 				// Read field from the record buffer
 				fbCsvMemBufReader(getValue => sCSVField);
 				IF fbCsvMemBufReader.bOk THEN
@@ -222,33 +241,43 @@ END_VAR]]></Declaration>
 					fbCsvMemBufReader.eCmd := eEnumCmd_Next;
 				ELSE // Error
 					eErrState := eState; 
-					eState := E_PFH_InitState.Error;
+					eState := E_ParameterHandlerState.Error;
 					RETURN;
 				END_IF
 	
 			END_FOR
 
-			eState := E_PFH_InitState.ReadRecord;
+			eState := E_ParameterHandlerState.ReadRecord;
 		END_IF
 	
-	E_PFH_InitState.CloseFile:
+	E_ParameterHandlerState.CloseFile:
 		fbFileClose(bExecute := TRUE, hFile := fbFileOpen.hFile);
 		IF (NOT fbFileClose.bBusy) THEN
 			fbFileClose(bExecute := FALSE);
 			IF fbFileClose.bError THEN
 				eErrState := eState; 
-				eState := E_PFH_InitState.Error;
-			ELSE		
-				eState := E_PFH_InitState.Done;
+				eState := E_ParameterHandlerState.Error;
+			ELSE
+				bInitialized S= bCmdInit;
+				eState := E_ParameterHandlerState.WaitForCommand;
 			END_IF
 		END_IF
 	
-	E_PFH_InitState.Done:
-		Init := TRUE;
-
-	E_PFH_InitState.Error:
+	E_ParameterHandlerState.Error:
 		;
-END_CASE]]></ST>
+END_CASE
+
+bError := (eState = E_ParameterHandlerState.Error);
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Init" Id="{d9fae5f4-5172-06d7-1319-23a49bf2ac18}" FolderPath="Commands\">
+      <Declaration><![CDATA[METHOD PUBLIC Init : BOOL
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[bCmdInit := NOT bInitialized;
+Init := bInitialized;
+]]></ST>
       </Implementation>
     </Method>
   </POU>

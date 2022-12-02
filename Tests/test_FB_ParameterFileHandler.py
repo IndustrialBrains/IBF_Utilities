@@ -19,12 +19,10 @@ import unittest
 
 # pylint: disable=missing-function-docstring, missing-class-docstring, invalid-name
 import uuid
-from random import random
-from time import sleep
 
 import pyads
 
-from connection import cold_reset, conn, wait_cycles, wait_value
+from connection import cold_reset, conn, wait_value
 
 COLD_RESET = True
 
@@ -33,7 +31,7 @@ class Tests(unittest.TestCase):
 
     # /tmp/parameters.csv
 
-    PREFIX = "PRG_TEST_FB_PARLOGGING"
+    PREFIX = "PRG_TEST_FB_PARFILEHANDLER"
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -49,49 +47,7 @@ class Tests(unittest.TestCase):
             cold_reset()
         return super().setUp()
 
-    @unittest.skip("TODO")
-    def test_write_to_file(self):
-        FILENAME = f"/tmp/{self.PREFIX}_{uuid.uuid4()}.csv"
-
-        # Add a parameter with a random factory value
-        PARAMETER_NUMBER = int(10000 * random())
-        EXPECTED_VALUE = random()
-        conn.write_by_name(f"{self.PREFIX}.stParameter.nNumber", PARAMETER_NUMBER)
-        conn.write_by_name(f"{self.PREFIX}.stParameter.sName", str(uuid.uuid4()))
-        conn.write_by_name(f"{self.PREFIX}.stParameter.fFactory", EXPECTED_VALUE)
-        conn.write_by_name(f"{self.PREFIX}.bAddParameter", True)
-
-        # Set file path
-        conn.write_by_name(
-            "GVL_Parameters.sPARLIST_FILE", FILENAME, pyads.PLCTYPE_STRING
-        )
-
-        # Save to file by triggering Init
-        conn.write_by_name(f"{self.PREFIX}.bInit", True)
-        wait_cycles(50)
-
-        # Wait for successful write
-        self.assertTrue(wait_value(f"{self.PREFIX}.bInit", False, 1))
-
-        # Change factory value
-        conn.write_by_name(f"{self.PREFIX}.stParameter.fFactory", random())
-
-        # Reload by cold reset + Init
-        cold_reset()
-        conn.write_by_name(
-            "GVL_Parameters.sPARLIST_FILE", FILENAME, pyads.PLCTYPE_STRING
-        )
-        conn.write_by_name(f"{self.PREFIX}.bAddParameter", True)
-        conn.write_by_name(f"{self.PREFIX}.bInit", True)
-        self.assertTrue(wait_value(f"{self.PREFIX}.bInit", False, 1))
-
-        # Validate factory value was reloaded
-        self.assertAlmostEqual(
-            conn.read_by_name(f"{self.PREFIX}.stParameter.fFactory"),
-            EXPECTED_VALUE,
-        )
-
-    def test_long_csv_line(self):
+    def test_write_and_read(self):
         FILENAME = f"/tmp/{self.PREFIX}_{uuid.uuid4()}.csv"
 
         MIN_LREAL = (
@@ -135,7 +91,8 @@ class Tests(unittest.TestCase):
 
         # Save to file by triggering Init
         conn.write_by_name(f"{self.PREFIX}.bInit", True)
-        wait_cycles(50)
+        self.assertTrue(wait_value(f"{self.PREFIX}.bInit", False, 1))
+        self.assertFalse(conn.read_by_name(f"{self.PREFIX}.fbParFileHandler.bError"))
 
         # Reset all values
         conn.write_by_name(f"{self.PREFIX}.stParameter.nNumber", 0)
@@ -156,6 +113,7 @@ class Tests(unittest.TestCase):
         conn.write_by_name(f"{self.PREFIX}.bAddParameter", True)
         conn.write_by_name(f"{self.PREFIX}.bInit", True)
         self.assertTrue(wait_value(f"{self.PREFIX}.bInit", False, 1))
+        self.assertFalse(conn.read_by_name(f"{self.PREFIX}.fbParFileHandler.bError"))
 
         # Check results
         self.assertEqual(
