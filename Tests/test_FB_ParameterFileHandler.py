@@ -22,7 +22,7 @@ import uuid
 
 import pyads
 
-from connection import cold_reset, conn, wait_value
+from connection import cold_reset, conn, wait_cycles, wait_value
 
 COLD_RESET = True
 
@@ -92,10 +92,12 @@ class Tests(unittest.TestCase):
         # Save to file by triggering Init
         conn.write_by_name(f"{self.PREFIX}.bInit", True)
         self.assertTrue(wait_value(f"{self.PREFIX}.bInit", False, 1))
-        self.assertFalse(conn.read_by_name(f"{self.PREFIX}.fbParFileHandler.bError"))
 
-        # Reset all values
-        conn.write_by_name(f"{self.PREFIX}.stParameter.nNumber", 0)
+        # Reload by cold reset + Init
+        cold_reset()
+
+        # Reset all values, except for the number (needed to match parameter)
+        conn.write_by_name(f"{self.PREFIX}.stParameter.nNumber", ExpectedValues.nNumber)
         conn.write_by_name(f"{self.PREFIX}.stParameter.sName", "")
         conn.write_by_name(f"{self.PREFIX}.stParameter.sType", "")
         conn.write_by_name(f"{self.PREFIX}.stParameter.sDiscription", "")
@@ -105,15 +107,13 @@ class Tests(unittest.TestCase):
         conn.write_by_name(f"{self.PREFIX}.stParameter.fValue", 0)
         conn.write_by_name(f"{self.PREFIX}.stParameter.sUnit", "")
 
-        # Reload by cold reset + Init
-        cold_reset()
+        # Trigger init
         conn.write_by_name(
             "GVL_Parameters.sPARLIST_FILE", FILENAME, pyads.PLCTYPE_STRING
         )
         conn.write_by_name(f"{self.PREFIX}.bAddParameter", True)
         conn.write_by_name(f"{self.PREFIX}.bInit", True)
         self.assertTrue(wait_value(f"{self.PREFIX}.bInit", False, 1))
-        self.assertFalse(conn.read_by_name(f"{self.PREFIX}.fbParFileHandler.bError"))
 
         # Check results
         self.assertEqual(
@@ -159,6 +159,42 @@ class Tests(unittest.TestCase):
         self.assertEqual(
             conn.read_by_name(f"{self.PREFIX}.stParameter.sUnit"),
             ExpectedValues.sUnit,
+        )
+
+    def test_number_mismatch(self):
+        FILENAME = f"/tmp/{self.PREFIX}_{uuid.uuid4()}.csv"
+
+        # Set file path
+        conn.write_by_name(
+            "GVL_Parameters.sPARLIST_FILE", FILENAME, pyads.PLCTYPE_STRING
+        )
+
+        conn.write_by_name(f"{self.PREFIX}.stParameter.nNumber", 1)
+        conn.write_by_name(f"{self.PREFIX}.bAddParameter", True)
+
+        # Save to file by triggering Init
+        conn.write_by_name(f"{self.PREFIX}.bInit", True)
+        self.assertTrue(wait_value(f"{self.PREFIX}.bInit", False, 1))
+
+        # Change parameter number all values
+        conn.write_by_name(f"{self.PREFIX}.stParameter.nNumber", 2)
+
+        # Reload by cold reset + Init
+        cold_reset()
+        conn.write_by_name(
+            "GVL_Parameters.sPARLIST_FILE", FILENAME, pyads.PLCTYPE_STRING
+        )
+        conn.write_by_name(f"{self.PREFIX}.bAddParameter", True)
+        conn.write_by_name(f"{self.PREFIX}.bInit", True)
+        wait_cycles(50)
+
+        # Assert
+        # Error should be active (parameter number mismatch)
+        self.assertTrue(conn.read_by_name(f"{self.PREFIX}.fbParFileHandler.bError"))
+        # And the parameter in the PLC should remain unchanged
+        self.assertEqual(
+            conn.read_by_name(f"{self.PREFIX}.stParameter.nNumber"),
+            2,
         )
 
 

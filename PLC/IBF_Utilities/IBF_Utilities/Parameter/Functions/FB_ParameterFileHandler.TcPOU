@@ -31,7 +31,7 @@ VAR
 
 	// Miscelleanous
 	nIdxPar  : UINT; // Parameter array iterator
-	sCSVLine : T_MaxString := ''; // String buffer (single CSV text line)
+	sCsvRecord : T_MaxString := ''; // String buffer (single CSV text line)
 	bHeaderRead : BOOL; // TRUE once the CSV header line has been read
 END_VAR
 
@@ -45,9 +45,11 @@ END_VAR
     <Method Name="ExecStateMachine" Id="{56cdb778-6ecd-014e-21b9-022e7b6f4d2c}" FolderPath="Private\">
       <Declaration><![CDATA[METHOD PRIVATE ExecStateMachine : BOOL
 VAR
-	i 			: UINT; // Iterator
-	pParameter 	: POINTER TO Udt_Parameter; // Temporary pointer to parameter
-	sCSVField 	: T_MaxString; // Single CSV field value (record field)
+	i 					: UINT; // Iterator
+	pParameter 			: POINTER TO Udt_Parameter; // Temporary pointer to parameter
+	sParameterFromFile 	: Udt_Parameter; // Parameter retrieved from file
+	sCSVField 			: T_MaxString; // Single CSV field value (record field)
+	bMatch 				: BOOL;
 END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[// Parameter file handler state machine
@@ -60,15 +62,15 @@ CASE eState OF
 		);
 		fbFileWrite(
 			bExecute := FALSE,
-			pWriteBuff := ADR(sCSVLine)
+			pWriteBuff := ADR(sCsvRecord)
 		);
 		fbFileClose(bExecute := FALSE);
 		fbFileGets(bExecute := FALSE);
 
-		fbCsvMemBufWriter.pBuffer := ADR(sCSVLine);
-		fbCsvMemBufReader.pBuffer := ADR(sCSVLine);
-		fbCsvMemBufWriter.cbBuffer := SIZEOF(sCSVLine) - 1;
-		fbCsvMemBufReader.cbBuffer := SIZEOF(sCSVLine);
+		fbCsvMemBufWriter.pBuffer := ADR(sCsvRecord);
+		fbCsvMemBufReader.pBuffer := ADR(sCsvRecord);
+		fbCsvMemBufWriter.cbBuffer := SIZEOF(sCsvRecord) - 1;
+		fbCsvMemBufReader.cbBuffer := SIZEOF(sCsvRecord);
 	
 		eState := E_ParameterHandlerState.WaitForCommand;
 
@@ -125,15 +127,15 @@ CASE eState OF
 		
 	E_ParameterHandlerState.WriteRecord:
 		// Code based on Beckhoff example: https://infosys.beckhoff.com/content/1033/tcplclib_tc2_utilities/34979467.html
-		sCSVLine := '';
+		sCsvRecord := '';
 		fbCsvMemBufWriter.eCmd := eEnumCmd_First; // Write first field value
 
-		IF (nIdxPar > ANY_TO_DINT(nNumberOfParameters)) THEN
+		IF (nIdxPar > nNumberOfParameters) THEN
 			// Done (all parameters were added)
 			eState := E_ParameterHandlerState.CloseFile;
 		ELSIF (nIdxPar = 0) THEN
 			// First line: write the CSV header
-			sCSVLine := sCSVFileHeader;
+			sCsvRecord := sCSVFileHeader;
 			eState := E_ParameterHandlerState.WriteRecordBusy;
 		ELSE
 			// Add the next parameter
@@ -178,7 +180,7 @@ CASE eState OF
 		END_IF;
 
 	E_ParameterHandlerState.WriteRecordBusy:
-		fbFileWrite(bExecute := TRUE, cbWriteLen := INT_TO_UDINT(LEN(sCSVLine)));
+		fbFileWrite(bExecute := TRUE, cbWriteLen := INT_TO_UDINT(LEN(sCsvRecord)));
 		IF (NOT fbFileWrite.bBusy) THEN
 			fbFileWrite(bExecute := FALSE);
 			IF fbFileWrite.bError THEN
@@ -193,7 +195,7 @@ CASE eState OF
 	E_ParameterHandlerState.ReadRecord:
 		fbFileGets(bExecute := TRUE, hFile := fbFileOpen.hFile);
 		IF (NOT fbFileGets.bBusy) THEN
-			sCSVLine := fbFileGets.sLine;
+			sCsvRecord := fbFileGets.sLine;
 			fbFileGets(bExecute := FALSE);
 			IF fbFileGets.bError THEN
 				eErrState := eState; 
@@ -205,8 +207,6 @@ CASE eState OF
 				// Skip first line (header)
 				bHeaderRead := TRUE;
 			ELSE
-				// Parse the line
-				nIdxPar := nIdxPar + 1;
 				eState := E_ParameterHandlerState.ParseRecord;
 			END_IF
 		END_IF
@@ -214,40 +214,58 @@ CASE eState OF
 	E_ParameterHandlerState.ParseRecord:
 		fbCsvMemBufReader.eCmd := eEnumCmd_First; // Read first field value
 
-		// Get the next parameter
-		pParameter := arParameters[nIdxPar].pParameter;
-		IF (pParameter = 0) THEN
-			// Unexpected null pointer
+		FOR i := 1 TO CSV_FIELDS DO 
+			// Read field from the record buffer
+			fbCsvMemBufReader(getValue => sCSVField);
+			IF fbCsvMemBufReader.bOk THEN
+				sCSVField := CSVFIELD_TO_STRING(sCSVField, FALSE);
+				CASE i OF
+					1: sParameterFromFile.nNumber := STRING_TO_UDINT(sCSVField);
+					2: sParameterFromFile.sName := sCSVField;
+					3: sParameterFromFile.sType := sCSVField;
+					4: sParameterFromFile.sDiscription := sCSVField;
+					5: sParameterFromFile.fFactory := STRING_TO_LREAL(sCSVField);
+					6: sParameterFromFile.fMaximum := STRING_TO_LREAL(sCSVField);
+					7: sParameterFromFile.fMinimum := STRING_TO_LREAL(sCSVField);
+					8: sParameterFromFile.sUnit := sCSVField;
+					9: sParameterFromFile.fValue := STRING_TO_LREAL(sCSVField);
+				END_CASE
+				
+				fbCsvMemBufReader.eCmd := eEnumCmd_Next;
+			ELSE // Error
+				eErrState := eState; 
+				eState := E_ParameterHandlerState.Error;
+				RETURN;
+			END_IF
+		END_FOR
+			
+		// Done reading parameter from file. Search for parameter in the PLC parameter array, and copy values.
+		FOR i := 1 TO nNumberOfParameters DO
+			pParameter := arParameters[i].pParameter;
+			IF (pParameter = 0) THEN
+				// Unexpected null pointer
+				EXIT;
+			ELSIF (sParameterFromFile.nNumber = pParameter^.nNumber) THEN
+				bMatch := TRUE;
+				pParameter^.sName := sParameterFromFile.sName;
+				pParameter^.sType := sParameterFromFile.sType;
+				pParameter^.sDiscription := sParameterFromFile.sDiscription;
+				pParameter^.fFactory := sParameterFromFile.fFactory;
+				pParameter^.fMaximum := sParameterFromFile.fMaximum;
+				pParameter^.fMinimum := sParameterFromFile.fMinimum;
+				pParameter^.sUnit := sParameterFromFile.sUnit;
+				pParameter^.fValue := sParameterFromFile.fValue;
+				EXIT;
+			END_IF
+		END_FOR
+
+		IF bMatch THEN
+			// Finished, move to the next record		
+			eState := E_ParameterHandlerState.ReadRecord;
+		ELSE
+			// Parameter in file not found in PLC
 			eErrState := eState; 
 			eState := E_ParameterHandlerState.Error;
-		ELSE
-			FOR i := 1 TO CSV_FIELDS DO 
-				// Read field from the record buffer
-				fbCsvMemBufReader(getValue => sCSVField);
-				IF fbCsvMemBufReader.bOk THEN
-					sCSVField := CSVFIELD_TO_STRING(sCSVField, FALSE);
-					CASE i OF
-						1: pParameter^.nNumber := STRING_TO_UDINT(sCSVField);
-						2: pParameter^.sName := sCSVField;
-						3: pParameter^.sType := sCSVField;
-						4: pParameter^.sDiscription := sCSVField;
-						5: pParameter^.fFactory := STRING_TO_LREAL(sCSVField);
-						6: pParameter^.fMaximum := STRING_TO_LREAL(sCSVField);
-						7: pParameter^.fMinimum := STRING_TO_LREAL(sCSVField);
-						8: pParameter^.sUnit := sCSVField;
-						9: pParameter^.fValue := STRING_TO_LREAL(sCSVField);
-					END_CASE
-					
-					fbCsvMemBufReader.eCmd := eEnumCmd_Next;
-				ELSE // Error
-					eErrState := eState; 
-					eState := E_ParameterHandlerState.Error;
-					RETURN;
-				END_IF
-	
-			END_FOR
-
-			eState := E_ParameterHandlerState.ReadRecord;
 		END_IF
 	
 	E_ParameterHandlerState.CloseFile:

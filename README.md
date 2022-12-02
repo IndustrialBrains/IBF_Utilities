@@ -22,4 +22,6 @@ This repo contains the Utilities library, and also a `.libcat.xml` file that can
 	- can trigger page faults
 	- test if parameter name with `;` break CSV file
 	- test extreme values, e.g. `1e-50`
-1. Remove all (fault)logging code, untested
+1. Remove all parameter logging code, untested
+1. Fault logging code: does not check remaining disk space
+1. Check with HJ: fSaved parameter value actually used?
