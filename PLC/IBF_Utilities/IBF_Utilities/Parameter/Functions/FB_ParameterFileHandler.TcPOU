@@ -7,8 +7,6 @@ VAR CONSTANT
 	CSV_FIELDS 		: UINT := 9;
 END_VAR
 VAR_OUTPUT
-	// State outputs
-	bInitialized 	: BOOL;
 	bError			: BOOL;
 	sErrorMessage	: STRING;
 END_VAR
@@ -16,8 +14,10 @@ VAR
 	// States
 	eState 		: E_ParameterHandlerState := E_ParameterHandlerState.InitializeFBs;
 	
-	// Commands
+	// Command helpers
+	bDone 		: BOOL;
 	bCmdInit 	: BOOL;
+	bCmdSavePar : BOOL;
 	
 	// File function blocks (asynchronous)
 	fbFileOpen	: FB_FileOpen; // https://infosys.beckhoff.com/content/1033/tcplclib_tc2_system/30977547.html
@@ -42,6 +42,21 @@ END_VAR
     </Implementation>
     <Folder Name="Commands" Id="{bcbefad3-29cb-0730-1187-e3aea827e983}" />
     <Folder Name="Private" Id="{11dd7ad9-4d84-0833-08cb-6ecb397bdce4}" />
+    <Method Name="CmdSavePar" Id="{758a01fa-52ef-0a2d-36f7-65d33b996e53}" FolderPath="Commands\">
+      <Declaration><![CDATA[METHOD PUBLIC CmdSavePar : BOOL
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT bCmdSavePar THEN
+	bDone := FALSE;
+	bCmdSavePar := TRUE;
+ELSIF bDone THEN
+	bCmdSavePar := FALSE;
+END_IF	
+
+CmdSavePar := bDone;
+]]></ST>
+      </Implementation>
+    </Method>
     <Method Name="ExecStateMachine" Id="{56cdb778-6ecd-014e-21b9-022e7b6f4d2c}" FolderPath="Private\">
       <Declaration><![CDATA[METHOD PRIVATE ExecStateMachine : BOOL
 VAR
@@ -77,6 +92,8 @@ CASE eState OF
 	E_ParameterHandlerState.WaitForCommand:
 		IF bCmdInit THEN
 			eState := E_ParameterHandlerState.OpenExistingFile;
+		ELSIF bCmdSavePar THEN
+			eState := E_ParameterHandlerState.CreateFile;
 		END_IF	
 
 	E_ParameterHandlerState.OpenExistingFile:
@@ -144,7 +161,9 @@ CASE eState OF
 				sErrorMessage := 'Unexpected null pointer';
 				eState := E_ParameterHandlerState.Error;
 			ELSE
-				// We're good to go, iterate over all record fields
+				// Save current actual value for later restore
+				pParameter^.fSaved := pParameter^.fValue;
+				// Create CSV record
 				FOR i := 1 TO CSV_FIELDS DO 
 					CASE i OF
 						1: sCSVField := UDINT_TO_STRING(pParameter^.nNumber);
@@ -274,7 +293,7 @@ CASE eState OF
 				sErrorMessage := 'Unable to close file'; 
 				eState := E_ParameterHandlerState.Error;
 			ELSE
-				bInitialized S= bCmdInit;
+				bDone := TRUE;
 				eState := E_ParameterHandlerState.WaitForCommand;
 			END_IF
 		END_IF
@@ -294,8 +313,14 @@ bError := (eState = E_ParameterHandlerState.Error);
       <Declaration><![CDATA[METHOD PUBLIC Init : BOOL
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[bCmdInit := NOT bInitialized;
-Init := bInitialized;
+        <ST><![CDATA[IF NOT bCmdInit THEN
+	bDone := FALSE;
+	bCmdInit := TRUE;
+ELSIF bDone THEN
+	bCmdInit := FALSE;
+END_IF	
+
+Init := bDone;
 ]]></ST>
       </Implementation>
     </Method>

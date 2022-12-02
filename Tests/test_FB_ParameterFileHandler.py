@@ -19,6 +19,7 @@ import unittest
 
 # pylint: disable=missing-function-docstring, missing-class-docstring, invalid-name
 import uuid
+from random import random
 
 import pyads
 
@@ -176,7 +177,7 @@ class Tests(unittest.TestCase):
         conn.write_by_name(f"{self.PREFIX}.bInit", True)
         self.assertTrue(wait_value(f"{self.PREFIX}.bInit", False, 1))
 
-        # Change parameter number all values
+        # Change parameter number
         conn.write_by_name(f"{self.PREFIX}.stParameter.nNumber", 2)
 
         # Reload by cold reset + Init
@@ -195,6 +196,71 @@ class Tests(unittest.TestCase):
         self.assertEqual(
             conn.read_by_name(f"{self.PREFIX}.stParameter.nNumber"),
             2,
+        )
+
+    def test_bCmdSavePar(self):
+        FILENAME = f"/tmp/{self.PREFIX}_{uuid.uuid4()}.csv"
+        ORIGINAL_VALUE = random()
+        EXPECTED_VALUE = random()
+
+        # Set file path
+        conn.write_by_name(
+            "GVL_Parameters.sPARLIST_FILE", FILENAME, pyads.PLCTYPE_STRING
+        )
+
+        # Add parameter
+        conn.write_by_name(f"{self.PREFIX}.stParameter.fValue", ORIGINAL_VALUE)
+        conn.write_by_name(f"{self.PREFIX}.bAddParameter", True)
+
+        # Save to file by triggering Init
+        conn.write_by_name(f"{self.PREFIX}.bInit", True)
+        self.assertTrue(wait_value(f"{self.PREFIX}.bInit", False, 1))
+
+        # Change parameter value
+        conn.write_by_name(f"{self.PREFIX}.stParameter.fValue", EXPECTED_VALUE)
+
+        # Save to file by triggering CmdSavePar
+        conn.write_by_name(f"{self.PREFIX}.bCmdSavePar", True)
+        self.assertTrue(wait_value(f"{self.PREFIX}.bCmdSavePar", False, 1))
+
+        # Reload by cold reset + Init
+        cold_reset()
+        conn.write_by_name(
+            "GVL_Parameters.sPARLIST_FILE", FILENAME, pyads.PLCTYPE_STRING
+        )
+        conn.write_by_name(f"{self.PREFIX}.bAddParameter", True)
+        conn.write_by_name(f"{self.PREFIX}.bInit", True)
+        self.assertTrue(wait_value(f"{self.PREFIX}.bInit", False, 1))
+
+        # Assert
+        self.assertAlmostEqual(
+            conn.read_by_name(f"{self.PREFIX}.stParameter.fValue"), EXPECTED_VALUE
+        )
+
+    def test_saved_value(self):
+        FILENAME = f"/tmp/{self.PREFIX}_{uuid.uuid4()}.csv"
+        ORIGINAL_VALUE = random()
+        EXPECTED_VALUE = random()
+
+        # Set file path
+        conn.write_by_name(
+            "GVL_Parameters.sPARLIST_FILE", FILENAME, pyads.PLCTYPE_STRING
+        )
+
+        # Add parameter
+        conn.write_by_name(f"{self.PREFIX}.stParameter.fValue", ORIGINAL_VALUE)
+        conn.write_by_name(f"{self.PREFIX}.bAddParameter", True)
+
+        # Save to file by triggering Init
+        conn.write_by_name(f"{self.PREFIX}.bInit", True)
+        self.assertTrue(wait_value(f"{self.PREFIX}.bInit", False, 1))
+
+        # Change parameter value
+        conn.write_by_name(f"{self.PREFIX}.stParameter.fValue", EXPECTED_VALUE)
+
+        # Check if original value was saved
+        self.assertAlmostEqual(
+            conn.read_by_name(f"{self.PREFIX}.stParameter.fSaved"), ORIGINAL_VALUE
         )
 
 

@@ -3,7 +3,7 @@
   <GVL Name="GVL_Parameters" Id="{1e32efed-448a-4ea5-a3f2-5d75543106fc}">
     <Declaration><![CDATA[{attribute 'qualified_only'}
 VAR_GLOBAL
-	fbParameterHandler		: Fb_ParLogging ; // Default parameter handler for visualisation and file handling
+	fbParameterHandler		: FB_ParameterFileHandler ; // Default parameter handler for visualisation and file handling
 	sPARLIST_FILE			: T_MaxString 		:= 'D:\Parameters\ParameterList.csv';(* CSV destination file path and name *)
 	sPARLOG_FILE			: T_MaxString 		:= 'D:\Parameters\ParameterLog.csv';(* CSV destination file path and name *)
 END_VAR

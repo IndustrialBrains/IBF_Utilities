@@ -7,6 +7,7 @@ VAR
 	stParameter 	: Udt_Parameter; // NOTE: Udt_Parameter is persistent
 	bAddParameter 	: BOOL;
 	bInit			: BOOL;
+	bCmdSavePar		: BOOL;
 END_VAR
 
 ]]></Declaration>
@@ -20,6 +21,10 @@ END_IF
 
 IF bInit THEN
 	bInit R= fbParFileHandler.Init();
+END_IF
+
+IF bCmdSavePar THEN
+	bCmdSavePar R= fbParFileHandler.CmdSavePar();
 END_IF
 ]]></ST>
     </Implementation>
