@@ -6,9 +6,11 @@ VAR CONSTANT
 	sCSVFileHeader 	: STRING := 'NUMBER;NAME;TYPE;DESCRIPTION;FACTORY;MAXIMUM;MINIMUM;UNIT;VALUE$L';
 	CSV_FIELDS 		: UINT := 9;
 END_VAR
+VAR_IN_OUT
+	refFbFault : Fb_FaultHandler;
+END_VAR
 VAR_OUTPUT
-	bError			: BOOL;
-	sErrorMessage	: STRING;
+	bFault : BOOL;	
 END_VAR
 VAR
 	// States
@@ -25,19 +27,32 @@ VAR
 	fbFileClose	: FB_FileClose; // https://infosys.beckhoff.com/content/1033/tcplclib_tc2_system/30972939.html
 	fbFileGets	: FB_FileGets; // https://infosys.beckhoff.com/content/1033/tcplclib_tc2_system/30976011.html
 
-	// CSV handling function blocks
+	// CSV handling
+	sCsvRecord : T_MaxString := ''; // String buffer (single CSV text line)
+	bHeaderRead : BOOL; // TRUE once the CSV header line has been read
 	fbCsvMemBufReader : FB_CSVMemBufferReader; // https://infosys.beckhoff.com/content/1033/tcplclib_tc2_utilities/34977931.html
 	fbCsvMemBufWriter : FB_CSVMemBufferWriter; // https://infosys.beckhoff.com/content/1033/tcplclib_tc2_utilities/34979467.html
 
+	// Fault handling
+	stFault				: UDT_Fault;
+	sFaultDescription	: STRING;
+
 	// Miscelleanous
 	nIdxPar  : UINT; // Parameter array iterator
-	sCsvRecord : T_MaxString := ''; // String buffer (single CSV text line)
-	bHeaderRead : BOOL; // TRUE once the CSV header line has been read
 END_VAR
-
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[ExecStateMachine();
+      <ST><![CDATA[stFault.FaultType 		:= E_FAULTTYPES.OW;
+stFault.MessageNumber 	:= E_MessageNumbers.OW_Parameter;
+stFault.Description		:= CONCAT('Parameter handler: ', sFaultDescription);
+stFault.Active			:= bFault;
+
+IF __ISVALIDREF(refFbFault) THEN 
+	// check if fault is active and send to fault handler
+	refFbFault.CmdAddFault(stFault);
+END_IF
+
+ExecStateMachine();
 ]]></ST>
     </Implementation>
     <Folder Name="Commands" Id="{bcbefad3-29cb-0730-1187-e3aea827e983}" />
@@ -65,7 +80,8 @@ VAR
 	sParameterFromFile 	: Udt_Parameter; // Parameter retrieved from file
 	sCSVField 			: T_MaxString; // Single CSV field value (record field)
 	bMatch 				: BOOL;
-END_VAR]]></Declaration>
+END_VAR
+]]></Declaration>
       <Implementation>
         <ST><![CDATA[// Parameter file handler state machine
 CASE eState OF
@@ -90,6 +106,7 @@ CASE eState OF
 		eState := E_ParameterHandlerState.WaitForCommand;
 
 	E_ParameterHandlerState.WaitForCommand:
+		sFaultDescription := '';
 		IF bCmdInit THEN
 			eState := E_ParameterHandlerState.OpenExistingFile;
 		ELSIF bCmdSavePar THEN
@@ -112,7 +129,7 @@ CASE eState OF
 					// File not found
 					eState := E_ParameterHandlerState.CreateFile;
 				ELSE
-					sErrorMessage := 'Unable to open file';
+					sFaultDescription := 'Unable to open file';
 					eState := E_ParameterHandlerState.Error;
 				END_IF
 			ELSE
@@ -133,7 +150,7 @@ CASE eState OF
 			fbFileOpen(bExecute := FALSE);
 
 			IF fbFileOpen.bError THEN
-				sErrorMessage := 'Unable to create file';
+				sFaultDescription := 'Unable to create file';
 				eState := E_ParameterHandlerState.Error;
 			ELSE		
 				fbFileWrite.hFile := fbFileOpen.hFile;
@@ -158,7 +175,7 @@ CASE eState OF
 			// Add the next parameter
 			pParameter := arParameters[nIdxPar].pParameter;
 			IF (pParameter = 0) THEN
-				sErrorMessage := 'Unexpected null pointer';
+				sFaultDescription := 'Unexpected null pointer';
 				eState := E_ParameterHandlerState.Error;
 			ELSE
 				// Save current actual value for later restore
@@ -186,7 +203,7 @@ CASE eState OF
 					IF fbCsvMemBufWriter.bOk THEN
 						fbCsvMemBufWriter.eCmd := eEnumCmd_Next;
 					ELSE // Error
-						sErrorMessage := 'Unable to store fields in CSV buffer';
+						sFaultDescription := 'Unable to store fields in CSV buffer';
 						eState := E_ParameterHandlerState.Error;
 						RETURN;
 					END_IF
@@ -202,7 +219,7 @@ CASE eState OF
 		IF (NOT fbFileWrite.bBusy) THEN
 			fbFileWrite(bExecute := FALSE);
 			IF fbFileWrite.bError THEN
-				sErrorMessage := 'Unable to write record to file';
+				sFaultDescription := 'Unable to write record to file';
 				eState := E_ParameterHandlerState.Error;
 			ELSE		
 				nIdxPar := nIdxPar + 1;	 
@@ -216,7 +233,7 @@ CASE eState OF
 			sCsvRecord := fbFileGets.sLine;
 			fbFileGets(bExecute := FALSE);
 			IF fbFileGets.bError THEN
-				sErrorMessage := 'Unable to read line from file';
+				sFaultDescription := 'Unable to read line from file';
 				eState := E_ParameterHandlerState.Error;
 			ELSIF fbFileGets.bEOF THEN
 				// Finished reading the file
@@ -251,7 +268,7 @@ CASE eState OF
 				
 				fbCsvMemBufReader.eCmd := eEnumCmd_Next;
 			ELSE // Error
-				sErrorMessage := 'Unable to parse all CSV fields';
+				sFaultDescription := 'Unable to parse all CSV fields';
 				eState := E_ParameterHandlerState.Error;
 				RETURN;
 			END_IF
@@ -281,7 +298,7 @@ CASE eState OF
 			// Finished, move to the next record		
 			eState := E_ParameterHandlerState.ReadRecord;
 		ELSE
-			sErrorMessage := 'Parameter in CSV file not found in PLC';
+			sFaultDescription := 'Parameter in CSV file not found in PLC';
 			eState := E_ParameterHandlerState.Error;
 		END_IF
 	
@@ -290,7 +307,7 @@ CASE eState OF
 		IF (NOT fbFileClose.bBusy) THEN
 			fbFileClose(bExecute := FALSE);
 			IF fbFileClose.bError THEN
-				sErrorMessage := 'Unable to close file'; 
+				sFaultDescription := 'Unable to close file'; 
 				eState := E_ParameterHandlerState.Error;
 			ELSE
 				bDone := TRUE;
@@ -299,13 +316,13 @@ CASE eState OF
 		END_IF
 	
 	E_ParameterHandlerState.Error:
-		IF (sErrorMessage = '') THEN
-			sErrorMessage := 'Unknown error';
+		IF (sFaultDescription = '') THEN
+			sFaultDescription := 'Unknown error';
 		END_IF
-		;
+
 END_CASE
 
-bError := (eState = E_ParameterHandlerState.Error);
+bFault := (eState = E_ParameterHandlerState.Error);
 ]]></ST>
       </Implementation>
     </Method>

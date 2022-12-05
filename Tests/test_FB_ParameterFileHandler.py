@@ -191,7 +191,7 @@ class Tests(unittest.TestCase):
 
         # Assert
         # Error should be active (parameter number mismatch)
-        self.assertTrue(conn.read_by_name(f"{self.PREFIX}.fbParFileHandler.bError"))
+        self.assertTrue(conn.read_by_name(f"{self.PREFIX}.fbFaultHandler.bActOW"))
         # And the parameter in the PLC should remain unchanged
         self.assertEqual(
             conn.read_by_name(f"{self.PREFIX}.stParameter.nNumber"),

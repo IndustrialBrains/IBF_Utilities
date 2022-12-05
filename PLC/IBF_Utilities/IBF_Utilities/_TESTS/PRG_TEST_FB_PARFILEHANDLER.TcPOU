@@ -3,6 +3,7 @@
   <POU Name="PRG_TEST_FB_PARFILEHANDLER" Id="{9f293204-c2aa-0fe1-1474-f57aeffff999}" SpecialFunc="None">
     <Declaration><![CDATA[PROGRAM PRG_TEST_FB_PARFILEHANDLER
 VAR
+	fbFaultHandler 	: FB_FaultHandler;
 	fbParFileHandler: FB_ParameterFileHandler;
 	stParameter 	: Udt_Parameter; // NOTE: Udt_Parameter is persistent
 	bAddParameter 	: BOOL;
@@ -12,7 +13,8 @@ END_VAR
 
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[fbParFileHandler();
+      <ST><![CDATA[fbFaultHandler();
+fbParFileHandler(refFbFault := 	fbFaultHandler);
 
 IF bAddParameter THEN
 	bAddParameter := FALSE;

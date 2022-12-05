@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.3">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
   <EnumerationTextList Name="E_MessageNumbers" Id="{d5d66a3f-bc78-479d-b404-0f4065b4a891}">
     <Declaration><![CDATA[{attribute 'qualified_only'}
 {attribute 'strict'}
@@ -35,6 +35,8 @@ TYPE E_MessageNumbers :
 		OM_AlmostEmpty			:= 300, // product is almost empty refil is required
 		OM_Finished 			:= 301, // product or action is finished
 		OM_ready				:= 302, // ready for new task
+	// Operator warnings
+		OW_Parameter			:= 400, // Parameter handler fault
 	// Test Messages
 		FF_MessageTest			:= 900, // Fatal fault message test
 		CF_MessageTest			:= 901, // Cycle fault message test
@@ -170,6 +172,11 @@ END_TYPE
             <o>
               <v n="TextID">"OM_ready"</v>
               <v n="TextDefault">"302"</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"OW_Parameter"</v>
+              <v n="TextDefault">"400"</v>
               <l n="LanguageTexts" t="ArrayList" />
             </o>
             <o>
