@@ -165,6 +165,9 @@
     <Compile Include="Positions\Functions\F_TriggerPosOffset.TcPOU">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="StateMachine\FB_StateMachine.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="StepFunctions\FB_CycleTrigger.TcPOU">
       <SubType>Code</SubType>
     </Compile>
@@ -192,9 +195,13 @@
     <Compile Include="_TESTS\PRG_TEST_FB_PARFILEHANDLER.TcPOU">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="_TESTS\PRG_TEST_FB_STATEMACHINE.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="GVLs" />
+    <Folder Include="StateMachine" />
     <Folder Include="_TESTS" />
     <Folder Include="Compare\Functions" />
     <Folder Include="Conversion" />

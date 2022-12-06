@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="PRG_TEST_FB_STATEMACHINE" Id="{83f73857-99b4-0cb8-2d5f-29b25adc4cd9}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM PRG_TEST_FB_STATEMACHINE
+VAR
+	nState : UDINT;
+	fbStateMachine : FB_StateMachine;
+	bStateChanged : BOOL; // A helper variable to detect bStateChanged output changes in FB_StateMachine
+	nTimeInState : UDINT; // [msec] A helper variable to get the elapsed time as a number 
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[fbStateMachine(nState := nState);
+bStateChanged S= fbStateMachine.bStateChanged;
+nTimeInState := TIME_TO_UDINT(fbStateMachine.tTimeInState);
+]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>

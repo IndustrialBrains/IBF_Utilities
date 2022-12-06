@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="FB_StateMachine" Id="{b37487b3-c0ea-0602-0c95-36b38859673c}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_StateMachine // A basic statemachine with some convenient outputs
+VAR CONSTANT
+	MAX_TIME : TIME := UDINT_TO_TIME(16#FFFFFFFF);
+END_VAR
+VAR_IN_OUT
+	nState : UDINT;
+END_VAR
+VAR_OUTPUT
+	tTimeInState : TIME;
+	bStateChanged : BOOL;
+END_VAR
+VAR
+	nStatePrev : UDINT;
+	tonTimeInState : TON;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[bStateChanged := (nStatePrev <> nState);
+nStatePrev := nState;
+tonTimeInState(IN := NOT bStateChanged, PT := MAX_TIME);
+tTimeInState := tonTimeInState.ET;
+]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>
