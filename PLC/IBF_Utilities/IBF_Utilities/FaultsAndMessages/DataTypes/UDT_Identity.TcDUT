@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="UDT_Identity" Id="{7a566ce6-60a3-0e19-1032-48b18b7f3107}">
+    <Declaration><![CDATA[TYPE UDT_Identity : // The identity is used for logging and fault handling
+STRUCT
+	nId				: UINT;
+	nParentId		: UDINT; // Id of higher level object if aplicable (0 = no parent)
+	nLocationId		: UDINT; // Unique Id calculated from Id and ParentId, used for parameter numbers, and as the parent ID for children
+	eComponentType	: E_ComponentTypes;
+	sName			: STRING[50];
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

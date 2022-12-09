@@ -72,28 +72,28 @@
     <Compile Include="Conversion\Rpm_To_DegS.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="FaultsAndMessages\DataTypes\E_ComponentTypes.TcTLEO">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="FaultsAndMessages\DataTypes\E_FaultTypes.TcTLEO">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="FaultsAndMessages\DataTypes\E_Locations.TcTLEO">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="FaultsAndMessages\DataTypes\E_MessageNumbers.TcTLEO">
+    <Compile Include="FaultsAndMessages\DataTypes\E_ResetState.TcDUT">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="FaultsAndMessages\DataTypes\UDT_Fault.TcDUT">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="FaultsAndMessages\DataTypes\UDT_FaultLogItem.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FaultsAndMessages\DataTypes\UDT_Identity.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="FaultsAndMessages\Functions\FB_FaultHandler.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="FaultsAndMessages\Functions\FB_OperatorMessageDisplay.TcPOU">
+    <Compile Include="General\DataTypes\E_ComponentTypes.TcTLEO">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="FaultsAndMessages\Param_Messages.TcGVL">
+    <Compile Include="General\DataTypes\E_Locations.TcTLEO">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="General\DataTypes\Udt_TimerBandwith.TcDUT">
@@ -105,11 +105,12 @@
     <Compile Include="GVLs\GVL_FixedValues.TcGVL">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="GVLs\GVL_Message.TcGVL">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="GVLs\GVL_Parameters.TcGVL">
       <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="GVLs\GVL_Utilities.TcGVL">
+      <SubType>Code</SubType>
+      <LinkAlways>true</LinkAlways>
     </Compile>
     <Compile Include="GVLs\Sys_Variables.TcGVL">
       <SubType>Code</SubType>
@@ -198,6 +199,9 @@
     <Compile Include="_TESTS\PRG_TEST_FB_STATEMACHINE.TcPOU">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="_TESTS\PRG_TEST_GLOBAL.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="GVLs" />
@@ -205,7 +209,6 @@
     <Folder Include="_TESTS" />
     <Folder Include="Compare\Functions" />
     <Folder Include="Conversion" />
-    <Folder Include="FaultsAndMessages\Interfaces" />
     <Folder Include="General\DataTypes" />
     <Folder Include="FaultsAndMessages" />
     <Folder Include="FaultsAndMessages\DataTypes" />

@@ -30,6 +30,7 @@ class Tests(unittest.TestCase):
     def setUp(self) -> None:
         if COLD_RESET:
             cold_reset()
+        conn.write_by_name(f"{self.PREFIX}.bEnableTests", True)
         return super().setUp()
 
     def test_initial_state(self) -> None:

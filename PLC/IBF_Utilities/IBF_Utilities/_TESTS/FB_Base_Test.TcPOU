@@ -4,15 +4,15 @@
     <Declaration><![CDATA[FUNCTION_BLOCK FB_Base_Test EXTENDS FB_Base
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[SUPER^(refFbFault := refFbFault);
+      <ST><![CDATA[SUPER^();
 ]]></ST>
     </Implementation>
     <Method Name="Init" Id="{f46498dc-8e15-0359-01f5-743d0b6ca6b0}">
       <Declaration><![CDATA[METHOD PUBLIC Init : BOOL
 VAR_INPUT
-	nId				: UDINT ; // Identification number of object
-	nParentId		: UDINT ; // Id of higher level If aplicable (0 = no parent)
-	eComponentType	: E_ComponentTypes ; // Component or function type for message compilation
+	nId				: UINT ; // Identification number of object
+	nParentId		: UINT ; // Id of higher level if applicable (0 = no parent)
+	eComponentType	: E_ComponentTypes ; // Component or function type
 END_VAR
 ]]></Declaration>
       <Implementation>

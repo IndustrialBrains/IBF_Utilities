@@ -1,8 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
   <POU Name="PRG_TEST_FB_PARAMETERHANDLER" Id="{0c300e5c-bc84-0976-09ac-2d3645d53aac}" SpecialFunc="None">
-    <Declaration><![CDATA[PROGRAM PRG_TEST_FB_PARAMETERHANDLER
+    <Declaration><![CDATA[PROGRAM INTERNAL PRG_TEST_FB_PARAMETERHANDLER
 VAR
+	bEnableTests : BOOL;
 	fbParameterHandler 	: FB_ParameterHandler;
 	stParameterId		: Udt_ParameterId;
 	stParameter 		: Udt_Parameter; // NOTE: Udt_Parameter is persistent
@@ -11,12 +12,15 @@ END_VAR
 
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[fbParameterHandler();
-
-IF bAddParameter THEN
-	bAddParameter := FALSE;
-	fbParameterHandler.CmdAddParameter(stParameter);
-END_IF]]></ST>
+      <ST><![CDATA[IF bEnableTests THEN
+	fbParameterHandler();
+	
+	IF bAddParameter THEN
+		bAddParameter := FALSE;
+		fbParameterHandler.CmdAddParameter(stParameter);
+	END_IF
+END_IF
+]]></ST>
     </Implementation>
   </POU>
 </TcPlcObject>

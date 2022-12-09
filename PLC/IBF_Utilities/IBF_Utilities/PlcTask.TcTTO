@@ -5,6 +5,9 @@
     <CycleTime>10000</CycleTime>
     <Priority>20</Priority>
     <PouCall>
+      <Name>PRG_TEST_GLOBAL</Name>
+    </PouCall>
+    <PouCall>
       <Name>PRG_TEST_FB_BASE</Name>
     </PouCall>
     <PouCall>

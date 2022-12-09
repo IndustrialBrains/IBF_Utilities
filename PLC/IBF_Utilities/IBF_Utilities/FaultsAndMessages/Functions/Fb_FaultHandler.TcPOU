@@ -2,272 +2,196 @@
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
   <POU Name="FB_FaultHandler" Id="{08f65884-c647-4a29-b7ba-51d088979c07}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_FaultHandler
-VAR_INPUT
+(* 
+The faulthandler is responsible for 
+	- providing the means for objects to register their faults
+	- reporting the active fault types (i.e., message, fatal fault, etc.) --> arActiveFaultTypes
+	- providing the means to reset a fault type
+	- keeping a log of all faults
+
+It is not responsible for
+	- resetting the actual fault (this is up to the object that registered the fault)
+	- handling any HMI related functionality
+
+Active faults do not disappear from the log, the need to be manually cleared by issuing a CmdReset.
+*)
+VAR CONSTANT
+	MAX_FAULTS_IN_LOG : UINT := 10;
 END_VAR
 VAR_OUTPUT
-	arActiveFaults 	: ARRAY [0..Param_Messages.nMAX_MESSAGES_SHOWN] OF UDT_Fault  ; // reference to active fault array
-	nActiveFaults	: UDINT 			; // reference to active fault counter
-	bActOM 			: BOOL := FALSE ;
-	bActMC 			: BOOL := FALSE ;
-	bActCF 			: BOOL := FALSE ;
-	bActFF 			: BOOL := FALSE ;
-	bActOW 			: BOOL := FALSE ;
+	arFaultLog : ARRAY [1..MAX_FAULTS_IN_LOG] OF UDT_FaultLogItem;
+	nFaultsInLog : UINT;
+	nActiveFaults : UINT;
+	arActiveFaultTypes : ARRAY[0..(E_FaultTypes._ENUM_SIZE - 1)] OF BOOL; // Status of each fault type
 END_VAR
 VAR
-	bResetting		: BOOL := FALSE ;
-	// functional variables
-	i 					: UDINT ;
-	// fault data
-	stFaultUdt 			: UDT_Fault ;
-	bTimedOut 			: BOOL ; // Message has timed out
-	// Message logging
-	dToday				: DATE ; 
-	nWriteStep			: UDINT := 0 ;
-	bWriteError			: BOOL 	; // write to file error occured
-	nWriteErroId		: UDINT ; // write error id
-	// Write variables
-	sActFileName		: STRING ;
-	hFile				: UINT	:= 0;(* File handle of the source file *)
-	sMessageString		: ARRAY [0..Param_Messages.nMESSAGE_COLUMNS] OF STRING (GVL_Parameters.MAX_CSV_FIELD_LENGTH); (* temporary parameter buffer to string*)
-	sCSVLine			: T_MaxString := '';(* Single CSV text line (row, record), we are using string as record buffer (your are able to see created fields) *)
-	sCSVField			: T_MaxString := '';(* Single CSV field value (column, record field) *)
+	bCmdReset : BOOL;
+	eResetState : E_ResetState;
 
-	// Log to file functions
-	fbFileOpen		: FB_FileOpen	;(* Opens file *)
-	fbFileClose		: FB_FileClose	;(* Closes file *)
-	fbFileGets		: FB_FileGets	;(* Reads one record (line) *)
-	fbFilePuts		: FB_FilePuts	;(* Writes one record (line) *)
-	fbReader		: FB_CSVMemBufferReader;(* Helper function block used to parse CSV data bytes (single record line) *)
-	fbWriter		: FB_CSVMemBufferWriter;(* Helper function block used to create CSV data bytes (single record line) *)
-END_VAR
-VAR PERSISTENT
-	dLastFileDate : DATE ;
-END_VAR
-VAR CONSTANT
-	stEmptyMessageUdt : UDT_Fault := (	Active 			:= FALSE,
-										FaultType 		:= E_FaultTypes.NA,
-										MessageNumber	:= 0,
-										LocationNumber	:= 0,
-										Description 	:= '',
-										LocationName	:= '',
-										ComponentType	:= E_ComponentTypes.NA,
-										StartTime		:= DT#2020-1-1-00:00:00,
-										EndTime			:= DT#2020-1-1-00:00:00,
-										FullFaultId		:= '0'	)  ;
+	nLogIndex : UINT; // Current index of the arFaultLog
+	
+	arActiveFaultTypes_Internal : ARRAY[0..(E_FaultTypes._ENUM_SIZE - 1)] OF BOOL; // The actual status of each fault type, which is reported unless the reset cycle is active
 END_VAR
 
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[// Check for active faults in list
-IF NOT bResetting THEN 
-	ExecSetFaultBit(); 
-END_IF
+      <ST><![CDATA[ExecReset();
 
-bResetting := FALSE ;]]></ST>
+GetNumberOfActiveFaults();
+]]></ST>
     </Implementation>
     <Folder Name="Private" Id="{2e728eb6-79bc-4de8-8875-9d08a8df9edd}" />
-    <Method Name="CheckEntryValid" Id="{4ead88ed-0ad4-4581-8230-d979907ffe1b}" FolderPath="Private\">
-      <Declaration><![CDATA[METHOD PRIVATE CheckEntryValid : BOOL
-VAR_IN_OUT
-	stFault : UDT_Fault ; // actuive fault structure input
-END_VAR
-VAR
-	// functional variables
-	i 	: UDINT ;
-END_VAR]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[// ======= check if new entry is valid and not already active ======
-CheckEntryValid S= TRUE ;
-FOR i := 0 TO nActiveFaults DO
-	IF arActiveFaults[i].Description = stFault.Description THEN 
-		CheckEntryValid 			:= FALSE ; 
-		arActiveFaults[i].Active 	:= TRUE ; 
-	END_IF
-END_FOR  
-]]></ST>
-      </Implementation>
-    </Method>
     <Method Name="CmdAddFault" Id="{cd103280-aca4-4b4a-a070-10b84eec5ffb}">
       <Declaration><![CDATA[METHOD PUBLIC CmdAddFault : BOOL
+(*
+CmdAddFault should be called every cycle.
+If the fault is active, it's corresponding fault type is enabled.
+Updates the fault log.
+*)
 VAR_IN_OUT
-	stFault : UDT_Fault ; // active fault structure input
+	stFault : UDT_Fault; // active fault structure input
 END_VAR
-]]></Declaration>
+VAR_INPUT
+	stIdentity : UDT_Identity;
+END_VAR]]></Declaration>
       <Implementation>
-        <ST><![CDATA[// coppy fault to internal fault udt
-IF stFault.FaultType <> E_FaultTypes.NA AND stFault.Active THEN 
-	// Process fault data
-	IF CheckEntryValid(stFault) AND NOT bResetting THEN
-		THIS^.stFaultUdt	:= stFault ;
-		ExecWriteMessage();
-	END_IF
-	stFault 			:= stEmptyMessageUdt ;
-	stFaultUdt.Active	:= FALSE ;
-END_IF
+        <ST><![CDATA[// Report active fault type
+arActiveFaultTypes_Internal[stFault.FaultType] S= stFault.Active;
 
+// Update the log
+UpdateLog(stFault, stIdentity);
 ]]></ST>
       </Implementation>
     </Method>
     <Method Name="CmdReset" Id="{a9c5d6bc-61dd-41fc-99d9-5b14d5fa2712}">
-      <Declaration><![CDATA[METHOD PUBLIC CmdReset : BOOL
+      <Declaration><![CDATA[METHOD PUBLIC CmdReset : BOOL // Reset faults; caller is responsible for stopping the call once TRUE is returned
 VAR_INPUT
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[bResetting := TRUE ;
-// Check for reset is active 
-CmdReset := ExecResetFaults();
-]]></ST>
-      </Implementation>
-    </Method>
-    <Method Name="ExecCleanUpArray" Id="{f3ade57a-1ab7-4952-98ed-276828beb548}" FolderPath="Private\">
-      <Declaration><![CDATA[METHOD PRIVATE ExecCleanUpArray : BOOL
-VAR
-	// functional variables
-	i 					: UDINT ;
-END_VAR]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[// Clean up array by removing blanc spaces 
-FOR i := 0 TO Param_Messages.nMAX_MESSAGES_SHOWN - 1 DO 
-	IF arActiveFaults[i].FaultType = E_FaultTypes.NA THEN 
-		arActiveFaults[i] 	:= arActiveFaults[i+1];
-		arActiveFaults[i+1] := stEmptyMessageUdt;
-	END_IF
-END_FOR
-
-//Sort messages after cleaning
-ExecSortMessages();]]></ST>
-      </Implementation>
-    </Method>
-    <Method Name="ExecResetFaults" Id="{69b2b7d1-18ff-442a-8c8e-bfbea5c9f66f}" FolderPath="Private\">
-      <Declaration><![CDATA[METHOD PRIVATE ExecResetFaults : BOOL
-VAR
-	nResetPoint : UDINT := 0 ; // point of reset for active fault array (skips fault if .active bit is true)
-	// functional variables
-	i 					: UDINT ;
-END_VAR
-]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[FOR i := 0 TO Param_Messages.nMAX_MESSAGES_SHOWN DO
-	IF arActiveFaults[i].Active THEN
-		CONTINUE;
-	ELSE
-		arActiveFaults[i] := stEmptyMessageUdt; 
-	END_IF
-END_FOR
-
-ExecCleanUpArray();
-
-bActOM 			:= FALSE;
-bActMC 			:= FALSE;
-bActCF 			:= FALSE;
-bActFF 			:= FALSE;
-bActOW 			:= FALSE;
-
-ExecResetFaults := TRUE ;]]></ST>
-      </Implementation>
-    </Method>
-    <Method Name="ExecSetFaultBit" Id="{1d4b6758-0786-425a-a6f8-dc8178d0967d}" FolderPath="Private\">
-      <Declaration><![CDATA[METHOD PRIVATE ExecSetFaultBit : BOOL
-]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[bActOM 	:= FALSE;
-bActMC	:= FALSE;
-bActCF 	:= FALSE;
-bActFF 	:= FALSE;
-bActOW  := FALSE;
-	
-FOR i := 0 TO nActiveFaults DO
-	// read message type 
-	CASE arActiveFaults[i].FaultType OF
-		E_FaultTypes.OM : 
-			IF arActiveFaults[i].Active THEN 
-				bActOM 		S= TRUE ;
-				
-			ELSE 
-				bTimedOut 	S= TRUE ;
-			END_IF 
-		E_FaultTypes.MC :
-			IF arActiveFaults[i].Active THEN 
-				bActMC 		S= TRUE ;
-			ELSE 
-				bTimedOut 	S= TRUE ;
-			END_IF 
-		E_FaultTypes.CF:
-			bActCF 		S= TRUE ;
-		E_FaultTypes.FF:
-			bActFF 		S= TRUE ;
-		E_FaultTypes.OW:
-			IF arActiveFaults[i].Active THEN 
-				bActOW 		S= TRUE ;
-			ELSE 
-				bTimedOut 	S= TRUE ;
-			END_IF
-			
-		ELSE
-			bTimedOut := FALSE ;
-	END_CASE
-
-	IF bTimedOut THEN 
-		arActiveFaults[i] := stEmptyMessageUdt;				
-		bTimedOut := FALSE ;
-	END_IF
-	// Reset active bit when timed out, if fault is still active it will be set to true again.
-	arActiveFaults[i].Active R= (arActiveFaults[i].StartTime + Param_Messages.tMESSAGE_TIMEOUT) < Sys_Variables.SystemTime;
-END_FOR
-
-// clean up the fault array
-ExecCleanUpArray();]]></ST>
-      </Implementation>
-    </Method>
-    <Method Name="ExecSortMessages" Id="{9379339c-5f6e-4e04-abc6-6a8505afc20b}" FolderPath="Private\">
-      <Declaration><![CDATA[METHOD INTERNAL ExecSortMessages : BOOL
-VAR
-	k : UDINT ;
-	stTempMessageStorage : UDT_Fault ; // Temporary message storage for sorting
-END_VAR
-]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[FOR k := 1 TO Param_Messages.nMAX_MESSAGES_SHOWN - 1 DO 
-	FOR i := 0 TO Param_Messages.nMAX_MESSAGES_SHOWN - 2 DO 
-		IF arActiveFaults[i].FaultType < arActiveFaults[i+1].FaultType THEN 
-			stTempMessageStorage 	:= arActiveFaults[i];
-			arActiveFaults[i]		:= arActiveFaults[i+1];
-			arActiveFaults[i+1]		:= stTempMessageStorage;
-		END_IF
-	END_FOR	 
-END_FOR
-
-ExecSortMessages := TRUE;
-]]></ST>
-      </Implementation>
-    </Method>
-    <Action Name="ExecWriteMessage" Id="{3af8b3ee-c7f9-4b45-bd33-128a18baf300}" FolderPath="Private\">
-      <Implementation>
-        <ST><![CDATA[// Set message start time 
-stFaultUdt.StartTime := Sys_Variables.SystemTime ;
-// Fill Full Fault Id
-stFaultUdt.FullFaultId := TO_STRING(stFaultUdt.FaultType);
-stFaultUdt.FullFaultId := CONCAT(stFaultUdt.FullFaultId,'.');
-stFaultUdt.FullFaultId := CONCAT(stFaultUdt.FullFaultId,UDINT_TO_STRING(stFaultUdt.MessageNumber));
-stFaultUdt.FullFaultId := CONCAT(stFaultUdt.FullFaultId,'.');
-stFaultUdt.FullFaultId := CONCAT(stFaultUdt.FullFaultId,UDINT_TO_STRING(stFaultUdt.LocationNumber));
-stFaultUdt.FullFaultId := CONCAT(stFaultUdt.FullFaultId,'.');
-stFaultUdt.FullFaultId := CONCAT(stFaultUdt.FullFaultId,UDINT_TO_STRING(stFaultUdt.ComponentType));
-// send message to higher level 
-arActiveFaults[nActiveFaults] := stFaultUdt		;
-// Sort shown Massages
-ExecSortMessages();
-// Set pointer to next fault
-IF nActiveFaults < Param_Messages.nMAX_MESSAGES_SHOWN THEN 
-	nActiveFaults := nActiveFaults + 1 	;
-ELSE
-	nActiveFaults := 0 ;
+        <ST><![CDATA[// Trigger the reset cycle
+IF (eResetState = E_ResetState.Idle) THEN
+	bCmdReset := TRUE;
 END_IF
 
-// Sort Messages by severity
+CmdReset := (eResetState = E_ResetState.WaitForFaults); // Let the caller know when the reset cycle is finished
 ]]></ST>
       </Implementation>
-    </Action>
+    </Method>
+    <Method Name="ExecReset" Id="{5409ab96-3bb3-0061-05e8-ad57d1261a31}" FolderPath="Private\">
+      <Declaration><![CDATA[METHOD PRIVATE ExecReset : BOOL
+VAR
+	i : UINT; // Iterator
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[CASE eResetState OF
+	E_ResetState.Idle: // Wait for reset command
+		IF bCmdReset THEN
+			// Start the reset cycle
+			bCmdReset := FALSE;
+			eResetState := E_ResetState.ResetFaultTypes;
+		ELSE
+			// Report the status of each fault type	
+			FOR i:= 0 TO (E_FaultTypes._ENUM_SIZE - 1) DO		
+				arActiveFaultTypes[i] := arActiveFaultTypes_Internal[i];
+			END_FOR
+		END_IF
+	E_ResetState.ResetFaultTypes: 
+		// During a reset, the reported fault types are not changed
+		// This avoids that faults are not reported for 1 PLC cycle, even though they are still active
+		// We do however clear the internal fault types, which are updated automatically by the CmdAddFaults calls
+		// from the system components.
+		FOR i:= 0 TO (E_FaultTypes._ENUM_SIZE - 1) DO		
+			arActiveFaultTypes_Internal[i] := FALSE;
+		END_FOR
+		// Clear active state of all fault in the log
+		
+		eResetState := E_ResetState.WaitForFaults;
+	E_ResetState.WaitForFaults: // Allow the PLC one cycle to re-add faults
+		eResetState := E_ResetState.Idle;
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="GetNumberOfActiveFaults" Id="{56b85226-7a15-0380-3007-0d96d035d37f}" FolderPath="Private\">
+      <Declaration><![CDATA[METHOD PRIVATE GetNumberOfActiveFaults : UINT
+VAR
+	i : UINT; // Iterator
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// Get the number of active faults
+nActiveFaults := 0;
+FOR i := 1 TO MAX_FAULTS_IN_LOG DO
+	IF (arFaultLog[i].stFault.Active) THEN 
+		nActiveFaults := nActiveFaults + 1;
+	END_IF
+END_FOR
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="UpdateLog" Id="{9b29b2d1-5975-05b2-2182-eff98e668948}" FolderPath="Private\">
+      <Declaration><![CDATA[METHOD PRIVATE UpdateLog : BOOL
+(*
+Update the fault log array. 
+If a fault becomes active, it is added to the array and the start time is updated.
+If a fault stops being active, the end time is updated.
+Inactive faults are cleared by CmdReset.
+*)
+VAR_IN_OUT
+	stFault : UDT_Fault;
+END_VAR
+VAR_INPUT
+	stIdentity : UDT_Identity;
+END_VAR
+VAR
+	sId : STRING;
+	nFaultIndexInLog : UINT;
+	i : UINT; // Iterator
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// Check if the fault already exists in the log. 
+// For this, we need to compare the description and the fault ID.
+
+// First, build the fault ID
+sId := TO_STRING(stFault.FaultType);
+sId := CONCAT(sId,'.');
+IF stIdentity.nParentId > 0 THEN
+	sId := CONCAT(sId,UDINT_TO_STRING(stIdentity.nParentId));
+	sId := CONCAT(sId,'.');
+END_IF
+sId := CONCAT(sId,UINT_TO_STRING(stIdentity.nId));
+sId := CONCAT(sId,'.');
+sId := CONCAT(sId,UDINT_TO_STRING(stIdentity.eComponentType));
+sId := CONCAT(sId,'.');
+sId := CONCAT(sId,stIdentity.sName);
+
+// Now check if the fault already exists in the log
+FOR i := 1 TO MAX_FAULTS_IN_LOG DO
+	IF (arFaultLog[i].Id = sId) 
+		AND (arFaultLog[i].stFault.Description = stFault.Description)
+	THEN // Found fault in the log
+		nFaultIndexInLog := i;
+		EXIT; // No need to iterate any further
+	END_IF
+END_FOR
+
+IF nFaultIndexInLog > 0 THEN // Already exists in the log
+	IF (NOT stFault.Active) 
+		AND (ANY_TO_DWORD(arFaultLog[nLogIndex].EndTime) = 0) // End time was never updated
+	THEN // No longer active, update end time and active state
+		arFaultLog[nLogIndex].stFault.Active := FALSE;
+		arFaultLog[nLogIndex].EndTime := Sys_Variables.SystemTime;
+	END_IF
+ELSIF stFault.Active THEN // New active fault, add it to the log
+	// Update the log index (if full, move to beginning of the log)
+	nLogIndex := (nLogIndex MOD MAX_FAULTS_IN_LOG) + 1;
+	nFaultsInLog := MIN(nFaultsInLog + 1, MAX_FAULTS_IN_LOG);
+	// Copy to log and update start time
+	arFaultLog[nLogIndex].stFault := stFault;
+	arFaultLog[nLogIndex].Id := sId;
+	arFaultLog[nLogIndex].StartTime := Sys_Variables.SystemTime;
+END_IF
+]]></ST>
+      </Implementation>
+    </Method>
   </POU>
 </TcPlcObject>

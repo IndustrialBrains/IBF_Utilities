@@ -8,19 +8,14 @@ VAR_INPUT
 	refFbParHandler	: REFERENCE TO FB_ParameterFileHandler := GVL_Parameters.fbParameterHandler	; // reference to parameter handler
 	bCmdPause 		: BOOL 		:= FALSE	; // Command Pause functions		
 END_VAR
-VAR_IN_OUT
-	refFbFault	: FB_FaultHandler	; // reference to fault handler ( when using utilities library := GVL_Main.stModules[nModuleId].fbFaultHandler)
-END_VAR
 VAR_OUTPUT
+	stIdentity 		: UDT_Identity;
 	bInitOk			: BOOL 			:= FALSE 	; // function is initialized
 	bBusy 			: BOOL 			:= FALSE 	; // device is busy
 	bReady			: BOOL 			:= FALSE 	; // device is ready for new command 
 	bErrorActive	: BOOL			:= FALSE	; // device Error active 
 END_VAR
 VAR
-	sName			: STRING[50]	:= ''		; // Name of device distilled from the path 
-	nLocationId		: UDINT 		:= 0		; // device id number made up of module and device number				
-	
 	stFault			: UDT_Fault		; // Fault data from device
 
 	// Function path 
@@ -30,10 +25,10 @@ VAR
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[IF __ISVALIDREF(refFbFault) THEN 
-	// check if fault is active and send to fault handler
-	refFbFault.CmdAddFault(stFault);
-END_IF
+      <ST><![CDATA[GVL_Utilities.fbFaultHandler.CmdAddFault(
+	stFault := stFault,
+	stIdentity := stIdentity
+);
 ]]></ST>
     </Implementation>
     <Method Name="CmdReset" Id="{00c0ea77-90e0-4eb8-bc16-0dce47823936}">
@@ -51,29 +46,20 @@ CmdReset := TRUE ;
     <Method Name="ExecIdentifyDevice" Id="{daf07950-0fff-424d-bd6a-e1bd58375fcf}">
       <Declaration><![CDATA[METHOD PROTECTED ExecIdentifyDevice : BOOL
 VAR_INPUT
-	// Message location data
-	nId				: UDINT ; // Identification number of object
-	nParentId		: UDINT ; // Id of higher level If aplicable (0 = no parent)
-	eComponentType	: E_ComponentTypes ; // Component or function type for message compilation
+	nId				: UINT; // Identification number of object (between 0 and 99)
+	nParentId		: UDINT; // Id of higher level If aplicable (0 = no parent)
+	eComponentType	: E_ComponentTypes; // Component or function type
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[// Check device ID
-IF nLocationId = 0 THEN
-	nLocationId := (nParentId * 10000) + nId * 100 ;
-END_IF
+        <ST><![CDATA[stIdentity.nId := nId;
+stIdentity.nParentId := nParentId;
+stIdentity.eComponentType := eComponentType;
+stIdentity.sName := F_FBNameFromPath(sPath := sPath);
+stIdentity.nLocationId := stIdentity.nParentId * 10000 + stIdentity.nId;
 
-// set message location information
-stFault.ComponentType 	:= eComponentType;
-stFault.LocationName	:= F_FBNameFromPath(sPath := sPath);
-stFault.LocationNumber	:= nLocationId ; 
-
-// Get device name from function and add device to manual
-IF sName = '' THEN 
-	sName := F_FBNameFromPath(sPath := sPath);
-END_IF
-
-ExecIdentifyDevice := nLocationId <> 0 AND sName <> '';]]></ST>
+ExecIdentifyDevice := (stIdentity.nId > 0) AND NOT (stIdentity.sName = '') AND (stIdentity.nId < 100);
+]]></ST>
       </Implementation>
     </Method>
   </POU>

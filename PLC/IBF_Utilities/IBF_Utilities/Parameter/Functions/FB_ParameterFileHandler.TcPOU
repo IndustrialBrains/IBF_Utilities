@@ -6,11 +6,9 @@ VAR CONSTANT
 	sCSVFileHeader 	: STRING := 'NUMBER;NAME;TYPE;DESCRIPTION;FACTORY;MAXIMUM;MINIMUM;UNIT;VALUE$L';
 	CSV_FIELDS 		: UINT := 9;
 END_VAR
-VAR_IN_OUT
-	refFbFault : Fb_FaultHandler;
-END_VAR
 VAR_OUTPUT
-	bFault : BOOL;	
+	bFault : BOOL;
+	sFaultDescription : STRING;
 END_VAR
 VAR
 	// States
@@ -33,26 +31,12 @@ VAR
 	fbCsvMemBufReader : FB_CSVMemBufferReader; // https://infosys.beckhoff.com/content/1033/tcplclib_tc2_utilities/34977931.html
 	fbCsvMemBufWriter : FB_CSVMemBufferWriter; // https://infosys.beckhoff.com/content/1033/tcplclib_tc2_utilities/34979467.html
 
-	// Fault handling
-	stFault				: UDT_Fault;
-	sFaultDescription	: STRING;
-
 	// Miscelleanous
 	nIdxPar  : UINT; // Parameter array iterator
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[stFault.FaultType 		:= E_FAULTTYPES.OW;
-stFault.MessageNumber 	:= E_MessageNumbers.OW_Parameter;
-stFault.Description		:= CONCAT('Parameter handler: ', sFaultDescription);
-stFault.Active			:= bFault;
-
-IF __ISVALIDREF(refFbFault) THEN 
-	// check if fault is active and send to fault handler
-	refFbFault.CmdAddFault(stFault);
-END_IF
-
-ExecStateMachine();
+      <ST><![CDATA[ExecStateMachine();
 ]]></ST>
     </Implementation>
     <Folder Name="Commands" Id="{bcbefad3-29cb-0730-1187-e3aea827e983}" />

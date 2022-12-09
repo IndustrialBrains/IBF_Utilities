@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="E_ResetState" Id="{9b529e85-c285-00e9-0708-85d0ff7495f4}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'strict'}
+TYPE E_ResetState :
+(
+	Idle,
+	ResetFaultTypes,
+	WaitForFaults
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

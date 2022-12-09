@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.3">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
   <EnumerationTextList Name="E_Locations" Id="{7410c5f4-a74b-47b1-9681-555f2dee9cf7}">
     <Declaration><![CDATA[{attribute 'qualified_only'}
 {attribute 'strict'}

@@ -102,14 +102,14 @@ CmdToStep := nNextStep = nStep ;
       <Declaration><![CDATA[METHOD PUBLIC Init : BOOL
 VAR_INPUT
 	// Location data for messages  
-	nId			: UDINT ; // Identification number of object
-	nParentId	: UDINT ; // Id of higher level If aplicable (0 = no parent)
+	nId			: UINT ; // Identification number of object
+	nParentId	: UINT ; // Id of higher level If aplicable (0 = no parent)
 	nResetStep	: UDINT ; // step to which the stepper wil go at reset
 END_VAR
 ]]></Declaration>
       <Implementation>
         <ST><![CDATA[// ====== Calculate device id =====
-	ExecIdentifyDevice(nId,nParentId,E_ComponentTypes.StepProgram);
+	ExecIdentifyDevice(nId, nParentId, E_ComponentTypes.StepProgram);
 	
 // ===== set reset step ======
 	nActStep 			:= nResetStep ;
@@ -132,10 +132,8 @@ ELSIF bHold THEN
 	RETURN; 
 ELSIF bErrorActive THEN 
 	stFault.Active			:= TRUE ;
-	stFault.ComponentType	:= E_ComponentTypes.StepProgram ;
-	stFault.Description		:= CONCAT(sName, ' Invalid step state');
+	stFault.Description		:= 'Invalid step state';
 	stFault.FaultType		:= E_FaultTypes.FF;
-	stFault.MessageNumber	:= E_MessageNumbers.FF_ComunicationFault;
 ELSIF NOT bCmdPause OR bSkipPause THEN 
 	IF nActStep <> nNextStep THEN 
 		nPreviousStep 	:=	nActStep;	

@@ -46,6 +46,7 @@ class Tests(unittest.TestCase):
     def setUp(self) -> None:
         if COLD_RESET:
             cold_reset()
+        conn.write_by_name(f"{self.PREFIX}.bEnableTests", True)
         return super().setUp()
 
     def test_write_and_read(self):
@@ -94,8 +95,9 @@ class Tests(unittest.TestCase):
         conn.write_by_name(f"{self.PREFIX}.bInit", True)
         self.assertTrue(wait_value(f"{self.PREFIX}.bInit", False, 1))
 
-        # Reload by cold reset + Init
+        # Reload by cold reset
         cold_reset()
+        conn.write_by_name(f"{self.PREFIX}.bEnableTests", True)
 
         # Reset all values, except for the number (needed to match parameter)
         conn.write_by_name(f"{self.PREFIX}.stParameter.nNumber", ExpectedValues.nNumber)
@@ -182,6 +184,7 @@ class Tests(unittest.TestCase):
 
         # Reload by cold reset + Init
         cold_reset()
+        conn.write_by_name(f"{self.PREFIX}.bEnableTests", True)
         conn.write_by_name(
             "GVL_Parameters.sPARLIST_FILE", FILENAME, pyads.PLCTYPE_STRING
         )
@@ -191,7 +194,7 @@ class Tests(unittest.TestCase):
 
         # Assert
         # Error should be active (parameter number mismatch)
-        self.assertTrue(conn.read_by_name(f"{self.PREFIX}.fbFaultHandler.bActOW"))
+        self.assertTrue(conn.read_by_name(f"{self.PREFIX}.fbParFileHandler.bFault"))
         # And the parameter in the PLC should remain unchanged
         self.assertEqual(
             conn.read_by_name(f"{self.PREFIX}.stParameter.nNumber"),
@@ -225,6 +228,7 @@ class Tests(unittest.TestCase):
 
         # Reload by cold reset + Init
         cold_reset()
+        conn.write_by_name(f"{self.PREFIX}.bEnableTests", True)
         conn.write_by_name(
             "GVL_Parameters.sPARLIST_FILE", FILENAME, pyads.PLCTYPE_STRING
         )

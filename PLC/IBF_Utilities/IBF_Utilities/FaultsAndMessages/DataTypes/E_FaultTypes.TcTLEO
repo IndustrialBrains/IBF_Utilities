@@ -1,18 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.10">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
   <EnumerationTextList Name="E_FaultTypes" Id="{80d266b1-3eb3-4c6d-b0bb-2f4400a81ab3}">
     <Declaration><![CDATA[{attribute 'qualified_only'}
-{attribute 'strict'}
 {attribute 'to_string'}
-TYPE E_FaultTypes :
+TYPE E_FaultTypes : // Fault types, sorted by severity
 (
-	NA	:= 0, // Not applicable
-	OM 	:= 1, // Operator message
-	MC	:= 2, // Missing condition
-	CF	:= 3, // Cycle Fault
-	FF	:= 4, // Fatal fault
-	OW  := 5  // Operator warning
-)UDINT;
+	OM, // Operator message
+	OW, // Operator warning
+	MC, // Missing condition
+	CF, // Cycle Fault
+	FF, // Fatal fault
+	_ENUM_SIZE // Always the last item in the enumerator
+) UINT;
 END_TYPE
 ]]></Declaration>
     <XmlArchive>
@@ -20,33 +19,33 @@ END_TYPE
         <o xml:space="preserve" t="TextListEnumerationTextListObject">
           <l n="TextList" t="ArrayList" cet="TextListRow">
             <o>
-              <v n="TextID">"NA"</v>
-              <v n="TextDefault">"0"</v>
-              <l n="LanguageTexts" t="ArrayList" />
-            </o>
-            <o>
               <v n="TextID">"OM"</v>
-              <v n="TextDefault">"1"</v>
-              <l n="LanguageTexts" t="ArrayList" />
-            </o>
-            <o>
-              <v n="TextID">"MC"</v>
-              <v n="TextDefault">"2"</v>
-              <l n="LanguageTexts" t="ArrayList" />
-            </o>
-            <o>
-              <v n="TextID">"CF"</v>
-              <v n="TextDefault">"3"</v>
-              <l n="LanguageTexts" t="ArrayList" />
-            </o>
-            <o>
-              <v n="TextID">"FF"</v>
-              <v n="TextDefault">"4"</v>
+              <v n="TextDefault">""</v>
               <l n="LanguageTexts" t="ArrayList" />
             </o>
             <o>
               <v n="TextID">"OW"</v>
-              <v n="TextDefault">"5"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"MC"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"CF"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"FF"</v>
+              <v n="TextDefault">""</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"_ENUM_SIZE"</v>
+              <v n="TextDefault">""</v>
               <l n="LanguageTexts" t="ArrayList" />
             </o>
             <o>

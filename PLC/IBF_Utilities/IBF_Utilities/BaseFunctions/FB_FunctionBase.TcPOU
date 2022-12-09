@@ -17,7 +17,7 @@ VAR
 	bCmdManual 		: BOOL			:= FALSE	; // manual commands enabled control functions (thus disable automatic)
 END_VAR]]></Declaration>
     <Implementation>
-      <ST><![CDATA[SUPER^(refFbFault := refFbFault);
+      <ST><![CDATA[SUPER^();
 
 // Communicate active state
 IF NOT bSafetyOk THEN 
@@ -32,8 +32,8 @@ ELSE
 	sActiveState := 'Operational';
 END_IF 
 
-// check for manual command mode
-bManual := bCmdManual ;
+// Set manual command mode
+bManual := bCmdManual;
 
 // Execute device functions
 IF bInitOk THEN  
@@ -44,8 +44,7 @@ END_IF
 // Set fault if commands are blocked
 IF bBlockedCommand AND bHeld THEN 
 	stFault.Active 			:= TRUE ;
-	stFault.ComponentType 	:= E_ComponentTypes.Assembly ;
-	stFault.Description		:= CONCAT( STR1 := sName, STR2 := ' function is blocked');
+	stFault.Description		:= 'Function is blocked';
 	stFault.FaultType		:= E_FaultTypes.MC;
 END_IF	
 
@@ -67,7 +66,8 @@ VAR_INPUT
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[bCmdManual := true ;]]></ST>
+        <ST><![CDATA[// Enable manual mode
+bCmdManual := TRUE;]]></ST>
       </Implementation>
     </Method>
     <Method Name="CmdSafeStop" Id="{507980d7-bd9e-492d-a4cc-cc2ab03b31c7}">

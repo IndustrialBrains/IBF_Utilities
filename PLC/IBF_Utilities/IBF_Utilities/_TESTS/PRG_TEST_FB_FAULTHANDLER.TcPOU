@@ -3,13 +3,19 @@
   <POU Name="PRG_TEST_FB_FAULTHANDLER" Id="{df25c322-66e9-42b5-bf1e-d85a6c4b3bb3}" SpecialFunc="None">
     <Declaration><![CDATA[PROGRAM INTERNAL PRG_TEST_FB_FAULTHANDLER
 VAR
-	fbFaultHandler 	: FB_FaultHandler;
-	stFault 		: UDT_Fault;
+	bEnableTests : BOOL;
+	fbBase : FB_Base_Test;
+	bCmdReset : BOOL;
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[fbFaultHandler();
-fbFaultHandler.CmdAddFault(stFault);
+      <ST><![CDATA[IF bEnableTests THEN
+	fbBase();
+	
+	IF bCmdReset THEN
+		bCmdReset R= GVL_Utilities.fbFaultHandler.CmdReset();
+	END_IF
+END_IF
 ]]></ST>
     </Implementation>
   </POU>

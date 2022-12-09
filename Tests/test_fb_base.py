@@ -26,16 +26,8 @@ class TestFB_Base(unittest.TestCase):
     def setUp(self) -> None:
         if COLD_RESET:
             cold_reset()
+        conn.write_by_name(f"{self.PREFIX}.bEnableTests", True)
         return super().setUp()
-
-    def test_init(self):
-        stFault = f"{self.PREFIX}.fbBase.stFault"
-        self.assertEqual(conn.read_by_name(f"{stFault}.LocationName"), "Base")
-        # Magic numbers from hardcoded values in PRG_TEST_FB_BASE
-        self.assertEqual(conn.read_by_name(f"{stFault}.LocationNumber"), 20100)
-        self.assertEqual(
-            conn.read_by_name(f"{stFault}.ComponentType", pyads.PLCTYPE_UDINT), 100
-        )
 
     def test_fault(self):
         stFault = f"{self.PREFIX}.fbBase.stFault"
@@ -44,7 +36,7 @@ class TestFB_Base(unittest.TestCase):
         conn.write_by_name(f"{stFault}.Active", True)
         wait_cycles(1)
         self.assertEqual(
-            conn.read_by_name(f"{self.PREFIX}.fbFaultHandler.nActiveFaults"), 1
+            conn.read_by_name("GVL_Utilities.fbFaultHandler.nActiveFaults"), 1
         )
 
 
