@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="PRG_TEST_CONVERSION" Id="{6d253267-c11b-0916-38f7-c1d63cc7dc12}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM INTERNAL PRG_TEST_CONVERSION
+VAR
+ 	bEnableTests : BOOL;
+
+	in_dt : DATE_AND_TIME;
+	out_str : STRING;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF bEnableTests THEN
+	out_str := Dt_To_Str(in_dt);
+END_IF
+
+]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>

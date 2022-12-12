@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="DT_To_Str" Id="{18809661-304d-0db6-04e5-a131fb501357}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION DT_To_Str : STRING[19] // Takes a DATE_AND_TIME and converts it into a atring. If 0, an empty string is returned 
+VAR_INPUT
+	value : DATE_AND_TIME;
+END_VAR
+VAR
+	str : STRING;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF (DT_TO_DWORD(value) = 0) THEN
+	DT_To_Str := '';
+ELSE
+	// Example input: 'DT#1998-02-13-14:20:00
+	str := MID(DT_TO_STRING(value), 19, 4); // Cut off 'DT#'
+	str := REPLACE(str, ' ', 1, 11); // Take out unnecessary '-'
+	DT_To_Str :=  str;
+END_IF]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>

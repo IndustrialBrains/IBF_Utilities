@@ -63,6 +63,9 @@
     <Compile Include="Conversion\DegS_To_Rpm_And_MMin.TcPOU">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Conversion\DT_To_Str.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Conversion\Grey_To_Bin.TcPOU">
       <SubType>Code</SubType>
     </Compile>
@@ -182,6 +185,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="_TESTS\FB_Base_Test.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_TESTS\PRG_TEST_CONVERSION.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="_TESTS\PRG_TEST_FB_BASE.TcPOU">
