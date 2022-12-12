@@ -13,10 +13,13 @@ It is not responsible for
 	- resetting the actual fault (this is up to the object that registered the fault)
 	- handling any HMI related functionality
 
-Active faults do not disappear from the log, the need to be manually cleared by issuing a CmdReset.
+Active faults do not disappear from the log, the need to be manually cleared by issuing a CmdReset and CmdClearInactive.
 *)
 VAR CONSTANT
 	MAX_FAULTS_IN_LOG : UINT := 10;
+END_VAR
+VAR_INPUT
+	nMaxInactiveCycles : UINT := 50; // Once faults haven't been activated for a number of PLC cycles, deactivate them. 0 = do not automatically deactivate faults 
 END_VAR
 VAR_OUTPUT
 	arFaultLog 			: ARRAY [1..MAX_FAULTS_IN_LOG] OF UDT_FaultLogItem;
@@ -32,12 +35,13 @@ VAR
 	nLogIndex : UINT; // Array index of the last added item in the log (zero until the first item arrives)
 	nIterIndex : UINT; // Index of the fault log iterator (used for properties First and Next)
 END_VAR
-
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[ExecReset();
+      <ST><![CDATA[UpdateInactiveCycles();
 
-GetNumberOfActiveFaults();
+ExecReset();
+
+UpdateActiveFaultInfo();
 ]]></ST>
     </Implementation>
     <Folder Name="Private" Id="{2e728eb6-79bc-4de8-8875-9d08a8df9edd}" />
@@ -55,11 +59,32 @@ VAR_INPUT
 	stIdentity : UDT_Identity;
 END_VAR]]></Declaration>
       <Implementation>
-        <ST><![CDATA[// Report active fault type
-arActiveFaultTypes_Internal[stFault.FaultType] S= stFault.Active;
-
-// Update the log
+        <ST><![CDATA[// Update the log
 UpdateLog(stFault, stIdentity);
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="CmdClearInactive" Id="{3ab26ba4-92e5-0c92-3fbe-58c7f26971b2}">
+      <Declaration><![CDATA[METHOD PUBLIC CmdClearInactive : BOOL // Remove inactive faults from the log
+VAR
+	stEmptyItem : UDT_FaultLogItem;
+	i : UINT; // Iterator
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[nFaultsInLog := MAX_FAULTS_IN_LOG;
+IF (eResetState = E_ResetState.Idle) THEN
+	FOR i := 1 TO MAX_FAULTS_IN_LOG DO
+		IF (NOT arFaultLog[i].stFault.Active) THEN
+			nFaultsInLog :=nFaultsInLog - 1;
+			arFaultLog[i] := stEmptyItem;
+			arFaultLog[i].bEmpty := TRUE;
+		END_IF
+	END_FOR
+	CmdClearInactive := TRUE;
+ELSE
+	CmdClearInactive := FALSE;
+END_IF
 ]]></ST>
       </Implementation>
     </Method>
@@ -97,35 +122,45 @@ END_VAR]]></Declaration>
 			END_FOR
 		END_IF
 	E_ResetState.ResetFaultTypes: 
-		// During a reset, the reported fault types are not changed
+		// During a reset, the active fault types are not updated 
 		// This avoids that faults are not reported for 1 PLC cycle, even though they are still active
-		// We do however clear the internal fault types, which are updated automatically by the CmdAddFaults calls
-		// from the system components.
+		// We do however clear the internal fault types, which are updated automatically during the WaitForFaults state.
 		FOR i:= 0 TO (E_FaultTypes._ENUM_SIZE - 1) DO		
 			arActiveFaultTypes_Internal[i] := FALSE;
 		END_FOR
-		// Clear active state of all fault in the log
-		
 		eResetState := E_ResetState.WaitForFaults;
+
 	E_ResetState.WaitForFaults: // Allow the PLC one cycle to re-add faults
 		eResetState := E_ResetState.Idle;
 END_CASE]]></ST>
       </Implementation>
     </Method>
-    <Method Name="GetNumberOfActiveFaults" Id="{56b85226-7a15-0380-3007-0d96d035d37f}" FolderPath="Private\">
-      <Declaration><![CDATA[METHOD PRIVATE GetNumberOfActiveFaults : UINT
+    <Method Name="FindNonEmptyFault" Id="{f653cfda-c6a2-0aba-0999-a219be313e66}" FolderPath="Private\">
+      <Declaration><![CDATA[METHOD PRIVATE FindNonEmptyFault : UINT // Update nIterIndex to first non-empy fault (if available)
+VAR_INPUT
+	nStartIndex : UINT;
+END_VAR
 VAR
 	i : UINT; // Iterator
-END_VAR]]></Declaration>
+END_VAR
+]]></Declaration>
       <Implementation>
-        <ST><![CDATA[// Get the number of active faults
-nActiveFaults := 0;
+        <ST><![CDATA[// Sanitize input
+nStartIndex := LIMIT(1, nStartIndex, MAX_FAULTS_IN_LOG);
+
+// Iterate array backwards until a non empty item is found.
 FOR i := 1 TO MAX_FAULTS_IN_LOG DO
-	IF (arFaultLog[i].stFault.Active) THEN 
-		nActiveFaults := nActiveFaults + 1;
+	IF arFaultLog[nStartIndex].bEmpty THEN
+		nStartIndex := nStartIndex - 1;
+		IF nStartIndex = 0 THEN
+			nStartIndex := MAX_FAULTS_IN_LOG;
+		END_IF
+	ELSE
+		EXIT;
 	END_IF
 END_FOR
-]]></ST>
+
+FindNonEmptyFault := nStartIndex;]]></ST>
       </Implementation>
     </Method>
     <Property Name="Head" Id="{51df95bf-2d5c-0e2f-1669-066486ace38d}">
@@ -136,7 +171,7 @@ END_FOR
 END_VAR
 ]]></Declaration>
         <Implementation>
-          <ST><![CDATA[nIterIndex := MAX(1, nLogIndex);
+          <ST><![CDATA[nIterIndex := FindNonEmptyFault(nLogIndex);
 Head := arFaultLog[nIterIndex];
 ]]></ST>
         </Implementation>
@@ -157,10 +192,7 @@ END_VAR
 END_VAR
 ]]></Declaration>
         <Implementation>
-          <ST><![CDATA[nIterIndex := nIterIndex - 1;
-IF nIterIndex = 0 THEN
-	nIterIndex := MAX_FAULTS_IN_LOG;
-END_IF
+          <ST><![CDATA[nIterIndex := FindNonEmptyFault(nIterIndex - 1);
 Next := arFaultLog[nIterIndex];
 ]]></ST>
         </Implementation>
@@ -174,6 +206,45 @@ END_VAR
         </Implementation>
       </Set>
     </Property>
+    <Method Name="UpdateActiveFaultInfo" Id="{478e9522-b643-0b3d-0d6d-947b92d13a5f}" FolderPath="Private\">
+      <Declaration><![CDATA[METHOD PRIVATE UpdateActiveFaultInfo : BOOL // Update active fault types based on active faults in the log
+VAR
+	i : UINT; // Iterator
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[nActiveFaults := 0;
+FOR i := 1 TO MAX_FAULTS_IN_LOG DO
+	IF (arFaultLog[i].stFault.Active) THEN 
+		// Update the number of active faults
+		nActiveFaults := nActiveFaults + 1;
+		// Update active fault type feedback
+		arActiveFaultTypes_Internal[arFaultLog[i].stFault.FaultType] := TRUE; 
+	END_IF
+END_FOR
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="UpdateInactiveCycles" Id="{e86406ea-3c11-02d6-1216-7a9b59f97c40}" FolderPath="Private\">
+      <Declaration><![CDATA[METHOD PRIVATE UpdateInactiveCycles : BOOL // Update the number of inactive cycles, and deactive fault once it reaches the max number of inactive cycles
+VAR
+	i : UINT; // Iterator
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF (nMaxInactiveCycles > 0) THEN
+	FOR i := 1 TO MAX_FAULTS_IN_LOG DO
+		IF arFaultLog[i].stFault.Active THEN
+			arFaultLog[i].nInactiveCycles := MIN(16#FFFF, arFaultLog[i].nInactiveCycles + 1);
+			IF (arFaultLog[i].nInactiveCycles > nMaxInactiveCycles) THEN
+				arFaultLog[i].stFault.Active := FALSE;
+				arFaultLog[i].EndTime := Sys_Variables.SystemTime;	
+			END_IF
+		END_IF
+	END_FOR
+END_IF]]></ST>
+      </Implementation>
+    </Method>
     <Method Name="UpdateLog" Id="{9b29b2d1-5975-05b2-2182-eff98e668948}" FolderPath="Private\">
       <Declaration><![CDATA[METHOD PRIVATE UpdateLog : BOOL
 (*
@@ -212,8 +283,10 @@ sId := CONCAT(sId,stIdentity.sName);
 
 // Now check if the fault already exists in the log
 FOR i := 1 TO MAX_FAULTS_IN_LOG DO
-	IF (arFaultLog[i].Id = sId) 
+	IF (NOT arFaultLog[i].bEmpty) 
+		AND (arFaultLog[i].Id = sId) 
 		AND (arFaultLog[i].stFault.Description = stFault.Description)
+		AND (ANY_TO_DWORD(arFaultLog[i].EndTime) = 0)
 	THEN // Found fault in the log
 		nFaultIndexInLog := i;
 		EXIT; // No need to iterate any further
@@ -221,9 +294,9 @@ FOR i := 1 TO MAX_FAULTS_IN_LOG DO
 END_FOR
 
 IF nFaultIndexInLog > 0 THEN // Already exists in the log
-	IF (NOT stFault.Active) 
-		AND (ANY_TO_DWORD(arFaultLog[nLogIndex].EndTime) = 0) // End time was never updated
-	THEN // No longer active, update end time and active state
+	IF (stFault.Active) THEN // Still active, reset inactive cycle counter
+		arFaultLog[nLogIndex].nInactiveCycles := 0;
+	ELSIF (ANY_TO_DWORD(arFaultLog[nLogIndex].EndTime) = 0) THEN // No longer active, update end time and active state
 		arFaultLog[nLogIndex].stFault.Active := FALSE;
 		arFaultLog[nLogIndex].EndTime := Sys_Variables.SystemTime;
 	END_IF
@@ -232,9 +305,11 @@ ELSIF stFault.Active THEN // New active fault, add it to the log
 	nLogIndex := (nLogIndex MOD MAX_FAULTS_IN_LOG) + 1;
 	nFaultsInLog := MIN(nFaultsInLog + 1, MAX_FAULTS_IN_LOG);
 	// Copy to log and update start time
+	arFaultLog[nLogIndex].bEmpty := FALSE;
 	arFaultLog[nLogIndex].stFault := stFault;
 	arFaultLog[nLogIndex].Id := sId;
 	arFaultLog[nLogIndex].StartTime := Sys_Variables.SystemTime;
+	arFaultLog[nLogIndex].nInactiveCycles := 0;
 END_IF
 ]]></ST>
       </Implementation>

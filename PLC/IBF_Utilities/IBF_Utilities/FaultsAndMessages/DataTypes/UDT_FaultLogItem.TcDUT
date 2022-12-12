@@ -3,10 +3,12 @@
   <DUT Name="UDT_FaultLogItem" Id="{10af48dd-fc8f-013a-0221-b64173b2a737}">
     <Declaration><![CDATA[TYPE UDT_FaultLogItem :
 STRUCT
-	stFault 	: UDT_Fault;
-	Id			: STRING; // Fault ID used for reporting and checking duplicates (not an unique value unless description matches as well)
-	StartTime	: DATE_AND_TIME; // Time the fault became active
-	EndTime		: DATE_AND_TIME; // Time the fault stopped being active
+	bEmpty			: BOOL := TRUE; // This log item is empty (does not contain a fault)
+	stFault 		: UDT_Fault;
+	Id				: STRING; // Fault ID used for reporting and checking duplicates (not an unique value unless description matches as well)
+	StartTime		: DATE_AND_TIME; // Time the fault became active
+	EndTime			: DATE_AND_TIME; // Time the fault stopped being active
+	nInactiveCycles	: UINT; // The number of PLC cycles the fault hasn't been active 
 END_STRUCT
 END_TYPE
 ]]></Declaration>
