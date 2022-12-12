@@ -19,18 +19,18 @@ VAR CONSTANT
 	MAX_FAULTS_IN_LOG : UINT := 10;
 END_VAR
 VAR_OUTPUT
-	arFaultLog : ARRAY [1..MAX_FAULTS_IN_LOG] OF UDT_FaultLogItem;
-	nFaultsInLog : UINT;
-	nActiveFaults : UINT;
-	arActiveFaultTypes : ARRAY[0..(E_FaultTypes._ENUM_SIZE - 1)] OF BOOL; // Status of each fault type
+	arFaultLog 			: ARRAY [1..MAX_FAULTS_IN_LOG] OF UDT_FaultLogItem;
+	nFaultsInLog 		: UINT;
+	nActiveFaults 		: UINT;
+	arActiveFaultTypes 	: ARRAY[0..(E_FaultTypes._ENUM_SIZE - 1)] OF BOOL; // Status of each fault type
 END_VAR
 VAR
 	bCmdReset : BOOL;
 	eResetState : E_ResetState;
-
-	nLogIndex : UINT; // Current index of the arFaultLog
-	
 	arActiveFaultTypes_Internal : ARRAY[0..(E_FaultTypes._ENUM_SIZE - 1)] OF BOOL; // The actual status of each fault type, which is reported unless the reset cycle is active
+	
+	nLogIndex : UINT; // Array index of the last added item in the log (zero until the first item arrives)
+	nIterIndex : UINT; // Index of the fault log iterator (used for properties First and Next)
 END_VAR
 
 ]]></Declaration>
@@ -128,6 +128,52 @@ END_FOR
 ]]></ST>
       </Implementation>
     </Method>
+    <Property Name="Head" Id="{51df95bf-2d5c-0e2f-1669-066486ace38d}">
+      <Declaration><![CDATA[PROPERTY PUBLIC Head : UDT_FaultLogItem // Returns the head of the log (the latest item added)
+]]></Declaration>
+      <Get Name="Get" Id="{5da39590-30a9-04b4-307b-1dd3ceac2537}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[nIterIndex := MAX(1, nLogIndex);
+Head := arFaultLog[nIterIndex];
+]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{f26a9a04-102d-0fab-2b21-bb756981a144}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="Next" Id="{3bc770ea-8ea7-000b-0986-7649ccc14e3e}">
+      <Declaration><![CDATA[PROPERTY PUBLIC Next : UDT_FaultLogItem // Get the next item in the log (travelling backwards through the array)]]></Declaration>
+      <Get Name="Get" Id="{fcd54202-6b03-0138-1a15-35466f1589c9}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[nIterIndex := nIterIndex - 1;
+IF nIterIndex = 0 THEN
+	nIterIndex := MAX_FAULTS_IN_LOG;
+END_IF
+Next := arFaultLog[nIterIndex];
+]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{cac173bd-6bf0-0aee-34ab-d083a619fe0b}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
     <Method Name="UpdateLog" Id="{9b29b2d1-5975-05b2-2182-eff98e668948}" FolderPath="Private\">
       <Declaration><![CDATA[METHOD PRIVATE UpdateLog : BOOL
 (*

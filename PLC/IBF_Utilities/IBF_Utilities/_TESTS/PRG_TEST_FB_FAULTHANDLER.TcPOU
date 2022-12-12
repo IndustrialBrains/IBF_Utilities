@@ -6,6 +6,9 @@ VAR
 	bEnableTests : BOOL;
 	fbBase : FB_Base_Test;
 	bCmdReset : BOOL;
+	stLogItem : UDT_FaultLogItem;
+	bHead : BOOL;
+	bNext : BOOL;
 END_VAR
 ]]></Declaration>
     <Implementation>
@@ -14,6 +17,16 @@ END_VAR
 	
 	IF bCmdReset THEN
 		bCmdReset R= GVL_Utilities.fbFaultHandler.CmdReset();
+	END_IF
+	
+	IF bHead THEN
+		bHead := FALSE;
+		stLogItem := GVL_Utilities.fbFaultHandler.Head;
+	END_IF
+
+	IF bNext THEN
+		bNext := FALSE;
+		stLogItem := GVL_Utilities.fbFaultHandler.Next;
 	END_IF
 END_IF
 ]]></ST>

@@ -6,7 +6,7 @@ from enum import IntEnum, auto
 
 import pyads
 
-from connection import cold_reset, conn, wait_cycles, wait_value
+from connection import cold_reset, conn, wait_value
 
 COLD_RESET = True
 
@@ -79,7 +79,7 @@ class TestFB_FaultHandler(unittest.TestCase):
 
     def test_00_initial_state(self):
         self.assertEqual(
-            conn.read_by_name(f"GVL_Utilities.fbFaultHandler.nFaultsInLog"), 0
+            conn.read_by_name("GVL_Utilities.fbFaultHandler.nFaultsInLog"), 0
         )
         for faulttype in E_FaultTypes:
             self.assertFalse(
@@ -89,7 +89,7 @@ class TestFB_FaultHandler(unittest.TestCase):
             )
 
     def test_01_add_fault(self):
-        """Add a fault of each type, and check if the asociated fault type is reported"""
+        """Add a fault of each type, and check if the associated fault type is reported"""
         # active_faults = 0
         for faulttype in E_FaultTypes:
             with self.subTest(faulttype.name):
@@ -117,17 +117,46 @@ class TestFB_FaultHandler(unittest.TestCase):
         for i in range(3):
             self._update_fault(E_FaultTypes.OM, description=str(i + 1))
             self.assertEqual(
-                conn.read_by_name(f"GVL_Utilities.fbFaultHandler.nFaultsInLog"), i + 1
+                conn.read_by_name("GVL_Utilities.fbFaultHandler.nFaultsInLog"), i + 1
             )
 
     def test_05_count_active_faults(self):
         self._update_fault(E_FaultTypes.OM)
         self.assertEqual(
-            conn.read_by_name(f"GVL_Utilities.fbFaultHandler.nActiveFaults"), 1
+            conn.read_by_name("GVL_Utilities.fbFaultHandler.nActiveFaults"), 1
         )
         self._update_fault(E_FaultTypes.OM, active=False)
         self.assertEqual(
-            conn.read_by_name(f"GVL_Utilities.fbFaultHandler.nActiveFaults"), 0
+            conn.read_by_name("GVL_Utilities.fbFaultHandler.nActiveFaults"), 0
+        )
+
+    def test_06_iterate_log(self):
+        ITEMS_ADDED = 5
+
+        # Add items
+        for i in range(1, ITEMS_ADDED + 1):
+            self._update_fault(E_FaultTypes.OM, description=str(i))
+
+        # Get head of the log
+        conn.write_by_name(f"{self.PREFIX}.bHead", True)
+        self.assertEqual(
+            int(conn.read_by_name(f"{self.PREFIX}.stLogItem.stFault.Description")),
+            ITEMS_ADDED,
+        )
+
+        # Iterate through the rest
+        for i in range(ITEMS_ADDED - 1, 1, -1):
+            conn.write_by_name(f"{self.PREFIX}.bNext", True)
+            self.assertEqual(
+                int(conn.read_by_name(f"{self.PREFIX}.stLogItem.stFault.Description")),
+                i,
+            )
+
+    def test_07_iterate_empty_log(self):
+        conn.write_by_name(f"{self.PREFIX}.bHead", True)
+        self.assertEqual(
+            conn.read_by_name(f"{self.PREFIX}.stLogItem.stFault.Description"),
+            "",
         )
 
 

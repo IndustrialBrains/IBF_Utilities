@@ -1,12 +1,7 @@
-"""
-Tests for FB_StateMachine
-"""
+"""Tests for FB_StateMachine"""
+# pylint: disable=missing-function-docstring, missing-class-docstring, invalid-name
 import sys
 import unittest
-
-# pylint: disable=missing-function-docstring, missing-class-docstring, invalid-name
-import uuid
-from random import random
 from time import sleep
 
 from connection import cold_reset, conn, wait_cycles, wait_value
