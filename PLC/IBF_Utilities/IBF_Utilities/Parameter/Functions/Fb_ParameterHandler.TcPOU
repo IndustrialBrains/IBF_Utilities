@@ -31,7 +31,6 @@ END_VAR
 VAR
 	i 			: UINT ;
 	j			: UINT ;
-	nParNumber 	: UDINT;
 	stTempPar	: Udt_ParameterId ;
 	bParFound	: BOOL 	:= FALSE ;
 END_VAR]]></Declaration>
@@ -55,7 +54,7 @@ END_FOR
 // Add parameter to array
 nNumberOfParameters := nNumberOfParameters + 1; 
 IF nNumberOfParameters <= GVL_Parameters.MAX_PARAMETERS THEN
-	arParameters[nNumberOfParameters].nNumber		:= nParNumber 	;
+	arParameters[nNumberOfParameters].nNumber		:= refParameter.nNumber 	;
 	arParameters[nNumberOfParameters].sName			:= refParameter.sName	;
 	arParameters[nNumberOfParameters].sType			:= refParameter.sType	;
 	arParameters[nNumberOfParameters].pParameter 	:= ADR(refParameter)	;

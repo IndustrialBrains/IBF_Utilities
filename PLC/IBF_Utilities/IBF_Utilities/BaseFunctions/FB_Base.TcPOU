@@ -58,7 +58,7 @@ stIdentity.eComponentType := eComponentType;
 stIdentity.sName := F_FBNameFromPath(sPath := sPath);
 stIdentity.nLocationId := stIdentity.nParentId * 10000 + stIdentity.nId;
 
-ExecIdentifyDevice := (stIdentity.nId > 0) AND NOT (stIdentity.sName = '') AND (stIdentity.nId < 100);
+ExecIdentifyDevice := (stIdentity.sName <> '') AND (stIdentity.nId < 100);
 ]]></ST>
       </Implementation>
     </Method>

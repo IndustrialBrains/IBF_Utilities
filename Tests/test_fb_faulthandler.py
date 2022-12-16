@@ -2,7 +2,6 @@
 # pylint: disable=missing-function-docstring, missing-class-docstring, invalid-name
 import sys
 import unittest
-from distutils.sysconfig import PREFIX
 from enum import IntEnum, auto
 
 import pyads
@@ -48,12 +47,16 @@ class TestFB_FaultHandler(unittest.TestCase):
         active: bool = True,
     ):
         """(De)activate a fault by writing data to stFault"""
+        # Pause execution to make sure the whole FaultType struct is written before it gets handled.
+        # TODO: use conn.write_structure_by_name
+        conn.write_by_name(f"{self.PREFIX}.bEnableTests", False)
         conn.write_by_name(
             f"{self.PREFIX}.fbBase.stFault.FaultType", faulttype, pyads.PLCTYPE_UINT
         )
         if description:
-            conn.write_by_name(f"{self.PREFIX}.fbBase.stFault.description", description)
+            conn.write_by_name(f"{self.PREFIX}.fbBase.stFault.Description", description)
         conn.write_by_name(f"{self.PREFIX}.fbBase.stFault.Active", active)
+        conn.write_by_name(f"{self.PREFIX}.bEnableTests", True)
 
     def _check_active_fault_type(
         self, faulttype: E_FaultTypes, expected_status: bool
@@ -105,12 +108,17 @@ class TestFB_FaultHandler(unittest.TestCase):
 
     def test_add_fault(self):
         """Add a fault of each type, and check if the associated fault type is reported"""
-        # active_faults = 0
+        active_faults = 0
         for faulttype in E_FaultTypes:
             with self.subTest(faulttype.name):
                 # description must be unique, otherwise the fault is ignored
                 self._update_fault(faulttype)
                 self._check_active_fault_type(faulttype, True)
+                active_faults += 1
+                self.assertEqual(
+                    conn.read_by_name("GVL_Utilities.fbFaultHandler.nActiveFaults"),
+                    active_faults,
+                )
 
     def test_add_same_fault(self):
         """Add a fault, deactivate it and activate it again. Should result in 2 separate faults."""
