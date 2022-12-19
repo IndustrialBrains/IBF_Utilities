@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.10">
   <POU Name="FB_ParameterHandler" Id="{05138ead-89ff-49ee-b483-c922423e053d}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK PUBLIC FB_ParameterHandler
 VAR_OUTPUT
@@ -23,6 +23,7 @@ END_VAR
       <ST><![CDATA[// call parameter change function 
 ExecChangeParValues();]]></ST>
     </Implementation>
+    <Folder Name="Private" Id="{beb0703c-e68b-0204-1a24-e553485b6ef1}" />
     <Method Name="CmdAddParameter" Id="{583b0722-1ffd-474a-842a-92108166fa41}">
       <Declaration><![CDATA[METHOD PUBLIC CmdAddParameter : BOOL
 VAR_IN_OUT
@@ -35,44 +36,47 @@ VAR
 	bParFound	: BOOL 	:= FALSE ;
 END_VAR]]></Declaration>
       <Implementation>
-        <ST><![CDATA[// Get number of parameters
+        <ST><![CDATA[//Single loop to get the number of parameters and check if that parameter has already been added  
 FOR i := 1 TO GVL_Parameters.MAX_PARAMETERS DO
-	IF arParameters[i].pParameter = 0 THEN
+	//Check if it's a valid reference
+	IF (arParameters[i].pParameter = 0) THEN
+		//No, we have reached the end of the list
+		//The current index - 1 is the ammount of parameters
 		nNumberOfParameters := i - 1;
+		//Abort the FOR loop, we found the end.
 		EXIT ;
+	//It is a valid reference, valitate it is not already in the list  
+	ELSIF arParameters[i].nNumber = refParameter.nNumber THEN
+		//It is in the list, validate if the name matches 
+		IF (arParameters[i].sName = refParameter.sName) THEN
+			//Name and number match, assume it is the same parameter and just return that it is (already) added
+			CmdAddParameter := TRUE;
+			RETURN;
+		ELSE
+			//Number matches but not the name, this is a different parameter. Abort the add.
+			CmdAddParameter := FALSE;
+			RETURN;
+		END_IF
 	END_IF
 END_FOR
 
-// check if parameter is already added
-FOR i := 1 TO nNumberOfParameters DO
-	IF arParameters[i].nNumber = refParameter.nNumber THEN
-		CmdAddParameter := TRUE;
- 		RETURN ;
-	END_IF
-END_FOR
-	
-// Add parameter to array
+//Ok, here we are shure it's a new parameter, try adding it to the array
 nNumberOfParameters := nNumberOfParameters + 1; 
+//Does it fit?
 IF nNumberOfParameters <= GVL_Parameters.MAX_PARAMETERS THEN
+	//It fits, store the data
 	arParameters[nNumberOfParameters].nNumber		:= refParameter.nNumber 	;
 	arParameters[nNumberOfParameters].sName			:= refParameter.sName	;
 	arParameters[nNumberOfParameters].sType			:= refParameter.sType	;
 	arParameters[nNumberOfParameters].pParameter 	:= ADR(refParameter)	;
 	
-	// (re)sort parameter list
-	FOR i := 2 TO nNumberOfParameters BY 1 DO
-		FOR j := 1 TO nNumberOfParameters -1 BY 1 DO
-			IF (arParameters[j].nNumber > arParameters[j+1].nNumber)THEN
-				stTempPar 			:= arParameters[j+1];
-				arParameters[j+1]	:= arParameters[j];
-				arParameters[j]		:= stTempPar ;
-			END_IF
-		END_FOR
-	END_FOR	
+	//Check if the add was sucessfull
+	CmdAddParameter := arParameters[nNumberOfParameters].pParameter <> 0;
 	
-	// set feedback
-	CmdAddParameter S= arParameters[nNumberOfParameters].pParameter > 0 ;
+	//Give the command to (re)sort the parameter list
+	ExecSortParameters();
 ELSE
+	//Does not fit, return FALSE
 	CmdAddParameter := FALSE;	
 END_IF
 
@@ -103,6 +107,28 @@ ELSIF bCmdAcceptTeach THEN
 	bCmdAcceptTeach := FALSE ;
 END_IF
 ]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ExecSortParameters" Id="{1c8c82c5-31d4-0167-35d1-76ed749fa345}" FolderPath="Private\">
+      <Declaration><![CDATA[METHOD PRIVATE ExecSortParameters : BOOL
+VAR_INPUT
+END_VAR
+VAR
+	i 			: UDINT ;
+	j			: UDINT ;
+	stTempPar	: Udt_ParameterId ;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// (re)sort parameter list so it's order remains constant
+FOR i := 2 TO nNumberOfParameters BY 1 DO
+	FOR j := 1 TO nNumberOfParameters - 1 BY 1 DO
+		IF (arParameters[j].nNumber > arParameters[j+1].nNumber)THEN
+			stTempPar 			:= arParameters[j+1];
+			arParameters[j+1]	:= arParameters[j];
+			arParameters[j]		:= stTempPar ;
+		END_IF
+	END_FOR
+END_FOR	]]></ST>
       </Implementation>
     </Method>
   </POU>
