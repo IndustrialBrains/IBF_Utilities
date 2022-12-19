@@ -3,9 +3,6 @@
   <POU Name="FB_FunctionBase" Id="{ef86906a-1986-411c-841b-bedecc286c14}" SpecialFunc="None">
     <Declaration><![CDATA[{attribute 'reflection'}
 FUNCTION_BLOCK PUBLIC ABSTRACT FB_FunctionBase EXTENDS FB_Base
-VAR_INPUT
-	bSafetyOk	: BOOL 		:= TRUE 				; // Module can operate safely [default true]
-END_VAR
 VAR_OUTPUT
 	sActiveState	: STRING 		:= 'Idle'	; // active state of device 
 	bManual			: BOOL 			:= FALSE 	; // device is in manual mode
@@ -20,9 +17,7 @@ END_VAR]]></Declaration>
       <ST><![CDATA[SUPER^();
 
 // Communicate active state
-IF NOT bSafetyOk THEN 
-	sActiveState := 'Safety not ok';
-ELSIF bErrorActive THEN 
+IF bErrorActive THEN 
 	sActiveState := TO_STRING(stFault.Description);
 ELSIF NOT bInitOk THEN 
 	sActiveState := 'Not initialized';
