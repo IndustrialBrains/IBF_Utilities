@@ -7,7 +7,8 @@ TYPE E_ResetState :
 (
 	Idle,
 	ResetFaultTypes,
-	WaitForFaults
+	WaitForFaults,
+	Done
 );
 END_TYPE
 ]]></Declaration>

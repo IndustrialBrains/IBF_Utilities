@@ -41,7 +41,7 @@ END_VAR
 
 ExecReset();
 
-UpdateActiveFaultInfo();
+UpdateActiveFaultStatus();
 ]]></ST>
     </Implementation>
     <Folder Name="Private" Id="{2e728eb6-79bc-4de8-8875-9d08a8df9edd}" />
@@ -99,7 +99,7 @@ IF (eResetState = E_ResetState.Idle) THEN
 	bCmdReset := TRUE;
 END_IF
 
-CmdReset := (eResetState = E_ResetState.WaitForFaults); // Let the caller know when the reset cycle is finished
+CmdReset := (eResetState = E_ResetState.Done); // Let the caller know when the reset cycle is finished
 ]]></ST>
       </Implementation>
     </Method>
@@ -116,10 +116,7 @@ END_VAR]]></Declaration>
 			bCmdReset := FALSE;
 			eResetState := E_ResetState.ResetFaultTypes;
 		ELSE
-			// Report the status of each fault type	
-			FOR i:= 0 TO (E_FaultTypes._ENUM_SIZE - 1) DO		
-				arActiveFaultTypes[i] := arActiveFaultTypes_Internal[i];
-			END_FOR
+			ReportActiveFaultStatus();
 		END_IF
 	E_ResetState.ResetFaultTypes: 
 		// During a reset, the active fault types are not updated 
@@ -131,8 +128,13 @@ END_VAR]]></Declaration>
 		eResetState := E_ResetState.WaitForFaults;
 
 	E_ResetState.WaitForFaults: // Allow the PLC one cycle to re-add faults
+		eResetState := E_ResetState.Done;
+
+	E_ResetState.Done: // Done, report & allow caller one cycle to reset itself
+		ReportActiveFaultStatus();
 		eResetState := E_ResetState.Idle;
-END_CASE]]></ST>
+END_CASE
+]]></ST>
       </Implementation>
     </Method>
     <Method Name="FindNonEmptyFault" Id="{f653cfda-c6a2-0aba-0999-a219be313e66}" FolderPath="Private\">
@@ -206,14 +208,29 @@ END_VAR
         </Implementation>
       </Set>
     </Property>
-    <Method Name="UpdateActiveFaultInfo" Id="{478e9522-b643-0b3d-0d6d-947b92d13a5f}" FolderPath="Private\">
-      <Declaration><![CDATA[METHOD PRIVATE UpdateActiveFaultInfo : BOOL // Update active fault types based on active faults in the log
+    <Method Name="ReportActiveFaultStatus" Id="{bb238a89-dedc-03ce-36d6-86f48f05fe0e}" FolderPath="Private\">
+      <Declaration><![CDATA[METHOD PRIVATE ReportActiveFaultStatus : BOOL // Update active fault types based on active faults in the log
 VAR
 	i : UINT; // Iterator
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[nActiveFaults := 0;
+        <ST><![CDATA[// Report the status of each fault type to outside world	
+FOR i:= 0 TO (E_FaultTypes._ENUM_SIZE - 1) DO		
+	arActiveFaultTypes[i] := arActiveFaultTypes_Internal[i];
+END_FOR
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="UpdateActiveFaultStatus" Id="{478e9522-b643-0b3d-0d6d-947b92d13a5f}" FolderPath="Private\">
+      <Declaration><![CDATA[METHOD PRIVATE UpdateActiveFaultStatus : BOOL // Update active fault types based on active faults in the log
+VAR
+	i : UINT; // Iterator
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// Get active faults from log
+nActiveFaults := 0;
 FOR i := 1 TO MAX_FAULTS_IN_LOG DO
 	IF (arFaultLog[i].stFault.Active) THEN 
 		// Update the number of active faults
