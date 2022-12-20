@@ -312,10 +312,10 @@ END_FOR
 
 IF nFaultIndexInLog > 0 THEN // Already exists in the log
 	IF (stFault.Active) THEN // Still active, reset inactive cycle counter
-		arFaultLog[nLogIndex].nInactiveCycles := 0;
-	ELSIF (ANY_TO_DWORD(arFaultLog[nLogIndex].EndTime) = 0) THEN // No longer active, update end time and active state
-		arFaultLog[nLogIndex].stFault.Active := FALSE;
-		arFaultLog[nLogIndex].EndTime := Sys_Variables.SystemTime;
+		arFaultLog[nFaultIndexInLog].nInactiveCycles := 0;
+	ELSIF (ANY_TO_DWORD(arFaultLog[nFaultIndexInLog].EndTime) = 0) THEN // No longer active, update end time and active state
+		arFaultLog[nFaultIndexInLog].stFault.Active := FALSE;
+		arFaultLog[nFaultIndexInLog].EndTime := Sys_Variables.SystemTime;
 	END_IF
 ELSIF stFault.Active THEN // New active fault, add it to the log
 	// Update the log index (if full, move to beginning of the log)
@@ -326,6 +326,7 @@ ELSIF stFault.Active THEN // New active fault, add it to the log
 	arFaultLog[nLogIndex].stFault := stFault;
 	arFaultLog[nLogIndex].Id := sId;
 	arFaultLog[nLogIndex].StartTime := Sys_Variables.SystemTime;
+	arFaultLog[nLogIndex].EndTime := ANY_TO_DT(0);
 	arFaultLog[nLogIndex].nInactiveCycles := 0;
 END_IF
 ]]></ST>

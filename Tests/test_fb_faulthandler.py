@@ -3,6 +3,7 @@
 import sys
 import unittest
 from enum import IntEnum, auto
+from multiprocessing.connection import wait
 
 import pyads
 
@@ -57,6 +58,7 @@ class TestFB_FaultHandler(unittest.TestCase):
             conn.write_by_name(f"{self.PREFIX}.fbBase.stFault.Description", description)
         conn.write_by_name(f"{self.PREFIX}.fbBase.stFault.Active", active)
         conn.write_by_name(f"{self.PREFIX}.bEnableTests", True)
+        wait_cycles(10)
 
     def _check_active_fault_type(
         self, faulttype: E_FaultTypes, expected_status: bool
@@ -176,6 +178,7 @@ class TestFB_FaultHandler(unittest.TestCase):
 
         # Get head of the log
         conn.write_by_name(f"{self.PREFIX}.bHead", True)
+        wait_value(f"{self.PREFIX}.bHead", False, 0.5)
         self.assertEqual(
             int(conn.read_by_name(f"{self.PREFIX}.stLogItem.stFault.Description")),
             ITEMS_ADDED,
@@ -184,6 +187,7 @@ class TestFB_FaultHandler(unittest.TestCase):
         # Iterate through the rest
         for i in range(ITEMS_ADDED - 1, 1, -1):
             conn.write_by_name(f"{self.PREFIX}.bNext", True)
+            wait_value(f"{self.PREFIX}.bNext", False, 0.5)
             self.assertEqual(
                 int(conn.read_by_name(f"{self.PREFIX}.stLogItem.stFault.Description")),
                 i,
@@ -209,6 +213,7 @@ class TestFB_FaultHandler(unittest.TestCase):
 
         # Get head of the log, should contain the fault
         conn.write_by_name(f"{self.PREFIX}.bHead", True)
+        wait_value(f"{self.PREFIX}.bHead", False, 0.5)
         self.assertEqual(
             conn.read_by_name(f"{self.PREFIX}.stLogItem.stFault.Description"),
             DESCRIPTION,
@@ -218,6 +223,7 @@ class TestFB_FaultHandler(unittest.TestCase):
 
         # Get head of the log, should be an empty fault
         conn.write_by_name(f"{self.PREFIX}.bHead", True)
+        wait_value(f"{self.PREFIX}.bHead", False, 0.5)
         self.assertEqual(
             conn.read_by_name(f"{self.PREFIX}.stLogItem.stFault.Description"),
             "",
@@ -269,6 +275,7 @@ class TestFB_FaultHandler(unittest.TestCase):
 
         # Get head of the log, should be the first added fault
         conn.write_by_name(f"{self.PREFIX}.bHead", True)
+        wait_value(f"{self.PREFIX}.bHead", False, 0.5)
         self.assertEqual(
             conn.read_by_name(f"{self.PREFIX}.stLogItem.stFault.Description"),
             "1",
