@@ -61,6 +61,9 @@ END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[// Update the log
 UpdateLog(stFault, stIdentity);
+
+// Clear active status (to be updated by caller)
+stFault.Active := FALSE;
 ]]></ST>
       </Implementation>
     </Method>

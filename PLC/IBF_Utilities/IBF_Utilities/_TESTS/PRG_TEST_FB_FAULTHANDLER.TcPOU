@@ -10,11 +10,16 @@ VAR
 	stLogItem : UDT_FaultLogItem;
 	bHead : BOOL;
 	bNext : BOOL;
+	bActive : BOOL;
+	pFault : POINTER TO UDT_Fault; // Workaround to reach non-output variable fbBase.stFault
 END_VAR
 ]]></Declaration>
     <Implementation>
       <ST><![CDATA[IF bEnableTests THEN
 	fbBase();
+	
+	pFault := ADR(fbBase.stFault);
+	pFault^.Active := bActive;
 	
 	IF bCmdReset THEN
 		bCmdReset R= GVL_Utilities.fbFaultHandler.CmdReset();

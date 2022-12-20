@@ -56,7 +56,7 @@ class TestFB_FaultHandler(unittest.TestCase):
         )
         if description:
             conn.write_by_name(f"{self.PREFIX}.fbBase.stFault.Description", description)
-        conn.write_by_name(f"{self.PREFIX}.fbBase.stFault.Active", active)
+        conn.write_by_name(f"{self.PREFIX}.bActive", active)
         conn.write_by_name(f"{self.PREFIX}.bEnableTests", True)
         wait_cycles(10)
 
@@ -148,7 +148,7 @@ class TestFB_FaultHandler(unittest.TestCase):
         faulttype = E_FaultTypes.OM
         self._update_fault(faulttype)
         self._check_active_fault_type(faulttype, True)
-        conn.write_by_name(f"{self.PREFIX}.fbBase.stFault.Active", False)
+        self._update_fault(faulttype, active=False)
         self._trigger_reset()
         self._check_active_fault_type(faulttype, False)
 
