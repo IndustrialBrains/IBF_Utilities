@@ -169,6 +169,9 @@
     <Compile Include="Positions\Functions\F_TriggerPosOffset.TcPOU">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="StateMachine\FB_PauseableStateMachine.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="StateMachine\FB_StateMachine.TcPOU">
       <SubType>Code</SubType>
     </Compile>
@@ -203,6 +206,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="_TESTS\PRG_TEST_FB_STATEMACHINE.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="_TESTS\PRG_TEST_FB_PAUSEABLESTATEMACHINE.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="_TESTS\PRG_TEST_GLOBAL.TcPOU">

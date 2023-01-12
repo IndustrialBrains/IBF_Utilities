@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="FB_PauseableStateMachine" Id="{151ee5ae-2d77-005c-36c8-2389a7b41e57}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_PauseableStateMachine EXTENDS FB_StateMachine // An extension of FB_StateMachine that allows state pauses
+VAR_INPUT
+	nPauseState : UDINT; // The state to go to when paused
+	bRequestPause : BOOL; // If TRUE, the state machine will go to nPauseState on the next state change
+	bIgnorePause : BOOL; // If TRUE, the state machine will ignore a pause request. NOTE: This BOOL will be set to FALSE on a state change
+END_VAR
+VAR
+	nResumeState : UDINT; // The state to go to when un-pausing (where the statemachine wanted to go, but wasn' allowed to) 
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[SUPER^(nState := nState);
+
+IF bStateChanged THEN
+	IF bRequestPause AND (NOT bIgnorePause) THEN
+		nResumeState := nState;
+		nState := nPauseState;
+		nStatePrev := nState;
+	END_IF
+	bIgnorePause := FALSE;
+END_IF
+]]></ST>
+    </Implementation>
+    <Method Name="Resume" Id="{f1094c5c-827e-0ce7-1d07-7d367a96aaf2}">
+      <Declaration><![CDATA[METHOD PUBLIC Resume
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[{warning disable C0371}
+IF __ISVALIDREF(nState) THEN
+	IF (NOT bRequestPause) THEN
+		nState := nResumeState;
+	END_IF
+END_IF
+{warning restore C0371}
+]]></ST>
+      </Implementation>
+    </Method>
+  </POU>
+</TcPlcObject>

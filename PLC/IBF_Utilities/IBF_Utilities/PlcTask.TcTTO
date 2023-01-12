@@ -23,6 +23,9 @@
       <Name>PRG_TEST_FB_STATEMACHINE</Name>
     </PouCall>
     <PouCall>
+      <Name>PRG_TEST_FB_PAUSEABLESTATEMACHINE</Name>
+    </PouCall>
+    <PouCall>
       <Name>PRG_TEST_CONVERSION</Name>
     </PouCall>
     <TaskFBGuid>{4044c53b-0bf6-47d5-bad3-00685ebfd798}</TaskFBGuid>

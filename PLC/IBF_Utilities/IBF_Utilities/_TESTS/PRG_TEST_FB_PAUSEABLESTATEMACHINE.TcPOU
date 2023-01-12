@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="PRG_TEST_FB_PAUSEABLESTATEMACHINE" Id="{4be5e8d1-5890-072a-1f97-e06dd21bd0f4}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM INTERNAL PRG_TEST_FB_PAUSEABLESTATEMACHINE
+VAR CONSTANT
+	PAUSE_STATE : UDINT := 100;
+END_VAR
+VAR
+	bEnableTests : BOOL;
+
+	nState : UDINT;
+	fbStateMachine : FB_PauseableStateMachine;
+	bDoSomething : BOOL;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF bEnableTests THEN
+	fbStateMachine(nState := nState, nPauseState := PAUSE_STATE);
+	
+	CASE nState OF
+		0 : IF bDoSomething THEN
+				nState := 1;
+			END_IF
+			
+		PAUSE_STATE :
+			IF bDoSomething THEN
+				 fbStateMachine.Resume();
+			END_IF
+	END_CASE
+
+	bDoSomething := FALSE;
+END_IF
+]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>
