@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="E_LogToDiskState" Id="{4a07d5b6-8dd0-0e71-18fc-e912fe738cb0}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'strict'}
+TYPE E_LogToDiskState : // LogToDisk state
+(
+	InitializeFBs,
+	WaitForCommand,
+	OpenOrCreateFile,
+	CheckFileSize,
+	WriteLogItem,
+	CloseFile,
+	FindObsoleteFiles,
+	DeleteFile,
+	Error
+) UDINT;
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

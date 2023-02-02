@@ -1,0 +1,367 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="FB_LogToDisk" Id="{a722563c-1b3c-082f-3710-fb1c23b337b0}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK PUBLIC FB_LogToDisk // Regularly writes contents of the log to disk
+// Once the log file reaches a set size, a new log file is created.
+// If the max number of files is reached, the oldest file is discarded.
+VAR CONSTANT
+	MAX_ITEMS_IN_BUFFER 	: UDINT := 100; // Should be long enough to allow for worst case writes (where an old file has to be deleted and a new file created).  
+END_VAR
+VAR_INPUT
+	bEnable : BOOL; // If enabled, log items will be written to disk
+END_VAR
+VAR_OUTPUT
+	bFault 				: BOOL; // An error occured while trying to add to log or write to disk
+	sFaultDescription	: STRING[80]; // Detailed error information
+	bLoggerInitialized  : BOOL; // True the first time the logger has ran through all states (ie., after succesfully writing the first log message and emptying the buffer)
+	sCurrentLogFile		: T_MaxString; // The file which is currently used for logging (and can be viewed for instance by the HMI)
+END_VAR
+VAR
+	// Properties set by FB_init
+	sLogFolder 			: T_MaxString;
+	sLogFilePrefix 		: T_MaxString;
+	sLogFileExtension 	: T_MaxString;
+	nMaxLogFileSize 	: ULINT; // [bytes] When this size is reached, a new log file is created 
+	nMaxNumberOfLogFiles: UINT;
+
+	// State machine
+	fbStateMachine 	: FB_StateMachine;	
+	eState 			: E_LogToDiskState := E_LogToDiskState.InitializeFBs;
+	
+	// Log item buffer
+	sMsg 		: T_MaxString;	
+	cbBuffer 	: ARRAY[1..(MAX_ITEMS_IN_BUFFER * (SIZEOF(T_MaxString) + 4))] OF BYTE; // Note that the buffer size is larger than the number of items * item size, because 4 bytes are added to each item by FB_MemRingBuffer
+	fbBuffer 	: FB_MemRingBuffer := (pBuffer:= ADR(cbBuffer), cbBuffer:= SIZEOF(cbBuffer));
+
+	// File function blocks (asynchronous)
+	fbFileOpen			: FB_FileOpen; // https://infosys.beckhoff.com/content/1033/tcplclib_tc2_system/30977547.html
+	fbFilePuts			: FB_FilePuts; // https://infosys.beckhoff.com/content/1033/tcplclib_tc2_system/30979083.html
+	fbFileClose			: FB_FileClose; // https://infosys.beckhoff.com/content/1033/tcplclib_tc2_system/30972939.html
+	fbFileProperties	: FB_FileProperties; // https://infosys.beckhoff.com/content/1033/tcplclib_tc2_utilities/10047843595.html
+    fbEnumFiles			: FB_EnumFindFileEntry; // https://infosys.beckhoff.com/content/1033/tcplclib_tc2_utilities/34982539.html
+	fbFileDelete		: FB_FileDelete; // https://infosys.beckhoff.com/content/1033/tcplclib_tc2_system/30974475.html
+
+	sPath: STRING; // Path to the current log file
+	
+	tOldestLogFile 	: ST_FindFileEntry; // Reference to the oldest log file in the log folder
+	nFileCount		: UINT; // Number of log files found  
+	
+	fbFormatString : FB_FormatString; // https://infosys.beckhoff.com/content/1033/tcplclib_tc2_utilities/34990219.html
+
+END_VAR
+VAR_TEMP
+	nFileSize : ULINT;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[fbStateMachine(nState := eState);
+
+CASE eState OF
+	E_LogToDiskState.InitializeFBs:
+		// Initialize function blocks
+		fbFileOpen(
+			bExecute := FALSE,
+			ePath := PATH_GENERIC,
+		);
+		fbFilePuts(bExecute := FALSE);
+		fbFileClose(bExecute := FALSE);
+		fbFileProperties(bExecute := FALSE);
+		fbEnumFiles(bExecute := FALSE);
+		fbFileDelete(
+			bExecute := FALSE,
+			ePath := PATH_GENERIC,
+		);
+		
+		eState := E_LogToDiskState.WaitForCommand;
+
+	E_LogToDiskState.WaitForCommand:
+		IF bEnable THEN
+			IF (sMsg = '') THEN
+				sMsg := Pop();
+			ELSE
+				eState := E_LogToDiskState.OpenOrCreateFile;
+			END_IF
+		END_IF
+
+	E_LogToDiskState.OpenOrCreateFile:
+		IF fbStateMachine.bStateChanged THEN
+			// Create a new file path if none was given (i.e., after reboot or when file size limit has been reached)
+			IF (sPath = '') THEN
+				sPath := CreatePath();
+			END_IF  	
+		END_IF
+		fbFileOpen(
+			bExecute := TRUE,	
+			sPathName := sPath, 
+			nMode := FOPEN_MODEAPPEND OR FOPEN_MODETEXT, // Open file in read/write text mode
+		);
+		IF (NOT fbFileOpen.bBusy) THEN
+			fbFileOpen(bExecute := FALSE);
+			IF fbFileOpen.bError THEN
+				fbFormatString(sFormat := 'Unable to open file (error code 0x%X)', arg1 := F_UDINT(fbFileOpen.nErrId), sOut => sFaultDescription);
+				eState := E_LogToDiskState.Error;
+			ELSE
+				sCurrentLogFile := sPath;
+				eState := E_LogToDiskState.CheckFileSize;
+			END_IF
+		END_IF
+
+	E_LogToDiskState.CheckFileSize:
+		fbFileProperties(
+			bExecute := TRUE,	
+			sPathName := sPath 
+		);
+		IF (NOT fbFileProperties.bBusy) THEN
+			fbFileProperties(bExecute := FALSE);
+			IF fbFileProperties.bError THEN
+				fbFormatString(sFormat := 'Unable to get file properties (error code 0x%X)', arg1 := F_UDINT(fbFileProperties.nErrId), sOut => sFaultDescription);
+				eState := E_LogToDiskState.Error;
+			ELSE
+				// Check file size
+				// ST_FindFileEntry info at https://infosys.beckhoff.com/content/1033/tcplclib_tc2_utilities/35363851.html
+				nFileSize := ULARGE_TO_ULINT(fbFileProperties.stProperties.fileSize);
+				IF (nFileSize >= nMaxLogFileSize) THEN
+					// Create a last message for the log
+					fbFormatString(sFormat := 'File size exceeded (%u bytes), creating new file.', arg1 := F_ULINT(nFileSize), sOut => fbFilePuts.sLine);
+					sPath := ''; // Trigger new file creation
+				ELSE
+					// Add message for the log, and clear sMsg string to trigger new message pop
+					fbFilePuts.sLine := sMsg;
+					sMsg := '';
+				END_IF
+				eState := E_LogToDiskState.WriteLogItem;
+			END_IF
+		END_IF
+	
+	E_LogToDiskState.WriteLogItem:
+		IF fbStateMachine.bStateChanged THEN
+			fbFilePuts.sLine := BuildLogString(fbFilePuts.sLine); 	
+		END_IF
+		fbFilePuts(bExecute := TRUE, hFile := fbFileOpen.hFile);
+		IF (NOT fbFilePuts.bBusy) THEN
+			fbFilePuts(bExecute := FALSE);
+			IF fbFilePuts.bError THEN
+				fbFormatString(sFormat := 'Unable to write log record to file (error code 0x%X)', arg1 := F_UDINT(fbFilePuts.nErrId), sOut => sFaultDescription);
+				eState := E_LogToDiskState.Error;
+			ELSE // Done, get the next item in the buffer
+				sMsg := Pop();
+				IF (sMsg = '') THEN // Buffer empty
+					eState := E_LogToDiskState.CloseFile;
+				ELSE
+					eState := E_LogToDiskState.CheckFileSize;
+				END_IF
+			END_IF
+		END_IF
+	
+	E_LogToDiskState.CloseFile:
+		fbFileClose(bExecute := TRUE, hFile := fbFileOpen.hFile);
+		IF (NOT fbFileClose.bBusy) THEN
+			fbFileClose(bExecute := FALSE);
+			IF fbFileClose.bError THEN
+				fbFormatString(sFormat := 'Unable to close file (error code 0x%X)', arg1 := F_UDINT(fbFileClose.nErrId), sOut => sFaultDescription);
+				eState := E_LogToDiskState.Error;
+			ELSE
+				eState := E_LogToDiskState.FindObsoleteFiles;
+			END_IF
+		END_IF
+	
+	E_LogToDiskState.FindObsoleteFiles:
+		// Delete oldest log files in log folder until we're at MAX_NUMBER_OF_LOG_FILES
+		IF fbStateMachine.bStateChanged THEN
+			nFileCount := 0;	
+			tOldestLogFile.sFileName := ''; 
+			// Create a path search string, e.g. '/tmp/Log_*.txt'
+			fbFormatString(
+				sFormat := '%s/%s*.%s',
+				arg1 := F_STRING(sLogFolder),
+				arg2 := F_STRING(sLogFilePrefix),
+				arg3 := F_STRING(sLogFileExtension),
+				sOut => fbEnumFiles.sPathName
+			);
+			fbEnumFiles.eCmd := E_EnumCmdType.eEnumCmd_First;
+		END_IF
+		fbEnumFiles(bExecute := TRUE);
+		IF (NOT fbEnumFiles.bBusy) THEN
+			fbEnumFiles(bExecute := FALSE, eCmd := E_EnumCmdType.eEnumCmd_Next);
+			IF fbEnumFiles.bError THEN
+				fbFormatString(
+					sFormat := 'Unable to get files in folder "%s" (error code 0x%X)',
+					arg1 := F_STRING(fbEnumFiles.sPathName),
+					arg2 := F_UDINT(fbEnumFiles.nErrId),
+					sOut => sFaultDescription
+				);
+				eState := E_LogToDiskState.Error;
+			ELSIF fbEnumFiles.bEOE THEN
+				// Found all files, carry on
+				eState := E_LogToDiskState.WaitForCommand;
+				bLoggerInitialized := TRUE;
+			ELSE
+				// Found a file, check if it's older than the previous find
+				nFileCount := nFileCount + 1;
+				IF (tOldestLogFile.sFileName = '') 
+					OR (PLWORD_TO_LWORD(ADR(fbEnumFiles.stFindFile.creationTime)) < PLWORD_TO_LWORD(ADR(tOldestLogFile.creationTime))) 
+				THEN
+					tOldestLogFile := fbEnumFiles.stFindFile;
+				END_IF
+				IF (nFileCount > nMaxNumberOfLogFiles) THEN
+					// Max number of log files reached, delete the file				
+					eState := E_LogToDiskState.DeleteFile;
+				END_IF
+			END_IF
+		END_IF
+
+	E_LogToDiskState.DeleteFile:
+		IF fbStateMachine.bStateChanged THEN
+			fbFormatString(
+				sFormat := '%s/%s',
+				arg1 := F_STRING(sLogFolder),
+				arg2 := F_STRING(tOldestLogFile.sFileName),
+				sOut => fbFileDelete.sPathName
+			);
+		END_IF
+		fbFileDelete(bExecute := TRUE);
+		IF (NOT fbFileDelete.bBusy) THEN
+			fbFileDelete(bExecute := FALSE);
+			IF fbFileDelete.bError THEN
+				fbFormatString(
+					sFormat := 'Unable to delete file "%s" (error code 0x%X)',
+					arg1 := F_STRING(tOldestLogFile.sFileName),
+					arg2 := F_UDINT(fbFileClose.nErrId), 
+					sOut => sFaultDescription
+				);
+				eState := E_LogToDiskState.Error;
+			ELSE // Done deleting, continue searching for obsolete files
+				eState := E_LogToDiskState.FindObsoleteFiles;
+			END_IF
+		END_IF
+
+	E_LogToDiskState.Error:
+		IF (sFaultDescription = '') THEN
+			sFaultDescription := 'Unknown error';
+		END_IF
+
+END_CASE
+
+bFault S= (eState = E_LogToDiskState.Error);
+]]></ST>
+    </Implementation>
+    <Method Name="AddToLog" Id="{bff9ee33-3717-027a-138b-f9964612e88c}">
+      <Declaration><![CDATA[METHOD PUBLIC AddToLog
+VAR_INPUT
+	sMsg : T_MaxString;	
+END_VAR
+VAR
+	bOk : BOOL;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// Ignore empty messages
+IF (sMsg = '') THEN
+	RETURN;
+END_IF
+
+fbBuffer.A_AddTail(
+	pWrite := ADR(sMsg),
+	cbWrite := SIZEOF(sMsg),
+	bOk => bOk,
+);
+
+IF NOT bOk THEN // Buffer overflow
+	bFault := TRUE;
+	sFaultDescription := 'Log buffer size limit reached! Not all log items have been written to disk.';
+	fbBuffer.A_Reset(); // Clear buffer
+END_IF
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="BuildLogString" Id="{60392701-6e84-0b30-1480-cc0b57da2599}">
+      <Declaration><![CDATA[METHOD PROTECTED BuildLogString : T_MaxString
+VAR CONSTANT
+	CRLF : STRING := '$R$L'; // Windows style line ending
+END_VAR
+VAR_INPUT
+	sMessage : STRING[255-26]; // Reduce string length to allow room for timestamp and CRLF 
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// Not using fbFormatString here to allow BuildLogString to be used within a fbFormatString call
+BuildLogString := CONCAT('[', Sys_Variables.SystemTimeString);
+BuildLogString := CONCAT(BuildLogString, '] ');
+BuildLogString := CONCAT(BuildLogString, sMessage);
+BuildLogString := CONCAT(BuildLogString, CRLF);
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="CreatePath" Id="{28455913-5a7f-004f-3c48-f7a0c0ab7d6c}">
+      <Declaration><![CDATA[METHOD PROTECTED CreatePath : STRING // Create a filename with a date/time stamp, e.g. "/tmp/Log_20230203-093610.txt'
+VAR
+	fMonth : REAL;
+	fDay : REAL;
+	fHour : REAL;
+	fMinute : REAL;
+	fSecond : REAL;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[{warning 'TODO: test on windows platform'}
+
+// Suppress error "VAR_IN_OUT parameter 'in' needs variable with write access as input."	
+fMonth := WORD_TO_REAL(Sys_Variables.SystemTime_TS.wMonth); 
+fDay := WORD_TO_REAL(Sys_Variables.SystemTime_TS.wDay); 
+fHour := WORD_TO_REAL(Sys_Variables.SystemTime_TS.wHour); 
+fMinute := WORD_TO_REAL(Sys_Variables.SystemTime_TS.wMinute); 
+fSecond := WORD_TO_REAL(Sys_Variables.SystemTime_TS.wSecond); 
+
+fbFormatString(
+	sFormat := '%s/%s%u%02.0f%02.0f-%02.0f%02.0f%02.0f.%s',
+	arg1 := F_STRING(sLogFolder),
+	arg2 := F_STRING(sLogFilePrefix),
+	arg3 := F_WORD(Sys_Variables.SystemTime_TS.wYear),
+	arg4 := F_REAL(fMonth),
+	arg5 := F_REAL(fDay),
+	arg6 := F_REAL(fHour),
+	arg7 := F_REAL(fMinute),
+	arg8 := F_REAL(fSecond),
+	arg9 := F_STRING(sLogFileExtension),
+	sOut => CreatePath
+);
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="FB_init" Id="{3e31473c-86c3-0ff7-324f-81de8ebfd10c}">
+      <Declaration><![CDATA[METHOD FB_init : BOOL
+VAR_INPUT
+	bInitRetains : BOOL; // if TRUE, the retain variables are initialized (warm start / cold start)
+	bInCopyCode : BOOL;  // if TRUE, the instance afterwards gets moved into the copy code (online change)
+
+	sLogFolder 			: T_MaxString; // Example for TwinCAT/BSD: '/tmp'. The folder where log files will be stored. Do not add trailing '/' or '\'. 
+	sLogFilePrefix 		: T_MaxString; // Example: 'Log_'
+	sLogFileExtension 	: T_MaxString; // Example: 'txt'
+	nMaxLogFileSize 	: ULINT; // [bytes] When this size is reached, a new log file is created 
+	nMaxNumberOfLogFiles: UINT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[THIS^.sLogFolder := sLogFolder;
+THIS^.sLogFilePrefix := sLogFilePrefix;
+THIS^.sLogFileExtension := sLogFileExtension;
+THIS^.nMaxLogFileSize := nMaxLogFileSize;
+THIS^.nMaxNumberOfLogFiles := nMaxNumberOfLogFiles;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Pop" Id="{d6331dd4-6e1f-043e-18b0-d56bd8407d9a}">
+      <Declaration><![CDATA[METHOD PROTECTED Pop : T_MaxString; // Pops the buffer head (returns the oldest log message in the buffer)
+
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[fbBuffer.A_RemoveHead(
+	pRead:= ADR(Pop),
+	cbRead:= SIZEOF(Pop),
+);
+
+// Reduce string length to 253 chars to allow for CRLF line ending
+Pop := LEFT(Pop, 253);]]></ST>
+      </Implementation>
+    </Method>
+  </POU>
+</TcPlcObject>

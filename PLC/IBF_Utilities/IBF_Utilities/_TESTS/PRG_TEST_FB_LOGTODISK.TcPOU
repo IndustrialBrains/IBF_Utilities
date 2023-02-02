@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="PRG_TEST_FB_LOGTODISK" Id="{90bc222e-4655-0939-07a6-64349ec214b9}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM INTERNAL PRG_TEST_FB_LOGTODISK
+VAR
+	fbLogToDisk : FB_LogToDisk(
+						sLogFolder := '/tmp',
+						sLogFilePrefix := 'AutomaticTestLog_',
+						sLogFileExtension := 'txt',
+						nMaxLogFileSize := 500,
+						nMaxNumberOfLogFiles := 3
+					);
+	bEnableTests : BOOL;
+	bEnable : BOOL;
+	bAddToLog : BOOL;
+	sMsg : T_MaxString;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF bEnableTests THEN
+	fbLogToDisk(bEnable := bEnable);
+	IF bAddToLog THEN
+		bAddToLog := FALSE;
+		fbLogToDisk.AddToLog(sMsg);
+	END_IF
+END_IF]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>

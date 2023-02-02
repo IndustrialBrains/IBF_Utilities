@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.5">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
   <GVL Name="Sys_Variables" Id="{1c9e37ba-12ad-44ad-8d0c-c2b5a10f9ae8}">
     <Declaration><![CDATA[(* System variables *)
 {attribute 'qualified_only'}
@@ -12,7 +12,9 @@ VAR_GLOBAL
 	BlinkSlow		:BOOL 			;// System variable, Blink slow bit 2 sec
 	Pulse1Sec		:BOOL 			;// System variable, Pulse 1 cycle every second
 	Pulse100ms		:BOOL 			;// System variable, pulse 1 cycle every 100 ms
-	SystemTime		:DT				; // System variable, Windows system time
+	SystemTime		:DATE_AND_TIME	; // System variable, Windows system time as DATE_AND_TIME
+	SystemTime_TS	:TIMESTRUCT		; // System variable, Windows system time as TIMESTRUCT
+	SystemTimeString:STRING[21]		; // System variable, Windows system time as timestamp string, e.g. '2023010-12:01:59.123'
 	TimeZoneId		:E_TimeZoneID 	; // System variable, time zone Id 
 	HeartBeat		:BOOL 			;// System Variable, Main system heartbeat 0.5 sec on 0.5 sec off
 END_VAR]]></Declaration>

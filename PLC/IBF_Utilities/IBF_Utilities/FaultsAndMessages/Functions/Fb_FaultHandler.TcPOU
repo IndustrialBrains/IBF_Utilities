@@ -42,6 +42,18 @@ UpdateActiveFaultStatus();
 ]]></ST>
     </Implementation>
     <Folder Name="Private" Id="{2e728eb6-79bc-4de8-8875-9d08a8df9edd}" />
+    <Method Name="BuildLogString" Id="{ee42f64f-d61c-00b7-2d42-f94a1067fdfa}" FolderPath="Private\">
+      <Declaration><![CDATA[METHOD PROTECTED BuildLogString : T_MaxString
+VAR_INPUT
+	stFault : UDT_Fault;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[BuildLogString := CONCAT(TO_STRING(stFault.FaultType), ' - ');
+BuildLogString := CONCAT(BuildLogString, stFault.Description);
+]]></ST>
+      </Implementation>
+    </Method>
     <Method Name="CmdAddFault" Id="{cd103280-aca4-4b4a-a070-10b84eec5ffb}">
       <Declaration><![CDATA[METHOD PUBLIC CmdAddFault : BOOL
 (*
@@ -320,6 +332,7 @@ IF nFaultIndexInLog > 0 THEN // Already exists in the log
 	ELSIF (ANY_TO_DWORD(arFaultLog[nFaultIndexInLog].EndTime) = 0) THEN // No longer active, update end time and active state
 		arFaultLog[nFaultIndexInLog].stFault.Active := FALSE;
 		arFaultLog[nFaultIndexInLog].EndTime := Sys_Variables.SystemTime;
+		GVL_Utilities.fbLogger.AddToLog(CONCAT('FAULT END: ', BuildLogString(stFault)));
 	END_IF
 ELSIF stFault.Active THEN // New active fault, add it to the log
 	// Update the log index (if full, move to beginning of the log)
@@ -332,6 +345,8 @@ ELSIF stFault.Active THEN // New active fault, add it to the log
 	arFaultLog[nLogIndex].StartTime := Sys_Variables.SystemTime;
 	arFaultLog[nLogIndex].EndTime := ANY_TO_DT(0);
 	arFaultLog[nLogIndex].nInactiveCycles := 0;
+
+	GVL_Utilities.fbLogger.AddToLog(CONCAT('FAULT START: ', BuildLogString(stFault)));
 END_IF
 ]]></ST>
       </Implementation>

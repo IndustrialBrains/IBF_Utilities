@@ -122,6 +122,12 @@
     <Compile Include="GVLs\Sys_Variables.TcGVL">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Logger\DataTypes\E_LogToDiskState.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Logger\Functions\FB_LogToDisk.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="MovePathCalculations\fAccDecCalc.TcPOU">
       <SubType>Code</SubType>
     </Compile>
@@ -203,6 +209,9 @@
     <Compile Include="_TESTS\PRG_TEST_FB_FAULTHANDLER.TcPOU">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="_TESTS\PRG_TEST_FB_LOGTODISK.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="_TESTS\PRG_TEST_FB_PARAMETERHANDLER.TcPOU">
       <SubType>Code</SubType>
     </Compile>
@@ -221,6 +230,9 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="GVLs" />
+    <Folder Include="Logger" />
+    <Folder Include="Logger\DataTypes" />
+    <Folder Include="Logger\Functions" />
     <Folder Include="StateMachine" />
     <Folder Include="_TESTS" />
     <Folder Include="Compare\Functions" />

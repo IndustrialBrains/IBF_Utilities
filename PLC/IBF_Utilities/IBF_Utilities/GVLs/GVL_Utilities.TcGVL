@@ -4,6 +4,15 @@
     <Declaration><![CDATA[{attribute 'qualified_only'}
 VAR_GLOBAL
 	fbFaultHandler : FB_FaultHandler; // The one and only faulthandler (a singleton)
-END_VAR]]></Declaration>
+
+	fbLogger : FB_LogToDisk(
+					sLogFolder := PAR_Utilities.LOG_FOLDER,
+					sLogFilePrefix := 'Log_',
+					sLogFileExtension := 'txt',
+					nMaxLogFileSize := 512*1024, // 512kb
+					nMaxNumberOfLogFiles := 10
+				);
+END_VAR
+]]></Declaration>
   </GVL>
 </TcPlcObject>
