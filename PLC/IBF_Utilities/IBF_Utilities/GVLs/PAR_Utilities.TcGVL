@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <GVL Name="PAR_Utilities" Id="{d63644bd-7f6e-0ba3-261d-2dba85e967fe}" ParameterList="True">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+// Contains library parameters
+VAR_GLOBAL CONSTANT
+	MAX_FAULTS_IN_LOG : UINT := 16; // Max number of faults in the FaultHandler log (should match with the size of the HMI's logview table) 
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

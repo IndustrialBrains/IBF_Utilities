@@ -15,14 +15,11 @@ It is not responsible for
 
 Active faults do not disappear from the log, the need to be manually cleared by issuing a CmdReset and CmdClearInactive.
 *)
-VAR CONSTANT
-	MAX_FAULTS_IN_LOG : UINT := 10;
-END_VAR
 VAR_INPUT
 	nMaxInactiveCycles : UINT := 50; // Once faults haven't been activated for a number of PLC cycles, deactivate them. 0 = do not automatically deactivate faults 
 END_VAR
 VAR_OUTPUT
-	arFaultLog 			: ARRAY [1..MAX_FAULTS_IN_LOG] OF UDT_FaultLogItem;
+	arFaultLog 			: ARRAY [1..PAR_Utilities.MAX_FAULTS_IN_LOG] OF UDT_FaultLogItem;
 	nFaultsInLog 		: UINT;
 	nActiveFaults 		: UINT;
 	arActiveFaultTypes 	: ARRAY[0..(E_FaultTypes._ENUM_SIZE - 1)] OF BOOL; // Status of each fault type
@@ -75,9 +72,9 @@ VAR
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[nFaultsInLog := MAX_FAULTS_IN_LOG;
+        <ST><![CDATA[nFaultsInLog := PAR_Utilities.MAX_FAULTS_IN_LOG;
 IF (eResetState = E_ResetState.Idle) THEN
-	FOR i := 1 TO MAX_FAULTS_IN_LOG DO
+	FOR i := 1 TO PAR_Utilities.MAX_FAULTS_IN_LOG DO
 		IF (NOT arFaultLog[i].stFault.Active) THEN
 			nFaultsInLog :=nFaultsInLog - 1;
 			arFaultLog[i] := stEmptyItem;
@@ -151,14 +148,18 @@ END_VAR
 ]]></Declaration>
       <Implementation>
         <ST><![CDATA[// Sanitize input
-nStartIndex := LIMIT(1, nStartIndex, MAX_FAULTS_IN_LOG);
+IF nStartIndex = 0 THEN
+	nStartIndex := PAR_Utilities.MAX_FAULTS_IN_LOG;
+ELSE
+	nStartIndex := MIN(nStartIndex, PAR_Utilities.MAX_FAULTS_IN_LOG);
+END_IF
 
 // Iterate array backwards until a non empty item is found.
-FOR i := 1 TO MAX_FAULTS_IN_LOG DO
+FOR i := 1 TO PAR_Utilities.MAX_FAULTS_IN_LOG DO
 	IF arFaultLog[nStartIndex].bEmpty THEN
 		nStartIndex := nStartIndex - 1;
 		IF nStartIndex = 0 THEN
-			nStartIndex := MAX_FAULTS_IN_LOG;
+			nStartIndex := PAR_Utilities.MAX_FAULTS_IN_LOG;
 		END_IF
 	ELSE
 		EXIT;
@@ -234,7 +235,7 @@ END_VAR
       <Implementation>
         <ST><![CDATA[// Get active faults from log
 nActiveFaults := 0;
-FOR i := 1 TO MAX_FAULTS_IN_LOG DO
+FOR i := 1 TO PAR_Utilities.MAX_FAULTS_IN_LOG DO
 	IF (arFaultLog[i].stFault.Active) THEN 
 		// Update the number of active faults
 		nActiveFaults := nActiveFaults + 1;
@@ -253,7 +254,7 @@ END_VAR
 ]]></Declaration>
       <Implementation>
         <ST><![CDATA[IF (nMaxInactiveCycles > 0) THEN
-	FOR i := 1 TO MAX_FAULTS_IN_LOG DO
+	FOR i := 1 TO PAR_Utilities.MAX_FAULTS_IN_LOG DO
 		IF arFaultLog[i].stFault.Active THEN
 			arFaultLog[i].nInactiveCycles := MIN(16#FFFF, arFaultLog[i].nInactiveCycles + 1);
 			IF (arFaultLog[i].nInactiveCycles > nMaxInactiveCycles) THEN
@@ -302,7 +303,7 @@ sId := CONCAT(sId,'.');
 sId := CONCAT(sId,stIdentity.sName);
 
 // Now check if the fault already exists in the log
-FOR i := 1 TO MAX_FAULTS_IN_LOG DO
+FOR i := 1 TO PAR_Utilities.MAX_FAULTS_IN_LOG DO
 	IF (NOT arFaultLog[i].bEmpty) 
 		AND (arFaultLog[i].Id = sId) 
 		AND (arFaultLog[i].stFault.Description = stFault.Description)
@@ -322,8 +323,8 @@ IF nFaultIndexInLog > 0 THEN // Already exists in the log
 	END_IF
 ELSIF stFault.Active THEN // New active fault, add it to the log
 	// Update the log index (if full, move to beginning of the log)
-	nLogIndex := (nLogIndex MOD MAX_FAULTS_IN_LOG) + 1;
-	nFaultsInLog := MIN(nFaultsInLog + 1, MAX_FAULTS_IN_LOG);
+	nLogIndex := (nLogIndex MOD PAR_Utilities.MAX_FAULTS_IN_LOG) + 1;
+	nFaultsInLog := MIN(nFaultsInLog + 1, PAR_Utilities.MAX_FAULTS_IN_LOG);
 	// Copy to log and update start time
 	arFaultLog[nLogIndex].bEmpty := FALSE;
 	arFaultLog[nLogIndex].stFault := stFault;

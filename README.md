@@ -18,4 +18,4 @@ This repo contains the Utilities library, and also a `.libcat.xml` file that can
 	- do not fail on parameter file mismatch, just rewrite file and only throw error if that fails
 1. Fault logging code: does not check remaining disk space
 1. Add CSV writer for fault log (this functionality was removed after fault handler refactoring)
-1. FaultHandler: test flooding it with faults
+1. FaultHandler: when generating fault with identical error message multiple times, a new entry is visible in the HMI, but the start/end times are not updated
