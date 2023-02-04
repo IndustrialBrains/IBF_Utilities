@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="E_LogLevel" Id="{75e358a4-8b97-0838-2d8a-2356bee91efb}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'strict'}
+{attribute 'to_string'}
+TYPE E_LogLevel : // Log levels, for more info see logger methods DEBUG, INFO, etc
+(
+	TRACE,
+	DEBUG,
+	INFO,
+	WARN,
+	ERROR,
+	FATAL
+) USINT;
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

@@ -14,7 +14,6 @@ VAR_GLOBAL
 	Pulse100ms		:BOOL 			;// System variable, pulse 1 cycle every 100 ms
 	SystemTime		:DATE_AND_TIME	; // System variable, Windows system time as DATE_AND_TIME
 	SystemTime_TS	:TIMESTRUCT		; // System variable, Windows system time as TIMESTRUCT
-	SystemTimeString:STRING[21]		; // System variable, Windows system time as timestamp string, e.g. '2023010-12:01:59.123'
 	TimeZoneId		:E_TimeZoneID 	; // System variable, time zone Id 
 	HeartBeat		:BOOL 			;// System Variable, Main system heartbeat 0.5 sec on 0.5 sec off
 END_VAR]]></Declaration>

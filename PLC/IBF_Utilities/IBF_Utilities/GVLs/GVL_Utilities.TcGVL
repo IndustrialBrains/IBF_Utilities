@@ -9,8 +9,8 @@ VAR_GLOBAL
 					sLogFolder := PAR_Utilities.LOG_FOLDER,
 					sLogFilePrefix := 'Log_',
 					sLogFileExtension := 'txt',
-					nMaxLogFileSize := 512*1024, // 512kb
-					nMaxNumberOfLogFiles := 10
+					nMaxLogFileSize := 256*1024, // 256kb is enough for at least 1000 lines. The HMI text editor should be able to handle this (tested on a TwinCAT/BSB VM).
+					nMaxNumberOfLogFiles := 100 // 256kb * 100 = 25MB
 				);
 END_VAR
 ]]></Declaration>

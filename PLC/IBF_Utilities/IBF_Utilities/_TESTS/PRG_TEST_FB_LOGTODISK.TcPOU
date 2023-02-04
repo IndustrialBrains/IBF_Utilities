@@ -13,6 +13,8 @@ VAR
 	bEnableTests : BOOL;
 	bEnable : BOOL;
 	bAddToLog : BOOL;
+	bStressTest : BOOL;
+	nIdx : UDINT;
 	sMsg : T_MaxString;
 END_VAR
 ]]></Declaration>
@@ -21,7 +23,13 @@ END_VAR
 	fbLogToDisk(bEnable := bEnable);
 	IF bAddToLog THEN
 		bAddToLog := FALSE;
-		fbLogToDisk.AddToLog(sMsg);
+		fbLogToDisk.DEBUG(sMsg);
+	END_IF
+	IF bStressTest THEN
+		// Write an item to the log every PLC cycle, this should trigger a buffer overflow
+		nIdx := nIdx + 1;
+		sMsg := UDINT_TO_STRING(nIdx);
+		fbLogToDisk.DEBUG(sMsg);
 	END_IF
 END_IF]]></ST>
     </Implementation>

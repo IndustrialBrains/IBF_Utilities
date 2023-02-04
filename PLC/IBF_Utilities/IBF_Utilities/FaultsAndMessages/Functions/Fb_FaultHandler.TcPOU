@@ -31,6 +31,8 @@ VAR
 	
 	nLogIndex : UINT; // Array index of the last added item in the log (zero until the first item arrives)
 	nIterIndex : UINT; // Index of the fault log iterator (used for properties First and Next)
+
+	fbFormatString : FB_FormatString; // https://infosys.beckhoff.com/content/1033/tcplclib_tc2_utilities/34990219.html
 END_VAR
 ]]></Declaration>
     <Implementation>
@@ -42,15 +44,45 @@ UpdateActiveFaultStatus();
 ]]></ST>
     </Implementation>
     <Folder Name="Private" Id="{2e728eb6-79bc-4de8-8875-9d08a8df9edd}" />
-    <Method Name="BuildLogString" Id="{ee42f64f-d61c-00b7-2d42-f94a1067fdfa}" FolderPath="Private\">
-      <Declaration><![CDATA[METHOD PROTECTED BuildLogString : T_MaxString
+    <Method Name="AddFaultToLog" Id="{a90cba7d-d175-00fd-2162-9eb083f6289c}" FolderPath="Private\">
+      <Declaration><![CDATA[METHOD PROTECTED AddFaultToLog
 VAR_INPUT
-	stFault : UDT_Fault;
+	stFaultLogItem : UDT_FaultLogItem;
+	bActivated : BOOL; // TRUE means the fault has just been activated, FALSE means it stopped being active
 END_VAR
-]]></Declaration>
+VAR
+	sStatus : T_MaxString;
+	sFaultType : T_MaxString;
+	sId : T_MaxString;
+	sDescription : T_MaxString;
+	sMsg : T_MaxString;
+END_VAR]]></Declaration>
       <Implementation>
-        <ST><![CDATA[BuildLogString := CONCAT(TO_STRING(stFault.FaultType), ' - ');
-BuildLogString := CONCAT(BuildLogString, stFault.Description);
+        <ST><![CDATA[IF bActivated THEN
+	sStatus := 'START';
+ELSE
+	sStatus := 'END';
+END_IF
+sFaultType := TO_STRING(stFaultLogItem.stFault.FaultType);
+sId := stFaultLogItem.Id;
+sDescription := stFaultLogItem.stFault.Description;
+
+fbFormatString(
+	sFormat := '[%s %s] %s - %s',
+	arg1 := F_STRING(sFaultType),
+	arg2 := F_STRING(sStatus),
+	arg3 := F_STRING(sId),
+	arg4 := F_STRING(sDescription),
+	sOut => sMsg
+);
+
+CASE stFaultLogItem.stFault.FaultType OF
+	E_FaultTypes.OM: GVL_Utilities.fbLogger.INFO(sMsg); 
+	E_FaultTypes.OW: GVL_Utilities.fbLogger.WARN(sMsg); 
+	E_FaultTypes.MC: GVL_Utilities.fbLogger.WARN(sMsg); 
+	E_FaultTypes.CF: GVL_Utilities.fbLogger.WARN(sMsg); 
+	E_FaultTypes.FF: GVL_Utilities.fbLogger.ERROR(sMsg); 
+END_CASE
 ]]></ST>
       </Implementation>
     </Method>
@@ -332,7 +364,7 @@ IF nFaultIndexInLog > 0 THEN // Already exists in the log
 	ELSIF (ANY_TO_DWORD(arFaultLog[nFaultIndexInLog].EndTime) = 0) THEN // No longer active, update end time and active state
 		arFaultLog[nFaultIndexInLog].stFault.Active := FALSE;
 		arFaultLog[nFaultIndexInLog].EndTime := Sys_Variables.SystemTime;
-		GVL_Utilities.fbLogger.AddToLog(CONCAT('FAULT END: ', BuildLogString(stFault)));
+		AddFaultToLog(arFaultLog[nLogIndex], FALSE);
 	END_IF
 ELSIF stFault.Active THEN // New active fault, add it to the log
 	// Update the log index (if full, move to beginning of the log)
@@ -345,8 +377,7 @@ ELSIF stFault.Active THEN // New active fault, add it to the log
 	arFaultLog[nLogIndex].StartTime := Sys_Variables.SystemTime;
 	arFaultLog[nLogIndex].EndTime := ANY_TO_DT(0);
 	arFaultLog[nLogIndex].nInactiveCycles := 0;
-
-	GVL_Utilities.fbLogger.AddToLog(CONCAT('FAULT START: ', BuildLogString(stFault)));
+	AddFaultToLog(arFaultLog[nLogIndex], TRUE);
 END_IF
 ]]></ST>
       </Implementation>

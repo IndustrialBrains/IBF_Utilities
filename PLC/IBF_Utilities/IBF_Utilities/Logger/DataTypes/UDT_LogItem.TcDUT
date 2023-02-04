@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="UDT_LogItem" Id="{f8715b2a-9c3f-0955-03bb-31a010abd202}">
+    <Declaration><![CDATA[TYPE UDT_LogItem :
+STRUCT
+	eLevel 		: E_LogLevel;
+	stTimestamp : TIMESTRUCT;
+	sMsg 		: STRING[255-2]; // Keep 2 bytes room for CRLF line ending
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

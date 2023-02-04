@@ -122,6 +122,12 @@
     <Compile Include="GVLs\Sys_Variables.TcGVL">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Logger\DataTypes\UDT_LogItem.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Logger\DataTypes\E_LogLevel.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Logger\DataTypes\E_LogToDiskState.TcDUT">
       <SubType>Code</SubType>
     </Compile>

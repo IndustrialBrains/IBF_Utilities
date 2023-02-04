@@ -27,6 +27,8 @@ class Tests(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
+        # Stop to PLC to avoid filling the disk
+        conn.write_control(pyads.ADSSTATE_STOP, 0, 0, pyads.PLCTYPE_BOOL)
         conn.close()
 
     def setUp(self) -> None:
@@ -75,6 +77,13 @@ class Tests(unittest.TestCase):
             self.assertTrue(wait_value(f"{self.PREFIX}.bAddToLog", False, 0.1))
             # wait at least one second to make sure the new file has a different filename
             sleep(1)
+
+    def test_stress(self):
+        # Flood the log with messages each PLC cycle, which should trigger
+        # a buffer overflow and stop the logger
+        conn.write_by_name(f"{self.PREFIX}.bEnable", True)
+        conn.write_by_name(f"{self.PREFIX}.bStresstest", True)
+        self.assertTrue(wait_value(f"{self.PREFIX_FB}.bFault", True, 5))
 
 
 if __name__ == "__main__":
