@@ -137,7 +137,10 @@
     <Compile Include="Logger\Functions\LogHandlers\FB_LogHandlerBase.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Logger\Functions\LogHandlers\FB_LogHandler_ToTxtFile.TcPOU">
+    <Compile Include="Logger\Functions\LogHandlers\FB_LogHandler_RetainableList.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Logger\Functions\LogHandlers\FB_LogHandler_TxtFile.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="MovePathCalculations\fAccDecCalc.TcPOU">

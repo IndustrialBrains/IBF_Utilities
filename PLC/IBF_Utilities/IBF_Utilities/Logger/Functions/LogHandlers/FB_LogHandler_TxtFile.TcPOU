@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
-  <POU Name="FB_LogHandler_ToTxtFile" Id="{a722563c-1b3c-082f-3710-fb1c23b337b0}" SpecialFunc="None">
-    <Declaration><![CDATA[FUNCTION_BLOCK PUBLIC FB_LogHandler_ToTxtFile EXTENDS FB_LogHandlerBase // Regularly writes contents of the log to disk
+  <POU Name="FB_LogHandler_TxtFile" Id="{a722563c-1b3c-082f-3710-fb1c23b337b0}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK PUBLIC FB_LogHandler_TxtFile EXTENDS FB_LogHandlerBase // Regularly writes contents of the log to disk
 // Once the log file reaches a set size, a new log file is created.
 // If the max number of files is reached, the oldest file is discarded.
 VAR CONSTANT
@@ -298,8 +298,53 @@ END_CASE
 bFault S= (eState = E_LogToDiskState.Error);
 ]]></ST>
     </Implementation>
-    <Folder Name="Private" Id="{06ea4b8b-8b88-05b4-114a-e159875a95a0}" />
-    <Method Name="CreatePath" Id="{28455913-5a7f-004f-3c48-f7a0c0ab7d6c}" FolderPath="Private\">
+    <Method Name="AddToLog" Id="{bff9ee33-3717-027a-138b-f9964612e88c}">
+      <Declaration><![CDATA[METHOD INTERNAL FINAL AddToLog
+VAR_INPUT
+	stLogItem : UDT_LogItem;
+END_VAR
+VAR
+	bOk : BOOL;
+	nMaxItems : UDINT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// Ignore incoming items when the logger has an error
+IF bFault THEN
+	RETURN;
+END_IF
+
+
+fbBuffer.A_AddTail(
+	pWrite := ADR(stLogItem),
+	cbWrite := SIZEOF(stLogItem),
+	bOk => bOk,
+);
+
+IF NOT bOk THEN // Buffer overflow
+	// Make sure no more items will be added to the log
+	bFault := TRUE;
+	// Pop last item to make room for the famous last words
+	Pop(); 
+	// And add those words to the log
+	nMaxItems := MAX_ITEMS_IN_BUFFER;
+	fbFormatString(
+		sFormat := 'Log buffer size limit (%u) reached! Dumping buffer and disabling the log handler.',
+		arg1 := F_UDINT(nMaxItems),
+		sOut => sFaultDescription
+	);
+	stLogItem.sMsg := sFaultDescription;
+	stLogItem.eLevel := E_LogLevel.FATAL;
+	fbBuffer.A_AddTail(
+		pWrite := ADR(stLogItem),
+		cbWrite := SIZEOF(stLogItem),
+		bOk => bOk,
+	);
+END_IF
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="CreatePath" Id="{28455913-5a7f-004f-3c48-f7a0c0ab7d6c}">
       <Declaration><![CDATA[METHOD PROTECTED CreatePath : STRING // Create a filename with a date/time stamp, e.g. "/tmp/Log_20230203-093610.txt'
 VAR
 	fMonth : REAL;
@@ -332,7 +377,7 @@ fbFormatString(
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="FB_init" Id="{3e31473c-86c3-0ff7-324f-81de8ebfd10c}" FolderPath="Private\">
+    <Method Name="FB_init" Id="{3e31473c-86c3-0ff7-324f-81de8ebfd10c}">
       <Declaration><![CDATA[METHOD FB_init : BOOL
 VAR_INPUT
 	bInitRetains : BOOL; // if TRUE, the retain variables are initialized (warm start / cold start)
@@ -347,6 +392,10 @@ END_VAR
 ]]></Declaration>
       <Implementation>
         <ST><![CDATA[THIS^.sLogFolder := sLogFolder;
+IF (sLogFolder = '') THEN
+	bFault := TRUE;
+	sFaultDescription := 'Parameter "sLogFolder" empty';
+END_IF
 THIS^.sLogFilePrefix := sLogFilePrefix;
 THIS^.sLogFileExtension := sLogFileExtension;
 THIS^.nMaxLogFileSize := nMaxLogFileSize;
@@ -354,58 +403,7 @@ THIS^.nMaxNumberOfLogFiles := nMaxNumberOfLogFiles;
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="M_AddToLog" Id="{bff9ee33-3717-027a-138b-f9964612e88c}" FolderPath="Private\">
-      <Declaration><![CDATA[METHOD INTERNAL M_AddToLog
-VAR_INPUT
-	sMsg : T_MaxString; // The message to be logged
-	eLevel : E_LogLevel; // Log level (debug, info, warn, etc.)
-END_VAR
-VAR
-	bOk : BOOL;
-	stLogItem : UDT_LogItem;
-	nMaxItems : UDINT;
-END_VAR]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[// Ignore empty messages or messages when the logger has an error
-IF (sMsg = '') OR bFault THEN
-	RETURN;
-END_IF
-
-stLogItem.sMsg := sMsg;
-stLogItem.eLevel := eLevel;
-stLogItem.stTimestamp := Sys_Variables.SystemTime_TS;
-
-fbBuffer.A_AddTail(
-	pWrite := ADR(stLogItem),
-	cbWrite := SIZEOF(stLogItem),
-	bOk => bOk,
-);
-
-IF NOT bOk THEN // Buffer overflow
-	// Make sure no more items will be added to the log
-	bFault := TRUE;
-	// Pop last item to make room for the famous last words
-	Pop(); 
-	// And add those words to the log
-	nMaxItems := MAX_ITEMS_IN_BUFFER;
-	fbFormatString(
-		sFormat := 'Log buffer size limit (%u) reached! Dumping buffer and disabling the log handler.',
-		arg1 := F_UDINT(nMaxItems),
-		sOut => sFaultDescription
-	);
-	stLogItem.sMsg := sFaultDescription;
-	stLogItem.eLevel := E_LogLevel.FATAL;
-	fbBuffer.A_AddTail(
-		pWrite := ADR(stLogItem),
-		cbWrite := SIZEOF(stLogItem),
-		bOk => bOk,
-	);
-END_IF
-
-]]></ST>
-      </Implementation>
-    </Method>
-    <Method Name="Pop" Id="{d6331dd4-6e1f-043e-18b0-d56bd8407d9a}" FolderPath="Private\">
+    <Method Name="Pop" Id="{d6331dd4-6e1f-043e-18b0-d56bd8407d9a}">
       <Declaration><![CDATA[METHOD PROTECTED Pop : UDT_LogItem; // Pops the buffer head (returns the oldest log item in the buffer)
 
 ]]></Declaration>

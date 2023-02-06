@@ -5,6 +5,10 @@
 VAR_GLOBAL
 	fbFaultHandler : FB_FaultHandler; // The one and only faulthandler (a singleton)
 END_VAR
+VAR_GLOBAL CONSTANT
+	// Not a PAR_Utility, because this constant is used by a HMI list (which is not compatible with configurable constant values)
+	RETAINABLE_LOG_HISTORY_SIZE : UINT := 100;
+END_VAR
 ]]></Declaration>
   </GVL>
 </TcPlcObject>

@@ -1,8 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.4">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
   <GVL Name="GVL_FixedValues" Id="{e756683c-0659-42a2-bfb0-c7950b834dce}">
     <Declaration><![CDATA[{attribute 'qualified_only'}
-VAR_GLOBAL
+VAR_GLOBAL CONSTANT
 	nINTMAXVALUE	: INT := 32767 		; // Integer maximum value 32767
 	nINTMINVALUE	: INT := -32767		; // intiger minimum value -32767
 	nDINTMAXVALUE	: DINT:= 2147483647 ; // Double integer maximum value 2,147,483,647

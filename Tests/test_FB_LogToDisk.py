@@ -15,7 +15,7 @@ COLD_RESET = True
 class Tests(unittest.TestCase):
 
     PREFIX = "PRG_TEST_FB_LOGGER"
-    PREFIX_FB = f"{PREFIX}.fbLogHandler_ToTxtFile"
+    PREFIX_FB = f"{PREFIX}.fbLogHandler_TxtFile"
 
     MAX_ITEMS_IN_BUFFER = 0
     MAX_LOG_FILE_SIZE = 0

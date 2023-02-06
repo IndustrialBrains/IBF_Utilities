@@ -3,7 +3,7 @@
   <POU Name="PRG_TEST_FB_LOGGER" Id="{90bc222e-4655-0939-07a6-64349ec214b9}" SpecialFunc="None">
     <Declaration><![CDATA[PROGRAM INTERNAL PRG_TEST_FB_LOGGER
 VAR
-	fbLogHandler_ToTxtFile :	FB_LogHandler_ToTxtFile(
+	fbLogHandler_TxtFile :	FB_LogHandler_TxtFile(
 									sLogFolder := 'D:\Temp\',
 									sLogFilePrefix := 'AutomaticTestLog_',
 									sLogFileExtension := 'txt',
@@ -20,7 +20,7 @@ END_VAR
 ]]></Declaration>
     <Implementation>
       <ST><![CDATA[IF bEnableTests THEN
-	fbLogger.AddLogHandler(fbLogHandler_ToTxtFile);
+	fbLogger.AddLogHandler(fbLogHandler_TxtFile);
 	fbLogger.Run();
 	IF bAddToLog THEN
 		bAddToLog := FALSE;

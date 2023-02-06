@@ -4,7 +4,6 @@
     <Declaration><![CDATA[{attribute 'qualified_only'}
 // Contains library parameters
 VAR_GLOBAL CONSTANT
-	// Fault log
 	MAX_FAULTS_IN_LOG : UINT := 16; // Max number of faults in the FaultHandler log (should match with the size of the HMI's logview table)
 END_VAR]]></Declaration>
   </GVL>

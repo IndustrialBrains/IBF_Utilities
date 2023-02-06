@@ -12,11 +12,10 @@ END_VAR
     <Implementation>
       <ST><![CDATA[]]></ST>
     </Implementation>
-    <Method Name="M_AddToLog" Id="{ebb0fcf3-f03d-0288-2f6b-00eb9ae0a605}">
-      <Declaration><![CDATA[METHOD INTERNAL ABSTRACT M_AddToLog
+    <Method Name="AddToLog" Id="{ebb0fcf3-f03d-0288-2f6b-00eb9ae0a605}">
+      <Declaration><![CDATA[METHOD INTERNAL ABSTRACT AddToLog
 VAR_INPUT
-	sMsg : T_MaxString; // The message to be logged
-	eLevel : E_LogLevel; // Log level (debug, info, warn, etc.)
+	stLogItem : UDT_LogItem;
 END_VAR
 ]]></Declaration>
       <Implementation>

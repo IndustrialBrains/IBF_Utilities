@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="FB_LogHandler_RetainableList" Id="{4966cdb4-950f-0659-2a45-e07380f91fca}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_LogHandler_RetainableList EXTENDS FB_LogHandlerBase // Writes the last X-number of items to a retainable variable
+VAR_OUTPUT PERSISTENT
+	aLogItems : ARRAY[1..GVL_Utilities.RETAINABLE_LOG_HISTORY_SIZE] OF UDT_LogItem;
+	nIndex : UINT; // Index in the array of the last added log item
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Method Name="AddToLog" Id="{10aa411e-05f8-09bd-04b5-bb2a775a1d6a}">
+      <Declaration><![CDATA[METHOD INTERNAL FINAL AddToLog
+VAR_INPUT
+	stLogItem : UDT_LogItem;
+END_VAR
+VAR
+	i : UINT; // Iterator
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[nIndex := (nIndex MOD GVL_Utilities.RETAINABLE_LOG_HISTORY_SIZE) + 1;
+aLogItems[nIndex] := stLogItem;
+]]></ST>
+      </Implementation>
+    </Method>
+  </POU>
+</TcPlcObject>
