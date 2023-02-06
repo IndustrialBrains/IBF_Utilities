@@ -231,7 +231,7 @@ CASE eState OF
 			tOldestLogFile.sFileName := ''; 
 			// Create a path search string, e.g. '/tmp/Log_*.txt'
 			fbFormatString(
-				sFormat := '%s/%s*.%s',
+				sFormat := '%s%s*.%s',
 				arg1 := F_STRING(sLogFolder),
 				arg2 := F_STRING(sLogFilePrefix),
 				arg3 := F_STRING(sLogFileExtension),
@@ -272,7 +272,7 @@ CASE eState OF
 	E_LogToDiskState.DeleteFile:
 		IF fbStateMachine.bStateChanged THEN
 			fbFormatString(
-				sFormat := '%s/%s',
+				sFormat := '%s%s',
 				arg1 := F_STRING(sLogFolder),
 				arg2 := F_STRING(tOldestLogFile.sFileName),
 				sOut => fbFileDelete.sPathName
@@ -377,7 +377,7 @@ fMinute := WORD_TO_REAL(Sys_Variables.SystemTime_TS.wMinute);
 fSecond := WORD_TO_REAL(Sys_Variables.SystemTime_TS.wSecond); 
 
 fbFormatString(
-	sFormat := '%s/%s%u%02.0f%02.0f-%02.0f%02.0f%02.0f.%s',
+	sFormat := '%s%s%u%02.0f%02.0f-%02.0f%02.0f%02.0f.%s',
 	arg1 := F_STRING(sLogFolder),
 	arg2 := F_STRING(sLogFilePrefix),
 	arg3 := F_WORD(Sys_Variables.SystemTime_TS.wYear),
@@ -450,7 +450,7 @@ VAR_INPUT
 	bInitRetains : BOOL; // if TRUE, the retain variables are initialized (warm start / cold start)
 	bInCopyCode : BOOL;  // if TRUE, the instance afterwards gets moved into the copy code (online change)
 
-	sLogFolder 			: T_MaxString; // Example for TwinCAT/BSD: '/tmp'. The folder where log files will be stored. Do not add trailing '/' or '\'. 
+	sLogFolder 			: T_MaxString; // Example for TwinCAT/BSD: '/tmp/'. The folder where log files will be stored. Add trailing '/' or '\'. 
 	sLogFilePrefix 		: T_MaxString; // Example: 'Log_'
 	sLogFileExtension 	: T_MaxString; // Example: 'txt'
 	nMaxLogFileSize 	: ULINT; // [bytes] When this size is reached, a new log file is created 
