@@ -1,15 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
-  <POU Name="FB_LogToDisk" Id="{a722563c-1b3c-082f-3710-fb1c23b337b0}" SpecialFunc="None">
-    <Declaration><![CDATA[FUNCTION_BLOCK PUBLIC FB_LogToDisk // Regularly writes contents of the log to disk
+  <POU Name="FB_LogHandler_ToTxtFile" Id="{a722563c-1b3c-082f-3710-fb1c23b337b0}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK PUBLIC FB_LogHandler_ToTxtFile EXTENDS FB_LogHandlerBase // Regularly writes contents of the log to disk
 // Once the log file reaches a set size, a new log file is created.
 // If the max number of files is reached, the oldest file is discarded.
 VAR CONSTANT
 	MAX_ITEMS_IN_BUFFER : UDINT := 20; // Should be long enough to allow for worst case writes (where an old file has to be deleted and a new file created).  
-	CRLF : STRING := '$R$L'; // Windows style line ending
-END_VAR
-VAR_INPUT
-	bEnable : BOOL; // If enabled, log items will be written to disk
 END_VAR
 VAR_OUTPUT
 	bFault 				: BOOL; // An error occured while trying to add to log or write to disk
@@ -86,12 +82,10 @@ CASE eState OF
 		eState := E_LogToDiskState.WaitForCommand;
 
 	E_LogToDiskState.WaitForCommand:
-		IF bEnable THEN
-			IF (stLogItemFromBuffer.sMsg = '') THEN
-				stLogItemFromBuffer := Pop();
-			ELSE
-				eState := E_LogToDiskState.OpenOrCreateFile;
-			END_IF
+		IF (stLogItemFromBuffer.sMsg = '') THEN
+			stLogItemFromBuffer := Pop();
+		ELSE
+			eState := E_LogToDiskState.OpenOrCreateFile;
 		END_IF
 
 	E_LogToDiskState.OpenOrCreateFile:
@@ -189,7 +183,7 @@ CASE eState OF
 	
 	E_LogToDiskState.WriteLogItemMessage:
 		IF fbStateMachine.bStateChanged THEN
-			fbFilePuts.sLine := CONCAT(stLogItemToDisk.sMsg, CRLF); 	
+			fbFilePuts.sLine := CONCAT(stLogItemToDisk.sMsg, '$L'); // Add line feed character
 		END_IF
 		fbFilePuts(bExecute := TRUE, hFile := fbFileOpen.hFile);
 		IF (NOT fbFilePuts.bBusy) THEN
@@ -305,9 +299,63 @@ bFault S= (eState = E_LogToDiskState.Error);
 ]]></ST>
     </Implementation>
     <Folder Name="Private" Id="{06ea4b8b-8b88-05b4-114a-e159875a95a0}" />
-    <Folder Name="Public" Id="{690da83f-5550-0084-3e92-f3004d90cd65}" />
-    <Method Name="AddToLog" Id="{bff9ee33-3717-027a-138b-f9964612e88c}" FolderPath="Private\">
-      <Declaration><![CDATA[METHOD PROTECTED AddToLog
+    <Method Name="CreatePath" Id="{28455913-5a7f-004f-3c48-f7a0c0ab7d6c}" FolderPath="Private\">
+      <Declaration><![CDATA[METHOD PROTECTED CreatePath : STRING // Create a filename with a date/time stamp, e.g. "/tmp/Log_20230203-093610.txt'
+VAR
+	fMonth : REAL;
+	fDay : REAL;
+	fHour : REAL;
+	fMinute : REAL;
+	fSecond : REAL;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// Suppress error "VAR_IN_OUT parameter 'in' needs variable with write access as input."	
+fMonth := WORD_TO_REAL(Sys_Variables.SystemTime_TS.wMonth); 
+fDay := WORD_TO_REAL(Sys_Variables.SystemTime_TS.wDay); 
+fHour := WORD_TO_REAL(Sys_Variables.SystemTime_TS.wHour); 
+fMinute := WORD_TO_REAL(Sys_Variables.SystemTime_TS.wMinute); 
+fSecond := WORD_TO_REAL(Sys_Variables.SystemTime_TS.wSecond); 
+
+fbFormatString(
+	sFormat := '%s%s%u%02.0f%02.0f-%02.0f%02.0f%02.0f.%s',
+	arg1 := F_STRING(sLogFolder),
+	arg2 := F_STRING(sLogFilePrefix),
+	arg3 := F_WORD(Sys_Variables.SystemTime_TS.wYear),
+	arg4 := F_REAL(fMonth),
+	arg5 := F_REAL(fDay),
+	arg6 := F_REAL(fHour),
+	arg7 := F_REAL(fMinute),
+	arg8 := F_REAL(fSecond),
+	arg9 := F_STRING(sLogFileExtension),
+	sOut => CreatePath
+);
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="FB_init" Id="{3e31473c-86c3-0ff7-324f-81de8ebfd10c}" FolderPath="Private\">
+      <Declaration><![CDATA[METHOD FB_init : BOOL
+VAR_INPUT
+	bInitRetains : BOOL; // if TRUE, the retain variables are initialized (warm start / cold start)
+	bInCopyCode : BOOL;  // if TRUE, the instance afterwards gets moved into the copy code (online change)
+
+	sLogFolder 			: T_MaxString; // Example for TwinCAT/BSD: '/tmp/'. The folder where log files will be stored. Add trailing '/' or '\'. 
+	sLogFilePrefix 		: T_MaxString; // Example: 'Log_'
+	sLogFileExtension 	: T_MaxString; // Example: 'txt'
+	nMaxLogFileSize 	: ULINT; // [bytes] When this size is reached, a new log file is created 
+	nMaxNumberOfLogFiles: UINT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[THIS^.sLogFolder := sLogFolder;
+THIS^.sLogFilePrefix := sLogFilePrefix;
+THIS^.sLogFileExtension := sLogFileExtension;
+THIS^.nMaxLogFileSize := nMaxLogFileSize;
+THIS^.nMaxNumberOfLogFiles := nMaxNumberOfLogFiles;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="M_AddToLog" Id="{bff9ee33-3717-027a-138b-f9964612e88c}" FolderPath="Private\">
+      <Declaration><![CDATA[METHOD INTERNAL M_AddToLog
 VAR_INPUT
 	sMsg : T_MaxString; // The message to be logged
 	eLevel : E_LogLevel; // Log level (debug, info, warn, etc.)
@@ -341,7 +389,7 @@ IF NOT bOk THEN // Buffer overflow
 	// And add those words to the log
 	nMaxItems := MAX_ITEMS_IN_BUFFER;
 	fbFormatString(
-		sFormat := 'Log buffer size limit (%u) reached! Dumping buffer and disabling the logger.',
+		sFormat := 'Log buffer size limit (%u) reached! Dumping buffer and disabling the log handler.',
 		arg1 := F_UDINT(nMaxItems),
 		sOut => sFaultDescription
 	);
@@ -357,132 +405,6 @@ END_IF
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="CreatePath" Id="{28455913-5a7f-004f-3c48-f7a0c0ab7d6c}" FolderPath="Private\">
-      <Declaration><![CDATA[METHOD PROTECTED CreatePath : STRING // Create a filename with a date/time stamp, e.g. "/tmp/Log_20230203-093610.txt'
-VAR
-	fMonth : REAL;
-	fDay : REAL;
-	fHour : REAL;
-	fMinute : REAL;
-	fSecond : REAL;
-END_VAR]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[{warning 'TODO: test on windows platform'}
-
-// Suppress error "VAR_IN_OUT parameter 'in' needs variable with write access as input."	
-fMonth := WORD_TO_REAL(Sys_Variables.SystemTime_TS.wMonth); 
-fDay := WORD_TO_REAL(Sys_Variables.SystemTime_TS.wDay); 
-fHour := WORD_TO_REAL(Sys_Variables.SystemTime_TS.wHour); 
-fMinute := WORD_TO_REAL(Sys_Variables.SystemTime_TS.wMinute); 
-fSecond := WORD_TO_REAL(Sys_Variables.SystemTime_TS.wSecond); 
-
-fbFormatString(
-	sFormat := '%s%s%u%02.0f%02.0f-%02.0f%02.0f%02.0f.%s',
-	arg1 := F_STRING(sLogFolder),
-	arg2 := F_STRING(sLogFilePrefix),
-	arg3 := F_WORD(Sys_Variables.SystemTime_TS.wYear),
-	arg4 := F_REAL(fMonth),
-	arg5 := F_REAL(fDay),
-	arg6 := F_REAL(fHour),
-	arg7 := F_REAL(fMinute),
-	arg8 := F_REAL(fSecond),
-	arg9 := F_STRING(sLogFileExtension),
-	sOut => CreatePath
-);
-]]></ST>
-      </Implementation>
-    </Method>
-    <Method Name="DEBUG" Id="{73f740e6-2a7d-0335-2d60-04f04456d0fa}" FolderPath="Public\">
-      <Declaration><![CDATA[METHOD PUBLIC DEBUG // Add a message to the log with log level DEBUG 
-(*
-The DEBUG level is used for logging messages that help developers find out what went wrong
-during a debugging session. While the specifics of what messages to log at the DEBUG level
-is dependent on your application, you generally want to include detailed information that
-can help developers troubleshoot an issue quickly. 
-This can include variable state in the surrounding scope, or relevant error codes.
-Unlike TRACE, DEBUG level logging can be turned on in production without making the application unusable,
-but it should not be left on indefinitely to ensure the log is not flooded.
-*)
-VAR_INPUT
-	sMsg : T_MaxString; // The message to be logged
-END_VAR
-]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[THIS^.AddToLog(sMsg, E_LogLevel.DEBUG);]]></ST>
-      </Implementation>
-    </Method>
-    <Method Name="ERROR" Id="{56e0a7f0-dba1-0134-25e6-42b1ca5ad6dd}" FolderPath="Public\">
-      <Declaration><![CDATA[METHOD PUBLIC ERROR // Add a message to the log with log level ERROR
-(*
-The ERROR log level is used to represent error conditions in a system that
-prevent a specific operation from running, but the system itself can continue
-working even if it is at a reduced level of functionality or performance.
-Generally, ERROR logs should be investigated as soon as possible but they don't
-carry the same urgency as FATAL messages since the system can continue working.
-*)
-VAR_INPUT
-	sMsg : T_MaxString; // The message to be logged
-END_VAR
-]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[THIS^.AddToLog(sMsg, E_LogLevel.ERROR);]]></ST>
-      </Implementation>
-    </Method>
-    <Method Name="FATAL" Id="{9dea5fac-8f6f-00f5-025c-86cdbbb5c16f}" FolderPath="Public\">
-      <Declaration><![CDATA[METHOD PUBLIC FATAL // Add a message to the log with log level FATAL
-(*
-The FATAL log level annotates messages with the greatest severity.
-It usually means that something critical is broken, and the system cannot continue to do any more
-useful work without the intervention of an engineer. T
-ypically, such entries are logged before the system is shut down ("famous last words").
-*)
-VAR_INPUT
-	sMsg : T_MaxString; // The message to be logged
-END_VAR
-]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[THIS^.AddToLog(sMsg, E_LogLevel.FATAL);]]></ST>
-      </Implementation>
-    </Method>
-    <Method Name="FB_init" Id="{3e31473c-86c3-0ff7-324f-81de8ebfd10c}" FolderPath="Private\">
-      <Declaration><![CDATA[METHOD FB_init : BOOL
-VAR_INPUT
-	bInitRetains : BOOL; // if TRUE, the retain variables are initialized (warm start / cold start)
-	bInCopyCode : BOOL;  // if TRUE, the instance afterwards gets moved into the copy code (online change)
-
-	sLogFolder 			: T_MaxString; // Example for TwinCAT/BSD: '/tmp/'. The folder where log files will be stored. Add trailing '/' or '\'. 
-	sLogFilePrefix 		: T_MaxString; // Example: 'Log_'
-	sLogFileExtension 	: T_MaxString; // Example: 'txt'
-	nMaxLogFileSize 	: ULINT; // [bytes] When this size is reached, a new log file is created 
-	nMaxNumberOfLogFiles: UINT;
-END_VAR
-]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[THIS^.sLogFolder := sLogFolder;
-THIS^.sLogFilePrefix := sLogFilePrefix;
-THIS^.sLogFileExtension := sLogFileExtension;
-THIS^.nMaxLogFileSize := nMaxLogFileSize;
-THIS^.nMaxNumberOfLogFiles := nMaxNumberOfLogFiles;
-]]></ST>
-      </Implementation>
-    </Method>
-    <Method Name="INFO" Id="{129ab2a5-c74e-0bad-1ca8-3aaada834c1f}" FolderPath="Public\">
-      <Declaration><![CDATA[METHOD PUBLIC INFO // Add a message to the log with log level INFO
-(*
-INFO-level messages indicate events in the system that are significant to the
-general purpose of the system. Such events are logged to show that the system is
-operating normally. For example, a recipe was started or stopped. 
-Production systems typically default to logging at this level so that a 
-summary of the application's normal behavior is visible to anyone reading the logs.
-*)
-VAR_INPUT
-	sMsg : T_MaxString; // The message to be logged
-END_VAR
-]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[THIS^.AddToLog(sMsg, E_LogLevel.INFO);]]></ST>
-      </Implementation>
-    </Method>
     <Method Name="Pop" Id="{d6331dd4-6e1f-043e-18b0-d56bd8407d9a}" FolderPath="Private\">
       <Declaration><![CDATA[METHOD PROTECTED Pop : UDT_LogItem; // Pops the buffer head (returns the oldest log item in the buffer)
 
@@ -493,38 +415,6 @@ END_VAR
 	cbRead:= SIZEOF(Pop),
 );
 ]]></ST>
-      </Implementation>
-    </Method>
-    <Method Name="TRACE" Id="{852b99e3-4aae-02e1-20be-be286b738a87}" FolderPath="Public\">
-      <Declaration><![CDATA[METHOD PUBLIC TRACE // Add a message to the log with log level TRACE
-(*
-The TRACE level can be used for tracing the path of code execution in a program.
-Generally, TRACE is used for showing the flow of the program, and to provide a detailed breakdown of the sequence
-of events that led to a crash, a silent failure, an error, or some other event logged at a different level.
-The TRACE level is only used temporarily (when the code is a "work in progress").
-*)
-VAR_INPUT
-	sMsg : T_MaxString; // The message to be logged
-END_VAR
-]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[THIS^.AddToLog(sMsg, E_LogLevel.TRACE);]]></ST>
-      </Implementation>
-    </Method>
-    <Method Name="WARN" Id="{6d9befb4-3cad-0f4d-268e-38de03686e94}" FolderPath="Public\">
-      <Declaration><![CDATA[METHOD PUBLIC WARN // Add a message to the log with log level WARN
-(*
-Messages logged at the WARN level typically indicate that something unexpected happened,
-but the system can recover and continue to function normally.
-It is mainly used to draw attention to situations that should be addressed soon before
-they pose a problem for the system.
-*)
-VAR_INPUT
-	sMsg : T_MaxString; // The message to be logged
-END_VAR
-]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[THIS^.AddToLog(sMsg, E_LogLevel.WARN);]]></ST>
       </Implementation>
     </Method>
   </POU>

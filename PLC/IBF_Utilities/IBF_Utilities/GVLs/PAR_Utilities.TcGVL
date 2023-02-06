@@ -6,9 +6,6 @@
 VAR_GLOBAL CONSTANT
 	// Fault log
 	MAX_FAULTS_IN_LOG : UINT := 16; // Max number of faults in the FaultHandler log (should match with the size of the HMI's logview table)
-	
-	// Logger
-	LOG_FOLDER : STRING := '/tmp/'; // Location of the log files. Make sure to add a trailing '/' (Unix) or '\' (Windows)
 END_VAR]]></Declaration>
   </GVL>
 </TcPlcObject>

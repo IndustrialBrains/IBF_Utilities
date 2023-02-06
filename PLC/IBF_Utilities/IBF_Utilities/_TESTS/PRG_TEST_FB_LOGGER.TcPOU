@@ -1,17 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
-  <POU Name="PRG_TEST_FB_LOGTODISK" Id="{90bc222e-4655-0939-07a6-64349ec214b9}" SpecialFunc="None">
-    <Declaration><![CDATA[PROGRAM INTERNAL PRG_TEST_FB_LOGTODISK
+  <POU Name="PRG_TEST_FB_LOGGER" Id="{90bc222e-4655-0939-07a6-64349ec214b9}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM INTERNAL PRG_TEST_FB_LOGGER
 VAR
-	fbLogToDisk : FB_LogToDisk(
-						sLogFolder := '/tmp',
-						sLogFilePrefix := 'AutomaticTestLog_',
-						sLogFileExtension := 'txt',
-						nMaxLogFileSize := 500,
-						nMaxNumberOfLogFiles := 3
-					);
+	fbLogHandler_ToTxtFile :	FB_LogHandler_ToTxtFile(
+									sLogFolder := 'D:\Temp\',
+									sLogFilePrefix := 'AutomaticTestLog_',
+									sLogFileExtension := 'txt',
+									nMaxLogFileSize := 500,
+									nMaxNumberOfLogFiles := 3
+								);
+	fbLogger : FB_Logger;
 	bEnableTests : BOOL;
-	bEnable : BOOL;
 	bAddToLog : BOOL;
 	bStressTest : BOOL;
 	nIdx : UDINT;
@@ -20,16 +20,17 @@ END_VAR
 ]]></Declaration>
     <Implementation>
       <ST><![CDATA[IF bEnableTests THEN
-	fbLogToDisk(bEnable := bEnable);
+	fbLogger.AddLogHandler(fbLogHandler_ToTxtFile);
+	fbLogger.Run();
 	IF bAddToLog THEN
 		bAddToLog := FALSE;
-		fbLogToDisk.DEBUG(sMsg);
+		fbLogger.DEBUG(sMsg);
 	END_IF
 	IF bStressTest THEN
 		// Write an item to the log every PLC cycle, this should trigger a buffer overflow
 		nIdx := nIdx + 1;
 		sMsg := UDINT_TO_STRING(nIdx);
-		fbLogToDisk.DEBUG(sMsg);
+		fbLogger.DEBUG(sMsg);
 	END_IF
 END_IF]]></ST>
     </Implementation>

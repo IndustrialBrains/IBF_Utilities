@@ -14,8 +14,8 @@ COLD_RESET = True
 
 class Tests(unittest.TestCase):
 
-    PREFIX = "PRG_TEST_FB_LOGTODISK"
-    PREFIX_FB = f"{PREFIX}.fbLogToDisk"
+    PREFIX = "PRG_TEST_FB_LOGGER"
+    PREFIX_FB = f"{PREFIX}.fbLogHandler_ToTxtFile"
 
     MAX_ITEMS_IN_BUFFER = 0
     MAX_LOG_FILE_SIZE = 0
@@ -28,7 +28,7 @@ class Tests(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         # Stop to PLC to avoid filling the disk
-        conn.write_control(pyads.ADSSTATE_STOP, 0, 0, pyads.PLCTYPE_BOOL)
+        # conn.write_control(pyads.ADSSTATE_STOP, 0, 0, pyads.PLCTYPE_BOOL)
         conn.close()
 
     def setUp(self) -> None:
@@ -47,13 +47,13 @@ class Tests(unittest.TestCase):
     def test_write(self):
         """Write a log item"""
         # TODO: assert file is created and contents are as expected
-        conn.write_by_name(f"{self.PREFIX}.bEnable", True)
         conn.write_by_name(f"{self.PREFIX}.sMsg", "Foobar", pyads.PLCTYPE_STRING)
         conn.write_by_name(f"{self.PREFIX}.bAddToLog", True)
         self.assertTrue(wait_value(f"{self.PREFIX}.bAddToLog", False, 0.1))
         self.assertFalse(conn.read_by_name(f"{self.PREFIX_FB}.bFault"))
         self.assertTrue(wait_value(f"{self.PREFIX_FB}.bLoggerInitialized", True, 1))
 
+    @unittest.skip("Cannot be tested (no way to disable file write)")
     def test_add_until_overflow(self):
         # NOTE: this only works if file write is disabled, otherwise
         # the buffer is emptied almost immediately by the file writer.
@@ -67,7 +67,6 @@ class Tests(unittest.TestCase):
 
     def test_add_until_file_size_reached(self):
         # NOTE: Assert manually!
-        conn.write_by_name(f"{self.PREFIX}.bEnable", True)
         msg = "x" * 255
         for i in range(2 + math.ceil(self.MAX_LOG_FILE_SIZE / len(msg))):
             # show the counter value in the string to aid debugging
@@ -81,7 +80,6 @@ class Tests(unittest.TestCase):
     def test_stress(self):
         # Flood the log with messages each PLC cycle, which should trigger
         # a buffer overflow and stop the logger
-        conn.write_by_name(f"{self.PREFIX}.bEnable", True)
         conn.write_by_name(f"{self.PREFIX}.bStresstest", True)
         self.assertTrue(wait_value(f"{self.PREFIX_FB}.bFault", True, 5))
 

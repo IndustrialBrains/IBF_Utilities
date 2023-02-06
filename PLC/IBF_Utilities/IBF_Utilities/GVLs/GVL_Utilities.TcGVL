@@ -4,14 +4,6 @@
     <Declaration><![CDATA[{attribute 'qualified_only'}
 VAR_GLOBAL
 	fbFaultHandler : FB_FaultHandler; // The one and only faulthandler (a singleton)
-
-	fbLogger : FB_LogToDisk(
-					sLogFolder := PAR_Utilities.LOG_FOLDER,
-					sLogFilePrefix := 'Log_',
-					sLogFileExtension := 'txt',
-					nMaxLogFileSize := 256*1024, // 256kb is enough for at least 1000 lines. The HMI text editor should be able to handle this (tested on a TwinCAT/BSB VM).
-					nMaxNumberOfLogFiles := 100 // 256kb * 100 = 25MB
-				);
 END_VAR
 ]]></Declaration>
   </GVL>

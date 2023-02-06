@@ -25,6 +25,8 @@ VAR_OUTPUT
 	arActiveFaultTypes 	: ARRAY[0..(E_FaultTypes._ENUM_SIZE - 1)] OF BOOL; // Status of each fault type
 END_VAR
 VAR
+	fbLogger : FB_Logger;
+
 	bCmdReset : BOOL;
 	eResetState : E_ResetState;
 	arActiveFaultTypes_Internal : ARRAY[0..(E_FaultTypes._ENUM_SIZE - 1)] OF BOOL; // The actual status of each fault type, which is reported unless the reset cycle is active
@@ -77,11 +79,11 @@ fbFormatString(
 );
 
 CASE stFaultLogItem.stFault.FaultType OF
-	E_FaultTypes.OM: GVL_Utilities.fbLogger.INFO(sMsg); 
-	E_FaultTypes.OW: GVL_Utilities.fbLogger.WARN(sMsg); 
-	E_FaultTypes.MC: GVL_Utilities.fbLogger.WARN(sMsg); 
-	E_FaultTypes.CF: GVL_Utilities.fbLogger.WARN(sMsg); 
-	E_FaultTypes.FF: GVL_Utilities.fbLogger.ERROR(sMsg); 
+	E_FaultTypes.OM: fbLogger.INFO(sMsg); 
+	E_FaultTypes.OW: fbLogger.WARN(sMsg); 
+	E_FaultTypes.MC: fbLogger.WARN(sMsg); 
+	E_FaultTypes.CF: fbLogger.WARN(sMsg); 
+	E_FaultTypes.FF: fbLogger.ERROR(sMsg); 
 END_CASE
 ]]></ST>
       </Implementation>

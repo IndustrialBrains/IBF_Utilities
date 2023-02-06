@@ -29,7 +29,7 @@
       <Name>PRG_TEST_CONVERSION</Name>
     </PouCall>
     <PouCall>
-      <Name>PRG_TEST_FB_LOGTODISK</Name>
+      <Name>PRG_TEST_FB_LOGGER</Name>
     </PouCall>
     <TaskFBGuid>{4044c53b-0bf6-47d5-bad3-00685ebfd798}</TaskFBGuid>
     <Fb_init>{d6030318-e9a3-489f-a1d3-1746537438aa}</Fb_init>

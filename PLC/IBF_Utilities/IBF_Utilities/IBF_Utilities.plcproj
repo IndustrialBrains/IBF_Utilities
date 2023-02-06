@@ -131,7 +131,13 @@
     <Compile Include="Logger\DataTypes\E_LogToDiskState.TcDUT">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Logger\Functions\FB_LogToDisk.TcPOU">
+    <Compile Include="Logger\Functions\FB_Logger.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Logger\Functions\LogHandlers\FB_LogHandlerBase.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Logger\Functions\LogHandlers\FB_LogHandler_ToTxtFile.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="MovePathCalculations\fAccDecCalc.TcPOU">
@@ -215,7 +221,7 @@
     <Compile Include="_TESTS\PRG_TEST_FB_FAULTHANDLER.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="_TESTS\PRG_TEST_FB_LOGTODISK.TcPOU">
+    <Compile Include="_TESTS\PRG_TEST_FB_LOGGER.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="_TESTS\PRG_TEST_FB_PARAMETERHANDLER.TcPOU">
@@ -239,6 +245,8 @@
     <Folder Include="Logger" />
     <Folder Include="Logger\DataTypes" />
     <Folder Include="Logger\Functions" />
+    <Folder Include="Logger\Functions\LogHandlers" />
+    <Folder Include="MovePathCalculations" />
     <Folder Include="StateMachine" />
     <Folder Include="_TESTS" />
     <Folder Include="Compare\Functions" />
@@ -250,7 +258,6 @@
     <Folder Include="General" />
     <Folder Include="Compare" />
     <Folder Include="BaseFunctions" />
-    <Folder Include="MovePathCalculations" />
     <Folder Include="Average" />
     <Folder Include="StepFunctions" />
     <Folder Include="PathFunctions" />
