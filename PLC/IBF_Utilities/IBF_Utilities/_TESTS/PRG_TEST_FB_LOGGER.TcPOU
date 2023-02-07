@@ -10,9 +10,13 @@ VAR
 									nMaxLogFileSize := 500,
 									nMaxNumberOfLogFiles := 3
 								);
+	fbLogHandler_ADSLOG : FB_LogHandler_ADSLOG;
 	fbLogger : FB_Logger;
+	
+	bRegisterLogHandlers : BOOL;
 	bEnableTests : BOOL;
 	bAddToLog : BOOL;
+	eLogLevel : E_LogLevel;
 	bStressTest : BOOL;
 	nIdx : UDINT;
 	sMsg : T_MaxString;
@@ -20,17 +24,30 @@ END_VAR
 ]]></Declaration>
     <Implementation>
       <ST><![CDATA[IF bEnableTests THEN
-	fbLogger.RegisterLogHandler(fbLogHandler_TxtFile, E_LogLevel.DEBUG);
+	IF bRegisterLogHandlers THEN
+		fbLogger.RegisterLogHandler(fbLogHandler_ADSLOG, E_LogLevel.TRACE);
+		fbLogger.RegisterLogHandler(fbLogHandler_TxtFile, E_LogLevel.TRACE);
+	END_IF
+	
 	fbLogger.Run();
+	
 	IF bAddToLog THEN
 		bAddToLog := FALSE;
-		fbLogger.DEBUG(sMsg);
+		CASE eLogLevel OF
+			E_LogLevel.TRACE:	fbLogger.TRACE(sMsg);
+			E_LogLevel.DEBUG: 	fbLogger.DEBUG(sMsg);
+			E_LogLevel.INFO: 	fbLogger.INFO(sMsg);
+			E_LogLevel.WARN: 	fbLogger.WARN(sMsg);
+			E_LogLevel.ERROR:	fbLogger.ERROR(sMsg);
+			E_LogLevel.FATAL: 	fbLogger.FATAL(sMsg);
+		END_CASE
 	END_IF
+	
 	IF bStressTest THEN
 		// Write an item to the log every PLC cycle, this should trigger a buffer overflow
 		nIdx := nIdx + 1;
 		sMsg := UDINT_TO_STRING(nIdx);
-		fbLogger.DEBUG(sMsg);
+		fbLogger.TRACE(sMsg);
 	END_IF
 END_IF]]></ST>
     </Implementation>

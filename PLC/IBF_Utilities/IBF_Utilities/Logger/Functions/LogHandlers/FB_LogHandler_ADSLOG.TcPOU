@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="FB_LogHandler_ADSLOG" Id="{9a9479b2-c7bf-0732-123e-660703f758b4}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_LogHandler_ADSLOG EXTENDS FB_LogHandlerBase // Writes log item to the ADS log
+VAR
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Method Name="AddToLog" Id="{bfb1d8ce-c8aa-01eb-2344-2df7c894359c}">
+      <Declaration><![CDATA[METHOD INTERNAL FINAL AddToLog
+VAR_INPUT
+	stLogItem : UDT_LogItem;
+END_VAR
+VAR
+	msgCtrlMask : DWORD; // ADS log message control mask, more info: https://infosys.beckhoff.com/content/1033/tcplclib_tc2_system/31030539.html	
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[msgCtrlMask := ADSLOG_MSGTYPE_LOG OR ADSLOG_MSGTYPE_STRING;
+CASE stLogItem.eLevel OF
+	E_LogLevel.TRACE: 	msgCtrlMask := msgCtrlMask OR ADSLOG_MSGTYPE_HINT;
+	E_LogLevel.DEBUG: 	msgCtrlMask := msgCtrlMask OR ADSLOG_MSGTYPE_HINT;
+	E_LogLevel.INFO: 	msgCtrlMask := msgCtrlMask OR ADSLOG_MSGTYPE_HINT;
+	E_LogLevel.WARN: 	msgCtrlMask := msgCtrlMask OR ADSLOG_MSGTYPE_WARN;
+	E_LogLevel.ERROR:	msgCtrlMask := msgCtrlMask OR ADSLOG_MSGTYPE_ERROR;
+	E_LogLevel.FATAL: 	msgCtrlMask := msgCtrlMask OR ADSLOG_MSGTYPE_ERROR;
+END_CASE
+
+ADSLOGSTR(
+	msgCtrlMask := msgCtrlMask,
+	msgFmtStr := '%s',
+	strArg := stLogItem.sMsg
+);
+]]></ST>
+      </Implementation>
+    </Method>
+  </POU>
+</TcPlcObject>

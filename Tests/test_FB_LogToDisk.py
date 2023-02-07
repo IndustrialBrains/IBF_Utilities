@@ -42,6 +42,7 @@ class Tests(unittest.TestCase):
         self.MAX_LOG_FILE_SIZE = conn.read_by_name(f"{self.PREFIX_FB}.nMaxLogFileSize")
 
         conn.write_by_name(f"{self.PREFIX}.bEnableTests", True)
+        conn.write_by_name(f"{self.PREFIX}.bRegisterLogHandlers", True)
         return super().setUp()
 
     def test_write(self):

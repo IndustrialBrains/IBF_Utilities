@@ -134,13 +134,16 @@
     <Compile Include="Logger\Functions\FB_Logger.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Logger\Functions\LogHandlers\E_LogToDiskState.TcDUT">
+    <Compile Include="Logger\Functions\LogHandlers\DataTypes\E_LogToDiskState.TcDUT">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Logger\Functions\LogHandlers\FB_LogHandlerBase.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Logger\Functions\LogHandlers\FB_LogHandler_RetainableList.TcPOU">
+    <Compile Include="Logger\Functions\LogHandlers\FB_LogHandler_PersistentArray.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Logger\Functions\LogHandlers\FB_LogHandler_ADSLOG.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Logger\Functions\LogHandlers\FB_LogHandler_TxtFile.TcPOU">
@@ -252,6 +255,7 @@
     <Folder Include="Logger\DataTypes" />
     <Folder Include="Logger\Functions" />
     <Folder Include="Logger\Functions\LogHandlers" />
+    <Folder Include="Logger\Functions\LogHandlers\DataTypes" />
     <Folder Include="MovePathCalculations" />
     <Folder Include="StateMachine" />
     <Folder Include="_TESTS" />

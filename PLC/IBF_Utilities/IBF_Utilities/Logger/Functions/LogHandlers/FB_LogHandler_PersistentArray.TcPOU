@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
-  <POU Name="FB_LogHandler_RetainableList" Id="{4966cdb4-950f-0659-2a45-e07380f91fca}" SpecialFunc="None">
-    <Declaration><![CDATA[FUNCTION_BLOCK FB_LogHandler_RetainableList EXTENDS FB_LogHandlerBase // Writes the last X-number of items to a retainable variable
+  <POU Name="FB_LogHandler_PersistentArray" Id="{4966cdb4-950f-0659-2a45-e07380f91fca}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_LogHandler_PersistentArray EXTENDS FB_LogHandlerBase // Writes the last X-number of log items to a persistent list
 VAR_OUTPUT PERSISTENT
 	aLogItems : ARRAY[1..GVL_Utilities.RETAINABLE_LOG_HISTORY_SIZE] OF UDT_LogItem;
-	nIndex : UINT; // Index in the array of the last added log item
+	nIndex : UINT; // Array index of the last added log item
 END_VAR
 ]]></Declaration>
     <Implementation>

@@ -47,12 +47,7 @@ VAR
 	fbFormatString : FB_FormatString; // https://infosys.beckhoff.com/content/1033/tcplclib_tc2_utilities/34990219.html
 END_VAR
 VAR_TEMP
-	fMonth : REAL;
-	fDay : REAL;
-	fHour : REAL;
-	fMinute : REAL;
-	fSecond : REAL;
-	fMilliseconds : REAL;
+	sTimestamp : T_MaxString;
 	sLevel : T_MaxString;
 
 	nFileSize : ULINT;
@@ -149,24 +144,13 @@ CASE eState OF
 			// Build a prefix string, e.g. '[2022-02-04 12:13:45.343] INFO; '
 
 			// Suppress error "VAR_IN_OUT parameter 'in' needs variable with write access as input."	
-			fMonth := WORD_TO_REAL(stLogItemToDisk.stTimestamp.wMonth); 
-			fDay := WORD_TO_REAL(stLogItemToDisk.stTimestamp.wDay); 
-			fHour := WORD_TO_REAL(stLogItemToDisk.stTimestamp.wHour); 
-			fMinute := WORD_TO_REAL(stLogItemToDisk.stTimestamp.wMinute); 
-			fSecond := WORD_TO_REAL(stLogItemToDisk.stTimestamp.wSecond); 
-			fMilliseconds := WORD_TO_REAL(stLogItemToDisk.stTimestamp.wMilliseconds);
 			sLevel := TO_STRING(stLogItemToDisk.eLevel);
+			sTimestamp := SYSTEMTIME_TO_STRING(stLogItemToDisk.stTimestamp);
  
 			fbFormatString(
-				sFormat := '[%u-%02.0f-%02.0f %02.0f:%02.0f:%02.0f.%03.0f] %s: ',
-				arg1 := F_WORD(stLogItemToDisk.stTimestamp.wYear),
-				arg2 := F_REAL(fMonth),
-				arg3 := F_REAL(fDay),
-				arg4 := F_REAL(fHour),
-				arg5 := F_REAL(fMinute),
-				arg6 := F_REAL(fSecond),
-				arg7 := F_REAL(fMilliseconds),
-				arg8 := F_STRING(sLevel),
+				sFormat := '[%s] %s: ',
+				arg1 := F_STRING(sTimestamp),
+				arg2 := F_STRING(sLevel),
 				sOut => fbFilePuts.sLine
 			);
 		END_IF
