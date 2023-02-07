@@ -122,16 +122,19 @@
     <Compile Include="GVLs\Sys_Variables.TcGVL">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Logger\DataTypes\UDT_LogHandlerConfig.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Logger\DataTypes\UDT_LogItem.TcDUT">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Logger\DataTypes\E_LogLevel.TcDUT">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Logger\DataTypes\E_LogToDiskState.TcDUT">
+    <Compile Include="Logger\Functions\FB_Logger.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Logger\Functions\FB_Logger.TcPOU">
+    <Compile Include="Logger\Functions\LogHandlers\E_LogToDiskState.TcDUT">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Logger\Functions\LogHandlers\FB_LogHandlerBase.TcPOU">

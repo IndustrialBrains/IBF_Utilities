@@ -20,7 +20,7 @@ END_VAR
 ]]></Declaration>
     <Implementation>
       <ST><![CDATA[IF bEnableTests THEN
-	fbLogger.AddLogHandler(fbLogHandler_TxtFile);
+	fbLogger.RegisterLogHandler(fbLogHandler_TxtFile, E_LogLevel.DEBUG);
 	fbLogger.Run();
 	IF bAddToLog THEN
 		bAddToLog := FALSE;

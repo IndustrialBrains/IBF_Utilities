@@ -3,7 +3,7 @@
   <POU Name="FB_Logger" Id="{4ed2955e-dae2-0ed6-1ff9-576a887035a7}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK PUBLIC FB_Logger
 VAR_STAT
-	aLogHandlers : ARRAY[1..10] OF POINTER TO FB_LogHandlerBase; // The log handlers that process the incoming log messages
+	aLogHandlers : ARRAY[1..10] OF UDT_LogHandlerConfig; // The log handlers that process the incoming log messages
 	bUnexpectedCall : BOOL; // FB_Logger should never be called. Use this bit to avoid flooding the log.
 END_VAR]]></Declaration>
     <Implementation>
@@ -15,31 +15,6 @@ END_IF
     </Implementation>
     <Folder Name="Private" Id="{da518ae9-ecc8-0bd9-2299-b83099ccf2a1}" />
     <Folder Name="Public" Id="{690da83f-5550-0084-3e92-f3004d90cd65}" />
-    <Method Name="AddLogHandler" Id="{04ba087a-14eb-0f97-3a1f-a8392feff25e}" FolderPath="Public\">
-      <Declaration><![CDATA[METHOD PUBLIC AddLogHandler : BOOL
-VAR_IN_OUT
-	fbLogHandler : FB_LogHandlerBase;
-END_VAR
-VAR
-	i : USINT; // Iterator
-END_VAR
-]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[AddLogHandler := TRUE;
-FOR i := 1 TO 10 DO
-	IF aLogHandlers[i] = ADR(fbLogHandler) THEN // Already added
-		RETURN;
-	ELSIF aLogHandlers[i] = 0 THEN // Found empty spot in the array, add the log handler
-		aLogHandlers[i] := ADR(fbLogHandler);
-		AddLogHandler := TRUE;
-		DEBUG(CONCAT('Added log handler: ', fbLogHandler.sInstancePath));
-		RETURN;
-	END_IF
-END_FOR
-AddLogHandler := FALSE; // Failed to add loghandler
-]]></ST>
-      </Implementation>
-    </Method>
     <Method Name="DEBUG" Id="{73f740e6-2a7d-0335-2d60-04f04456d0fa}" FolderPath="Public\">
       <Declaration><![CDATA[METHOD PUBLIC DEBUG // Add a message to the log with log level DEBUG 
 (*
@@ -109,6 +84,35 @@ END_VAR
         <ST><![CDATA[THIS^.SendToLogHandlers(sMsg, E_LogLevel.INFO);]]></ST>
       </Implementation>
     </Method>
+    <Method Name="RegisterLogHandler" Id="{04ba087a-14eb-0f97-3a1f-a8392feff25e}" FolderPath="Public\">
+      <Declaration><![CDATA[METHOD PUBLIC RegisterLogHandler : BOOL
+VAR_IN_OUT
+	fbLogHandler : FB_LogHandlerBase;
+END_VAR
+VAR_INPUT
+	eMinimumLogLevel : E_LogLevel;
+END_VAR
+VAR
+	i : USINT; // Iterator
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[RegisterLogHandler := TRUE;
+FOR i := 1 TO 10 DO
+	IF aLogHandlers[i].pLogHandler = ADR(fbLogHandler) THEN // Already added
+		RETURN;
+	ELSIF aLogHandlers[i].pLogHandler = 0 THEN // Found empty spot in the array, add the log handler
+		aLogHandlers[i].pLogHandler := ADR(fbLogHandler);
+		aLogHandlers[i].eMinimumLogLevel := eMinimumLogLevel;
+		RegisterLogHandler := TRUE;
+		DEBUG(CONCAT('Added log handler: ', fbLogHandler.sInstancePath));
+		RETURN;
+	END_IF
+END_FOR
+RegisterLogHandler := FALSE; // Failed to add loghandler
+]]></ST>
+      </Implementation>
+    </Method>
     <Method Name="Run" Id="{233b51c6-d710-06cd-118c-9fe291bd4fd8}" FolderPath="Public\">
       <Declaration><![CDATA[METHOD PUBLIC Run // Enables the logger and log handlers, should be called once every PLC cycle in your program/project (not multiple calls per cycle!)
 VAR
@@ -118,8 +122,8 @@ END_VAR]]></Declaration>
         <ST><![CDATA[// Call every log handler. Only relevant for log handlers that take multiple PLC cycles
 // to handle incoming log items (e.g., writing log items to disk).
 FOR i := 1 TO 10 DO
-	IF aLogHandlers[i] <> 0 THEN
-		aLogHandlers[i]^();
+	IF aLogHandlers[i].pLogHandler <> 0 THEN
+		aLogHandlers[i].pLogHandler^();
 	END_IF
 END_FOR
 ]]></ST>
@@ -146,9 +150,10 @@ stLogItem.sMsg := sMsg;
 stLogItem.eLevel := eLevel;
 stLogItem.stTimestamp := Sys_Variables.SystemTime_TS;
 
+// Add item to all registered loghandlers (if level is high enough)
 FOR i := 1 TO 10 DO
-	IF aLogHandlers[i] <> 0 THEN
-		aLogHandlers[i]^.AddToLog(stLogItem);
+	IF (aLogHandlers[i].pLogHandler <> 0) AND (eLevel >= aLogHandlers[i].eMinimumLogLevel) THEN
+		aLogHandlers[i].pLogHandler^.AddToLog(stLogItem);
 	END_IF
 END_FOR
 ]]></ST>
