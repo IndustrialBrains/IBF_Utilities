@@ -41,8 +41,8 @@ VAR
 
 	sPath: STRING; // Path to the current log file
 	
-	tOldestLogFile 	: ST_FindFileEntry; // Reference to the oldest log file in the log folder
-	nFileCount		: UINT; // Number of log files found  
+	tLogFile 	: ST_FindFileEntry; // Reference to a log file in the log folder
+	nFileCount	: UINT; // Number of log files found  
 	
 	fbFormatString : FB_FormatString; // https://infosys.beckhoff.com/content/1033/tcplclib_tc2_utilities/34990219.html
 END_VAR
@@ -59,7 +59,7 @@ END_VAR
       <ST><![CDATA[fbStateMachine(nState := eState);
 
 CASE eState OF
-	E_LogToDiskState.InitializeFBs:
+	E_LogToDiskState.InitializeFBs: // First state after a power cycle
 		// Initialize function blocks
 		fbFileOpen(
 			bExecute := FALSE,
@@ -68,14 +68,62 @@ CASE eState OF
 		fbFilePuts(bExecute := FALSE);
 		fbFileClose(bExecute := FALSE);
 		fbFileProperties(bExecute := FALSE);
+
 		fbEnumFiles(bExecute := FALSE);
+		// Create a path search string for fbEnumFiles, e.g. '/tmp/Log_*.txt'
+		fbFormatString(
+			sFormat := '%s%s*.%s',
+			arg1 := F_STRING(sLogFolder),
+			arg2 := F_STRING(sLogFilePrefix),
+			arg3 := F_STRING(sLogFileExtension),
+			sOut => fbEnumFiles.sPathName
+		);
+
 		fbFileDelete(
 			bExecute := FALSE,
 			ePath := PATH_GENERIC,
 		);
 		
-		eState := E_LogToDiskState.WaitForCommand;
+		eState := E_LogToDiskState.FindLastLogFile;
 
+	E_LogToDiskState.FindLastLogFile:
+		// Find most recent log file in log folder
+		IF fbStateMachine.bStateChanged THEN
+			tLogFile.sFileName := ''; 
+			fbEnumFiles.eCmd := E_EnumCmdType.eEnumCmd_First;
+		END_IF
+		fbEnumFiles(bExecute := TRUE);
+		IF (NOT fbEnumFiles.bBusy) THEN
+			fbEnumFiles(bExecute := FALSE, eCmd := E_EnumCmdType.eEnumCmd_Next);
+			IF fbEnumFiles.bError THEN
+				fbFormatString(
+					sFormat := 'Unable to get files in folder "%s" (error code 0x%X)',
+					arg1 := F_STRING(fbEnumFiles.sPathName),
+					arg2 := F_UDINT(fbEnumFiles.nErrId),
+					sOut => sFaultDescription
+				);
+				eState := E_LogToDiskState.Error;
+			ELSIF fbEnumFiles.bEOE THEN
+				// Found all files, use the newest file as the log file to start with (if there was one)
+				IF (tLogFile.sFileName <> '') THEN 
+					fbFormatString(
+						sFormat := '%s%s',
+						arg1 := F_STRING(sLogFolder),
+						arg2 := F_STRING(tLogFile.sFileName),
+						sOut => sPath
+					);
+				END_IF
+				eState := E_LogToDiskState.WaitForCommand;
+			ELSE
+				// Found a file, check if it's newer than the previous find
+				IF (tLogFile.sFileName = '') 
+					OR (PLWORD_TO_LWORD(ADR(fbEnumFiles.stFindFile.creationTime)) > PLWORD_TO_LWORD(ADR(tLogFile.creationTime))) 
+				THEN
+					tLogFile := fbEnumFiles.stFindFile;
+				END_IF
+			END_IF
+		END_IF
+			
 	E_LogToDiskState.WaitForCommand:
 		IF (stLogItemFromBuffer.sMsg = '') THEN
 			stLogItemFromBuffer := Pop();
@@ -85,7 +133,7 @@ CASE eState OF
 
 	E_LogToDiskState.OpenOrCreateFile:
 		IF fbStateMachine.bStateChanged THEN
-			// Create a new file path if none was given (i.e., after reboot or when file size limit has been reached)
+			// Create a new file path if none was given (i.e., when there were no other log files found, or when file size limit has been reached)
 			IF (sPath = '') THEN
 				sPath := CreatePath();
 			END_IF  	
@@ -206,15 +254,7 @@ CASE eState OF
 		// Delete oldest log files in log folder until we're at MAX_NUMBER_OF_LOG_FILES
 		IF fbStateMachine.bStateChanged THEN
 			nFileCount := 0;	
-			tOldestLogFile.sFileName := ''; 
-			// Create a path search string, e.g. '/tmp/Log_*.txt'
-			fbFormatString(
-				sFormat := '%s%s*.%s',
-				arg1 := F_STRING(sLogFolder),
-				arg2 := F_STRING(sLogFilePrefix),
-				arg3 := F_STRING(sLogFileExtension),
-				sOut => fbEnumFiles.sPathName
-			);
+			tLogFile.sFileName := ''; 
 			fbEnumFiles.eCmd := E_EnumCmdType.eEnumCmd_First;
 		END_IF
 		fbEnumFiles(bExecute := TRUE);
@@ -235,10 +275,10 @@ CASE eState OF
 			ELSE
 				// Found a file, check if it's older than the previous find
 				nFileCount := nFileCount + 1;
-				IF (tOldestLogFile.sFileName = '') 
-					OR (PLWORD_TO_LWORD(ADR(fbEnumFiles.stFindFile.creationTime)) < PLWORD_TO_LWORD(ADR(tOldestLogFile.creationTime))) 
+				IF (tLogFile.sFileName = '') 
+					OR (PLWORD_TO_LWORD(ADR(fbEnumFiles.stFindFile.creationTime)) < PLWORD_TO_LWORD(ADR(tLogFile.creationTime))) 
 				THEN
-					tOldestLogFile := fbEnumFiles.stFindFile;
+					tLogFile := fbEnumFiles.stFindFile;
 				END_IF
 				IF (nFileCount > nMaxNumberOfLogFiles) THEN
 					// Max number of log files reached, delete the file				
@@ -252,7 +292,7 @@ CASE eState OF
 			fbFormatString(
 				sFormat := '%s%s',
 				arg1 := F_STRING(sLogFolder),
-				arg2 := F_STRING(tOldestLogFile.sFileName),
+				arg2 := F_STRING(tLogFile.sFileName),
 				sOut => fbFileDelete.sPathName
 			);
 		END_IF
@@ -262,7 +302,7 @@ CASE eState OF
 			IF fbFileDelete.bError THEN
 				fbFormatString(
 					sFormat := 'Unable to delete file "%s" (error code 0x%X)',
-					arg1 := F_STRING(tOldestLogFile.sFileName),
+					arg1 := F_STRING(tLogFile.sFileName),
 					arg2 := F_UDINT(fbFileClose.nErrId), 
 					sOut => sFaultDescription
 				);

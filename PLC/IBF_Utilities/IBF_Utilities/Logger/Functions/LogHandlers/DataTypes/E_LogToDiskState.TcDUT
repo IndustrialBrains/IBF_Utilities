@@ -6,6 +6,7 @@
 TYPE E_LogToDiskState : // LogToDisk state
 (
 	InitializeFBs,
+	FindLastLogFile,
 	WaitForCommand,
 	OpenOrCreateFile,
 	CheckFileSize,
