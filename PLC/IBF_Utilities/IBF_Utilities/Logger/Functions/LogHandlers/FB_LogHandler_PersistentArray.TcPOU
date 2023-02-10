@@ -2,11 +2,13 @@
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
   <POU Name="FB_LogHandler_PersistentArray" Id="{4966cdb4-950f-0659-2a45-e07380f91fca}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_LogHandler_PersistentArray EXTENDS FB_LogHandlerBase // Writes the last X-number of log items to a persistent list
-VAR_OUTPUT PERSISTENT
+VAR PERSISTENT
 	aLogItems : ARRAY[1..GVL_Utilities.RETAINABLE_LOG_HISTORY_SIZE] OF UDT_LogItem;
 	nIndex : UINT; // Array index of the last added log item
 END_VAR
-]]></Declaration>
+VAR
+	nIterIndex : UINT; // Array index of the iterator
+END_VAR]]></Declaration>
     <Implementation>
       <ST><![CDATA[]]></ST>
     </Implementation>
@@ -21,6 +23,42 @@ END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[nIndex := (nIndex MOD GVL_Utilities.RETAINABLE_LOG_HISTORY_SIZE) + 1;
 aLogItems[nIndex] := stLogItem;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Get" Id="{b92d4215-1114-0c08-3493-8db7b8a0c244}">
+      <Declaration><![CDATA[METHOD PROTECTED Get : UDT_LogItem // Get logitem based on nIterIndex; return an empty logitem if index is invalid
+VAR
+	stEmptyLogItem : UDT_LogItem;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF (nIterIndex >= 1) AND (nIterIndex <= GVL_Utilities.RETAINABLE_LOG_HISTORY_SIZE) THEN
+	Get := aLogItems[nIterIndex];
+ELSE
+	Get := stEmptyLogItem;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Last" Id="{96b46594-086e-0228-303b-2e866d241c47}">
+      <Declaration><![CDATA[METHOD PUBLIC Last : UDT_LogItem // Return the last added logitem
+
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[nIterIndex := nIndex;
+Last := Get();
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Previous" Id="{2b4efa5f-2fea-0055-281f-6f818d469f92}">
+      <Declaration><![CDATA[METHOD PUBLIC Previous : UDT_LogItem // Return the logitem previous to the one got before using Last() or Previous()
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[nIterIndex := nIterIndex - 1;
+IF (nIterIndex = 0) THEN // Roll over when lower bound is reached
+	nIterIndex := GVL_Utilities.RETAINABLE_LOG_HISTORY_SIZE;
+END_IF
+Previous := Get();
 ]]></ST>
       </Implementation>
     </Method>
