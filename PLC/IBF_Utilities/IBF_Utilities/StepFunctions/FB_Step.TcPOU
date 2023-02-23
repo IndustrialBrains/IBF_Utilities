@@ -103,7 +103,7 @@ CmdToStep := nNextStep = nStep ;
 VAR_INPUT
 	// Location data for messages  
 	nId			: UINT ; // Identification number of object
-	nParentId	: UINT ; // Id of higher level If aplicable (0 = no parent)
+	nParentId	: UDINT ; // Id of higher level if applicable (0 = no parent)
 	nResetStep	: UDINT ; // step to which the stepper wil go at reset
 END_VAR
 ]]></Declaration>
