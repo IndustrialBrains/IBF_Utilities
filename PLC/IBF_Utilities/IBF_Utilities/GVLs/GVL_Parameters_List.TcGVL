@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.10">
+  <GVL Name="GVL_Parameters_List" Id="{9a226d5c-48b3-0c02-2171-d1c1bd6cc2a3}" ParameterList="True">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL CONSTANT
+	sPARLIST_FILE				: T_MaxString := 'ParameterList.csv'; // The CSV file name that contains the parameters
+	sPARLIST_FORCEFACTORY_FILE	: T_MaxString := 'ForceFactory.txt';  // The indicator file to force a factory reset of the parameters 
+	sPARLIST_FORCECSV_FILE		: T_MaxString := 'ForceCsv.txt';      // The indicator file to force a CSV-Read of the parameters 
+	sPARLIST_FOLDER				: T_MaxString := 'D:\Parameters\';    // The folder that contains the files above
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

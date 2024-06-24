@@ -1,0 +1,688 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.10">
+  <POU Name="FB_ParameterSelector" Id="{1d6d6d3d-7f17-0b04-2ebd-7f7bd0508690}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK PUBLIC FB_ParameterSelector EXTENDS FB_ParameterHandler
+VAR_OUTPUT
+		bError 					: BOOL := FALSE; //Indicate there was an error initializing.  
+END_VAR
+VAR
+	// ====== Internal parameters array =====
+		arFileParameters		: ARRAY [1..GVL_Parameters.MAX_PARAMETERS] OF Udt_Parameter; //The as read parameters from the file
+		
+	// ====== Internal commands ======
+		bReadCsvCmd 			: BOOL; 		// Start the reading from a file to arFileParameters
+		bReadCsvDone 			: BOOL; 		// The reading from a file is done
+		bWriteCsvCmd 			: BOOL; 		// Start the writing to a file from arParameters
+		bWriteCsvDone 			: BOOL;			// The writing to a file is done
+		bFileExistsCmd 			: BOOL; 		// Start checking if a file exists
+		bFileExistsDone 		: BOOL; 		// Checking of a file exists is done
+		bFileExistsResult 		: BOOL; 		// Indicates if a file exists or not (only valid if bFileExistsDone is TRUE)
+		sFileExistsPath 		: T_MaxString; 	// The path to check	
+			
+	// ====== Internal status ======
+		nCurrentParameter 		: UDINT; 		// The parameter that is currently being read/written
+		nTotalFileParameters 	: UDINT;		// The total ammount of parameters in arFileParameters
+ 		hFileHandle 			: UINT; 		// The file handle that was last opened by fbFileOpen 
+		sCsvLineToWrite 		: T_MaxString;	// The current line that is being written to a file
+		bReadCsvErr 			: BOOL; 		// Reading the CSV resulted in an error
+		bWriteCsvErr 			: BOOL; 		// Writing the CSV resulted in an error
+		bForceCsv 				: BOOL; 		// Indicates we want to force the CSV to be read
+		bForceFactory 			: BOOL; 		// Indicates we want to force a factory reset
+		
+	// ====== Current step =====
+		nExecWriteCsvStep 		: DINT; 		// The step counter for writing to the csv
+		nExecReadCsvStep 		: DINT; 		// The step counter for reading from the csv
+		nExecFileExistStep 		: DINT; 		// The step counter to see if a file exists
+		nInitStep 				: DINT; 		// The step counter for initialisation
+		
+	// ====== Functions ======
+		fbFileOpen				: FB_FileOpen; 	// Opens a file handle
+		fbFileClose				: FB_FileClose; // Closes a file handle
+		fbFileGets				: FB_FileGets; 	// Reads one line from a file handle
+		fbFilePuts				: FB_FilePuts; 	// Writes one line to a file handle
+END_VAR
+VAR CONSTANT
+	// ====== File headers ======
+		sCsvFileHeader 			: STRING := 'NUMBER;NAME;TYPE;DISCRIPTION;FACTORY;MAXIMUM;MINIMUM;UNIT;VALUE$L'; //The header of the CSV file
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[SUPER^();
+
+//Run the Read/Write code
+ExecReadCsv();
+ExecWriteCsv();
+ExecFileExists();
+
+//Clear the commands
+bWriteCsvCmd := FALSE;
+bReadCsvCmd := FALSE;
+bFileExistsCmd := FALSE;]]></ST>
+    </Implementation>
+    <Folder Name="Private" Id="{73313427-274b-03ee-270d-005cc4c998df}">
+      <Folder Name="Copy" Id="{03f92219-9d79-0761-18eb-6040fac4ef1f}" />
+    </Folder>
+    <Method Name="CmdReadPar" Id="{15931b57-72fd-06f0-31bf-7e801b9a787e}">
+      <Declaration><![CDATA[METHOD CmdReadPar : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//Only allow a Read command while we are not writing
+IF (NOT bWriteCsvCmd) THEN
+	bReadCsvCmd := TRUE;
+END_IF
+
+CmdReadPar := bReadCsvDone;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="CmdSavePar" Id="{d66d8c34-06f7-027a-1d48-3d1391e2d4d3}">
+      <Declaration><![CDATA[METHOD PUBLIC CmdSavePar : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//Only allow a write command when we are not reading
+IF (NOT bReadCsvCmd) THEN
+	bWriteCsvCmd := TRUE ;
+END_IF;
+
+CmdSavePar := bWriteCsvDone;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="CopyCsvToLive" Id="{ac3c579e-fea6-08cd-033d-5709293bf09d}" FolderPath="Private\Copy\">
+      <Declaration><![CDATA[//Copy's all the parameters from the CSV file to the "Live" system 
+METHOD PRIVATE CopyCsvToLive : BOOL
+VAR_INPUT
+END_VAR
+VAR
+	nParameterIndex : UDINT;
+	stFoundParameter : POINTER TO Udt_Parameter;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//Parse over all parameters
+FOR nParameterIndex := 1 TO nNumberOfParameters BY 1 DO
+	//Try to get the parameter from the CSV file
+	stFoundParameter := FindParameterInLoadedCsv(ADR(arParameters[nParameterIndex]), nParameterIndex);
+	
+	//If the parameter has been found
+	IF (stFoundParameter <> 0) THEN
+		//restore the value to the live and saved elements 
+		arParameters[nParameterIndex].pParameter^.fValue := stFoundParameter^.fSaved;
+		arParameters[nParameterIndex].pParameter^.fSaved := stFoundParameter^.fSaved;
+		arParameters[nParameterIndex].pParameter^.fFactory := stFoundParameter^.fFactory;
+	END_IF
+END_FOR]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="CopyFactoryCsvToLive" Id="{70dd6efc-ee9a-0718-2f2d-82521f5e2973}" FolderPath="Private\Copy\">
+      <Declaration><![CDATA[//Copy's all the factory values from the CSV to the live parameters
+METHOD PRIVATE CopyFactoryCsvToLive : BOOL
+VAR_INPUT
+END_VAR
+VAR
+	nParameterIndex : UDINT;
+	stFoundParameter : POINTER TO Udt_Parameter;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//Parse over all parameters
+FOR nParameterIndex := 1 TO nNumberOfParameters BY 1 DO
+	//Try to get the parameter from the CSV file
+	stFoundParameter := FindParameterInLoadedCsv(ADR(arParameters[nParameterIndex]), nParameterIndex);
+	
+	//If the parameter has been found
+	IF (stFoundParameter <> 0) THEN
+		//restore the factory value from the CSV to the live and saved elements 
+		arParameters[nParameterIndex].pParameter^.fValue := stFoundParameter^.fFactory;
+		arParameters[nParameterIndex].pParameter^.fSaved := stFoundParameter^.fFactory;
+		arParameters[nParameterIndex].pParameter^.fFactory := stFoundParameter^.fFactory;
+	END_IF
+END_FOR]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="CopyFactoryToLive" Id="{6bd03dc4-e258-017e-084d-dbbf5a445711}" FolderPath="Private\Copy\">
+      <Declaration><![CDATA[//Copy's the (stored) factory values to the actual values
+METHOD PRIVATE CopyFactoryToLive : BOOL
+VAR_INPUT
+END_VAR
+VAR
+	nParameterIndex : UDINT;
+	stFoundParameter : POINTER TO Udt_Parameter;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//Parse over all parameters
+FOR nParameterIndex := 1 TO nNumberOfParameters BY 1 DO
+	//restore the factory value to the live value
+	arParameters[nParameterIndex].pParameter^.fValue := arParameters[nParameterIndex].pParameter^.fFactory;
+END_FOR]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="CopyMissingCsv" Id="{aa64f101-5c24-0d41-3f46-b7dd4b71dacf}" FolderPath="Private\Copy\">
+      <Declaration><![CDATA[METHOD PRIVATE CopyMissingCsv : BOOL
+VAR_INPUT
+END_VAR
+VAR
+	nParameterIndex : UDINT;
+	stFoundParameter : POINTER TO Udt_Parameter;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//Parse over all parameters
+FOR nParameterIndex := 1 TO nNumberOfParameters BY 1 DO
+	//Check if it was restored correctly
+	IF (NOT arParameters[nParameterIndex].pParameter^.bLoadedFromPersistent) THEN
+		//It was not restored correctly, try to find the matching index
+		stFoundParameter := FindParameterInLoadedCsv(ADR(arParameters[nParameterIndex]), nParameterIndex);
+		
+		//If the parameter has been found
+		IF (stFoundParameter <> 0) THEN
+			//restore the value to the live and saved elements 
+			arParameters[nParameterIndex].pParameter^.fValue := stFoundParameter^.fSaved;
+			arParameters[nParameterIndex].pParameter^.fSaved := stFoundParameter^.fSaved;
+		END_IF
+	END_IF
+END_FOR]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ExecFileExists" Id="{e819f3f2-6bd6-0cc8-356c-de02f492147a}" FolderPath="Private\">
+      <Declaration><![CDATA[//Checks if a file exists.
+//Set bFileExistsCmd and sFileExistsPath, next wait for bFileExistsDone to become true.
+//The result can be found in bFileExistsResult
+METHOD PRIVATE ExecFileExists : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[CASE nExecFileExistStep OF
+	0: //Wait for the start command
+		bFileExistsDone := FALSE;
+		IF (bFileExistsCmd) THEN
+			nExecFileExistStep := 10;
+		END_IF
+		
+	10: //(Try) to open the file
+		fbFileOpen(bExecute := FALSE);
+		fbFileOpen(sNetId := GVL_Parameters.sNetId, sPathName := sFileExistsPath, nMode := FOPEN_MODEREAD OR FOPEN_MODETEXT, bExecute := TRUE);
+		nExecFileExistStep := 20;
+		
+	20: //Wait for the file to open or an error to occur
+		fbFileOpen(bExecute := FALSE);
+		IF (NOT fbFileOpen.bBusy) THEN
+			//If we have a error, there could be multiple reasons for it, just assume the file does not exist
+			bFileExistsResult := NOT fbFileOpen.bError;
+			nExecFileExistStep := 30;
+		END_IF
+		
+	30: //File was opened, now we need to close it
+		fbFileClose(bExecute := FALSE);
+		fbFileClose(sNetId := GVL_Parameters.sNetId, hFile := fbFileOpen.hFile, bExecute := TRUE);
+		nExecFileExistStep := 40;
+		
+	40: //Wait for the file to close
+		fbFileClose(bExecute := FALSE);
+		IF (NOT fbFileClose.bBusy) THEN
+			//Ignore any errors, we don't need that result 
+			nExecFileExistStep := 50;
+		END_IF
+		
+	50: //We are done, wait for the reset
+		bFileExistsDone := TRUE;
+		IF (NOT bFileExistsCmd) THEN
+			bFileExistsDone := FALSE;
+			nExecFileExistStep := 0;
+		END_IF
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ExecReadCsv" Id="{80bc07ff-82a7-0d4a-030f-d9245307444a}" FolderPath="Private\">
+      <Declaration><![CDATA[//Reads the CSV file into arFileParameters
+METHOD PRIVATE ExecReadCsv : BOOL
+VAR_INPUT
+END_VAR
+VAR
+	sCsvFileName : T_MaxString;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[CASE nExecReadCsvStep OF
+	0://Wait for the start command and writing is not in progress
+		bReadCsvDone := FALSE;
+		IF bReadCsvCmd AND NOT bWriteCsvCmd THEN
+			bReadCsvErr := FALSE;
+			nExecReadCsvStep := 10;
+			nCurrentParameter := 0;
+		END_IF
+		
+	10://Open the file
+		//Prepare the name
+		sCsvFileName := CONCAT(GVL_Parameters_List.sPARLIST_FOLDER, GVL_Parameters_List.sPARLIST_FILE);
+		//Start opening the file by generating a rising edge on the bExecute input of fbFileOpen
+		fbFileOpen(bExecute := FALSE);
+		fbFileOpen(sNetId := GVL_Parameters.sNetId, sPathName := sCsvFileName, nMode := FOPEN_MODEREAD OR FOPEN_MODETEXT, bExecute := TRUE);
+		nExecReadCsvStep := 20;
+		
+	20: //Wait for the file to open
+		//The opening is still in progress even if we clear the bExecute flag
+		fbFileOpen(bExecute := FALSE);
+		IF (NOT fbFileOpen.bBusy) THEN
+			IF (NOT fbFileOpen.bError) THEN
+				nExecReadCsvStep := 30;
+				hFileHandle := fbFileOpen.hFile;
+			ELSE
+				nExecReadCsvStep := -20;
+			END_IF
+		END_IF
+		
+	30: //File open, start reading
+		fbFileGets(bExecute := FALSE);
+		fbFileGets(sNetId := GVL_Parameters.sNetId, hFile := hFileHandle, bExecute := TRUE);
+		nExecReadCsvStep := 40;
+		
+	40: //Wait for the line to be read
+		fbFileGets(bExecute := FALSE);
+		IF (NOT fbFileGets.bBusy) THEN
+			IF (fbFileGets.bError) THEN
+				nExecReadCsvStep := -40;
+			ELSIF (fbFileGets.bEOF) THEN
+				nExecReadCsvStep := 70;
+			ELSE
+				nExecReadCsvStep := 50;
+			END_IF
+		END_IF
+		
+	50: //Line is read, parse it
+		//Skip the 1st line, this is the header anyway
+		IF (nCurrentParameter = 0) THEN
+			nExecReadCsvStep := 60;
+		ELSE
+			//Read the parameters to the local arFileParameters
+			IF (UpdateParameterFromCsvLine(sCsvString := fbFileGets.sLine, stParameter := ADR(arFileParameters[nCurrentParameter]))) THEN
+				nExecReadCsvStep := 60;
+			ELSE
+				nExecReadCsvStep := -50; 
+			END_IF
+		END_IF
+		
+	60: //Proceed with the next parameter
+		nCurrentParameter := nCurrentParameter + 1;
+		nExecReadCsvStep := 30;
+		
+	70: //All parameters read, close the file
+		nTotalFileParameters := nCurrentParameter;
+		fbFileClose(bExecute := FALSE);
+		fbFileClose(sNetId := GVL_Parameters.sNetId, hFile := hFileHandle, bExecute := TRUE);
+		nExecReadCsvStep := 80;
+		
+	80: //Wait for the close to be done
+		fbFileClose(bExecute := FALSE);
+		IF (NOT fbFileClose.bBusy) THEN
+			IF (NOT fbFileClose.bError) THEN
+				nExecReadCsvStep := 90;
+			ELSE
+				nExecReadCsvStep := -80;
+			END_IF
+		END_IF
+		
+	90: //File read, wait for the reset
+		bReadCsvDone := TRUE;
+		IF (NOT bReadCsvCmd) THEN
+			bReadCsvDone := FALSE;
+			nExecReadCsvStep := 0;
+		END_IF
+		
+	-20: //Error opening
+		bReadCsvErr := TRUE;
+		nExecReadCsvStep := 90;
+		
+	-40: //Error reading line
+		bReadCsvErr := TRUE;
+		nExecReadCsvStep := 90;
+		
+	-50: //Error parsing line
+		bReadCsvErr := TRUE;
+		nExecReadCsvStep := 90;
+		
+	-80: //Error closing
+		bReadCsvErr := TRUE;
+		nExecReadCsvStep := 90;
+		
+	ELSE
+		bReadCsvErr := TRUE;
+		nExecReadCsvStep := 90;
+		
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ExecWriteCsv" Id="{0567fa42-09f3-0e2b-3896-45637127579a}" FolderPath="Private\">
+      <Declaration><![CDATA[//Writes the arParameters array to a CSV file 
+METHOD PRIVATE ExecWriteCsv : BOOL
+VAR_INPUT
+END_VAR
+VAR
+	sCsvFileName : T_MaxString;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[CASE nExecWriteCsvStep OF
+	0: //Wait for the start command and reading is not in progress
+		bWriteCsvDone := FALSE;
+		IF bWriteCsvCmd AND NOT bReadCsvCmd THEN
+			nExecWriteCsvStep := 10;
+			nCurrentParameter := 0;
+			bWriteCsvErr := FALSE;
+		END_IF
+		
+	10: //Open the file
+		//Prepare the name
+		sCsvFileName := CONCAT(GVL_Parameters_List.sPARLIST_FOLDER, GVL_Parameters_List.sPARLIST_FILE);
+		//Start opening the file by generating a rising edge on the bExecute input of fbFileOpen
+		fbFileOpen(bExecute := FALSE);
+		fbFileOpen(sNetId := GVL_Parameters.sNetId, sPathName := sCsvFileName, nMode := FOPEN_MODEWRITE OR FOPEN_MODETEXT, bExecute := TRUE);
+		nExecWriteCsvStep := 20;
+		
+	20: //Wait for the file to open
+		//The opening is still in progress even if we clear the bExecute flag
+		fbFileOpen(bExecute := FALSE);
+		IF (NOT fbFileOpen.bBusy) THEN
+			IF (NOT fbFileOpen.bError) THEN
+				nExecWriteCsvStep := 30;
+				hFileHandle := fbFileOpen.hFile;
+			ELSE
+				nExecWriteCsvStep := -20;
+			END_IF
+		END_IF
+		
+	30: //Write the header
+		//Start writing the file by generating a rising edge on the bExecute input of fbFilePuts
+		fbFilePuts(bExecute := FALSE);
+		fbFilePuts(sNetId := GVL_Parameters.sNetId, hFile := hFileHandle, sLine := sCsvFileHeader, bExecute := TRUE);
+		//And yes, we can "abuse" step 60 here. The arParameters starts at 1 and nCurrentParameter starts at 0. So that sould work out just fine
+		nExecWriteCsvStep := 60;
+	
+	40: //Check we have written all the parameters
+		IF (nCurrentParameter >= nNumberOfParameters) THEN
+			nExecWriteCsvStep := 90;
+		ELSE
+			nExecWriteCsvStep := 50;
+		END_IF
+		
+	50: //Prepare the line to write
+		sCsvLineToWrite := ParameterToCsvLine(arParameters[nCurrentParameter].pParameter);
+		//Since we are saving it, copy the current value to the saved value
+		arParameters[nCurrentParameter].pParameter^.fSaved := arParameters[nCurrentParameter].pParameter^.fValue;
+		//Set the bLoadedFromPersistent flag so it is set somewhere and consistantly
+		arParameters[nCurrentParameter].pParameter^.bLoadedFromPersistent := TRUE;
+		nExecWriteCsvStep := 60;
+		
+	60: //Write the line		
+		//Start writing to the file by generating a rising edge on the bExecute input of fbFilePuts
+		fbFilePuts(bExecute := FALSE);
+		fbFilePuts(sNetId := GVL_Parameters.sNetId, hFile := hFileHandle, sLine := sCsvLineToWrite, bExecute := TRUE);
+		nExecWriteCsvStep := 70;
+	
+	70: //Wait untill the line is written
+		//The writing is still in progress even if we clear the bExecute flag
+		fbFilePuts(bExecute := FALSE);
+		IF (NOT fbFilePuts.bBusy) THEN
+			IF (NOT fbFilePuts.bError) THEN
+				nExecWriteCsvStep := 80;
+			ELSE
+				nExecWriteCsvStep := -70;
+			END_IF
+		END_IF
+		
+	80: //Next parameter
+		nCurrentParameter := nCurrentParameter + 1;
+		nExecWriteCsvStep := 40;
+	
+	90: //All parameters written, close the file
+		fbFileClose(bExecute := FALSE);
+		fbFileClose(sNetId := GVL_Parameters.sNetId, hFile := hFileHandle, bExecute := TRUE);
+		nExecWriteCsvStep := 100;
+		
+	100: //Wait for the close to be done
+		fbFileClose(bExecute := FALSE);
+		IF (NOT fbFileClose.bBusy) THEN
+			IF (NOT fbFileClose.bError) THEN
+				nExecWriteCsvStep := 110;
+			ELSE
+				nExecWriteCsvStep := -100;
+			END_IF
+		END_IF
+	
+	110: //Save done, wait for the reset
+		bWriteCsvDone := TRUE;
+		IF (NOT bWriteCsvCmd) THEN
+			bWriteCsvDone := FALSE;
+			nExecWriteCsvStep := 0;
+		END_IF
+		
+	-20: //Error opening
+		bWriteCsvErr := TRUE;
+		nExecWriteCsvStep := 110;
+		
+	-70: //Error writing
+		bWriteCsvErr := TRUE;
+		nExecWriteCsvStep := 110;
+		
+	-100: //Error closing
+		bWriteCsvErr := TRUE;
+		nExecWriteCsvStep := 110;
+		
+	ELSE
+		bWriteCsvErr := TRUE;
+		nExecWriteCsvStep := 110;
+	
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="FindParameterInLoadedCsv" Id="{3e45f710-4d7f-0ec2-1c93-5ea70098ef6a}" FolderPath="Private\">
+      <Declaration><![CDATA[//Searches for a specific parameter in arFileParameters
+METHOD PRIVATE FindParameterInLoadedCsv : POINTER TO Udt_Parameter
+VAR_INPUT
+	stWantedParameter : POINTER TO Udt_ParameterId;
+	stCurrentIndex : UDINT;
+END_VAR
+VAR
+	nParameterIndex : UDINT;
+	stCurrentParameter : POINTER TO Udt_Parameter;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//Check the current index, just to speed-up the process
+IF (arFileParameters[stCurrentIndex].nNumber = stWantedParameter^.nNumber AND arFileParameters[stCurrentIndex].sName = stWantedParameter^.sName) THEN
+	FindParameterInLoadedCsv := ADR(arFileParameters[stCurrentIndex]);
+	RETURN;
+END_IF
+
+//Ok, the current index failed, let's try harder
+FOR nParameterIndex := 1 TO nTotalFileParameters BY 1 DO
+	//Get the current parameter
+	stCurrentParameter := ADR(arFileParameters[nParameterIndex]);
+	//Is it a match?
+	IF (stCurrentParameter^.nNumber = stWantedParameter^.nNumber AND stCurrentParameter^.sName = stWantedParameter^.sName) THEN
+		//Yes, return what we found
+		FindParameterInLoadedCsv := stCurrentParameter;
+		RETURN;
+	END_IF
+END_FOR
+
+//Didn't find anything. Too bad
+FindParameterInLoadedCsv := 0;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="GetParameterColumnValue" Id="{53266729-3a3f-01e6-03f2-617eac2c4979}" FolderPath="Private\">
+      <Declaration><![CDATA[//Converts a parameter value at a specified index to a string
+METHOD PRIVATE GetParameterColumnValue : T_MaxString
+VAR_INPUT
+	nColumn : UDINT;
+	stParameter : POINTER TO Udt_Parameter;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[CASE nColumn OF 
+	0: // number
+		GetParameterColumnValue := UDINT_TO_STRING(stParameter^.nNumber);
+	1: // name
+		GetParameterColumnValue := stParameter^.sName;
+	2: // Type
+		GetParameterColumnValue := stParameter^.sType;
+	3: // discription
+		GetParameterColumnValue := stParameter^.sDiscription;
+	4: // factory
+		GetParameterColumnValue := LREAL_TO_STRING(stParameter^.fFactory);
+	5: // maximum
+		GetParameterColumnValue := LREAL_TO_STRING(stParameter^.fMaximum);
+	6: // minimum
+		GetParameterColumnValue := LREAL_TO_STRING(stParameter^.fMinimum);
+	7: // Unit 
+		GetParameterColumnValue := stParameter^.sUnit;
+	8: // value
+		GetParameterColumnValue := LREAL_TO_STRING(stParameter^.fValue);
+	ELSE
+		GetParameterColumnValue := '';
+END_CASE]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Init" Id="{8ed4be05-62c8-0edc-0088-f436a1a30afb}">
+      <Declaration><![CDATA[// Initializes the loading of the parameters
+METHOD PUBLIC Init : BOOL
+VAR_INPUT
+END_VAR
+VAR
+	sFileName : T_MaxString;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[CASE nInitStep OF
+	0: //Read the CSV in memory
+		IF (CmdReadPar()) THEN
+			//Did it work out ok
+			IF (NOT bReadCsvErr) THEN
+				//Yes, Reading the CSV went as planned, proceed
+				nInitStep := 10;
+			ELSE
+				//No, Skip all of this
+				nInitStep := 60;
+			END_IF
+		END_IF
+		
+	10: //Determine if the "ForceCsv" file exists
+		sFileExistsPath := CONCAT(GVL_Parameters_List.sPARLIST_FOLDER, GVL_Parameters_List.sPARLIST_FORCECSV_FILE);
+		bFileExistsCmd := TRUE;
+		IF (bFileExistsDone) THEN
+			bForceCsv := bFileExistsResult;
+			nInitStep := 20;
+		END_IF
+		
+	20: //Reset the command
+		bFileExistsCmd := FALSE;
+		nInitStep := 30;
+
+	30: //Determine if the "ForceFactory" file exists
+		sFileExistsPath := CONCAT(GVL_Parameters_List.sPARLIST_FOLDER, GVL_Parameters_List.sPARLIST_FORCEFACTORY_FILE);
+		bFileExistsCmd := TRUE;
+		IF (bFileExistsDone) THEN
+			bForceFactory := bFileExistsResult;
+			nInitStep := 40;
+		END_IF
+		
+	40: //Reset the command
+		bFileExistsCmd := FALSE;
+		nInitStep := 50;
+	
+	50: //We now know what the user wants. Try to excecute it.
+		IF (bForceCsv AND bForceFactory) THEN
+			CopyFactoryCsvToLive();
+		ELSIF (bForceCsv) THEN
+			CopyCsvToLive();
+		ELSIF (bForceFactory) THEN
+			CopyFactoryToLive();
+		ELSE
+			CopyMissingCsv();
+		END_IF
+		nInitStep := 60;
+	
+	60:
+		Init := TRUE;
+END_CASE
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ParameterToCsvLine" Id="{12267c6c-0b13-0f03-070a-9bf53c09ac5d}" FolderPath="Private\">
+      <Declaration><![CDATA[//Converts a (full) parameter to a string for in the CSV file
+METHOD PRIVATE ParameterToCsvLine : T_MaxString
+VAR_INPUT
+	stParameter : POINTER TO UDT_Parameter;
+END_VAR
+VAR
+	nColumn : UDINT;
+	sColumnValue : T_MaxString;
+	sEscapedCsv : T_MaxString;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//Clear the output
+ParameterToCsvLine := '';
+FOR nColumn := 0 TO GVL_Parameters.PAR_COLUMNS BY 1 DO
+	//Get the correct value for this column
+	sColumnValue := GetParameterColumnValue(nColumn, stParameter);
+	//Escape the value
+	sEscapedCsv := STRING_TO_CSVFIELD(sColumnValue, FALSE);
+	//Append it to the output
+	ParameterToCsvLine := CONCAT(ParameterToCsvLine,sEscapedCsv);
+	//Append a ; or newline depending on the column
+	IF (nColumn < GVL_Parameters.PAR_COLUMNS) THEN 
+		ParameterToCsvLine := CONCAT(ParameterToCsvLine,';');
+	ELSE
+		ParameterToCsvLine := CONCAT(ParameterToCsvLine,'$L');
+	END_IF
+END_FOR]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="SplitCsvStringToArray" Id="{216f71cc-6434-07b5-3cae-1be5255f9f8e}" FolderPath="Private\">
+      <Declaration><![CDATA[//Splits a CSV line to a string
+METHOD PRIVATE SplitCsvStringToArray : ARRAY[0..GVL_Parameters.PAR_COLUMNS] OF T_MaxString
+VAR_INPUT
+	sCsvString : T_MaxString;
+END_VAR
+VAR
+    bResultSplit : BOOL;
+    i            : UDINT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[SplitCsvStringToArray[0] := sCsvString;
+FOR i:=0 TO GVL_Parameters.PAR_COLUMNS-1 DO
+    bResultSplit := FindAndSplitChar( sSeparatorChar := ';',  pSrcString := ADR(SplitCsvStringToArray[i]), 
+                                      pLeftString    := ADR(SplitCsvStringToArray[i]),   nLeftSize  := SIZEOF(SplitCsvStringToArray[i]), 
+                                      pRightString   := ADR(SplitCsvStringToArray[i+1]), nRightSize := SIZEOF(SplitCsvStringToArray[i+1]),
+                                      bSearchFromRight := FALSE );
+    IF NOT bResultSplit THEN
+        EXIT;
+    END_IF
+END_FOR]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="UpdateParameterFromCsvLine" Id="{c12fac8f-27a0-0467-2f41-c4076bda27ed}" FolderPath="Private\">
+      <Declaration><![CDATA[//Updates a parameter based on a CSV string
+METHOD PRIVATE UpdateParameterFromCsvLine : BOOL
+VAR_INPUT
+	sCsvString : T_MaxString;
+	stParameter : POINTER TO Udt_Parameter;
+END_VAR
+VAR
+	sCsvData : ARRAY[0..GVL_Parameters.PAR_COLUMNS] OF T_MaxString;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//Convert the string to an array
+sCsvData := SplitCsvStringToArray(sCsvString);
+//Note: See GetParameterColumnValue() for the order of the array
+
+//Copy the index number
+stParameter^.nNumber := STRING_TO_UDINT(sCsvData[0]);
+//Copy the name
+stParameter^.sName := sCsvData[1];
+//Copy the factory value
+stParameter^.fFactory := STRING_TO_LREAL(sCsvData[4]);
+//Copy the last saved value to the saved location
+stParameter^.fSaved := STRING_TO_LREAL(sCsvData[8]);
+
+//The update was sucessfull
+UpdateParameterFromCsvLine := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+  </POU>
+</TcPlcObject>
